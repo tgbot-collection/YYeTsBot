@@ -50,6 +50,8 @@ coverage.xml
 # Translations
 *.mo
 *.pot
+*.dat
+*.dir
 
 # Django stuff:
 *.log
@@ -102,3 +104,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+/.idea/$CACHE_FILE$
+/.idea/.gitignore
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
+/.idea/YYeTsBot.iml
