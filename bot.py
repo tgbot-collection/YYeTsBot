@@ -7,14 +7,17 @@ __author__ = 'Benny <benny.think@gmail.com>'
 import os
 import logging
 import telebot
-from telebot import apihelper
 from config import TOKEN
 from telebot import types
 from utils import bunch_upsert, get
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
+from html_parser import parser
+from html_request import get_html
 
-apihelper.proxy = {'socks5': 'socks5://127.0.0.1:1080'}
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
+# from telebot import apihelper
+
+# apihelper.proxy = {'socks5': 'socks5://127.0.0.1:1080'}
 
 bot = telebot.TeleBot(os.environ.get('TOKEN') or TOKEN)
 
@@ -26,19 +29,26 @@ def send_welcome(message):
 
 
 @bot.message_handler(commands=['help'])
-def send_welcome(message):
+def send_help(message):
     bot.send_chat_action(message.chat.id, 'typing')
     bot.send_message(message.chat.id, '''机器人无法使用或者报错？
     @BennyThink 或者<a href='https://github.com/BennyThink/YYeTsBot/issues'>Github issues</a>''',
                      parse_mode='html')
 
 
-from html_parser import parser
-from html_request import get_html
+@bot.message_handler(commands=['credits'])
+def send_credits(message):
+    bot.send_chat_action(message.chat.id, 'typing')
+    bot.send_message(message.chat.id, '''感谢字幕组的无私奉献！本机器人资源来源:\n
+    <a href="http://www.zmz2019.com/">人人影视</a>
+    <a href="http://oabt005.com/home.html">磁力下载站</a>
+    <a href="http://www.zhuixinfan.com/main.php ">追新番</a>
+    <a href="http://www.zimuxia.cn/">FIX字幕侠</a>
+    ''', parse_mode='html')
 
 
 @bot.message_handler()
-def send_welcome(message):
+def send_link(message):
     bot.send_chat_action(message.chat.id, 'record_video')
     name = message.text
     logging.info('Receiving message about %s from user %s(%s)' % (name, message.chat.username,
@@ -73,6 +83,8 @@ def send_welcome(message):
 def callback_handle(call):
     bot.send_chat_action(call.message.chat.id, 'typing')
     dict_r = get(call.data)
+    if not dict_r:
+        bot.send_message(call.message.chat.id, '请在聊天框内重新发送你想要的影视名称')
     bot.answer_callback_query(call.id, '文件大小为%s' % dict_r['size'])
     bot.send_message(call.message.chat.id, dict_r['ed2k'])
     bot.send_message(call.message.chat.id, dict_r['magnet'])
