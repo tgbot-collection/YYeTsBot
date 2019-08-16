@@ -75,8 +75,9 @@ def send_link(message):
     # saved dict_r
     bunch_upsert(dict_r)
 
-    markup = types.InlineKeyboardMarkup()
     for i in range(0, len(list_r), 20):
+        logging.info("I'm sending you links now😉")
+        markup = types.InlineKeyboardMarkup()
         part = list_r[i:i + 20]
         for item in part:
             btn = types.InlineKeyboardButton(item['name'], callback_data=item['id'])

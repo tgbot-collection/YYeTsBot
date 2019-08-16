@@ -21,7 +21,7 @@ def get_html(kw: str) -> list:
         logging.info('Requesting %s' % url)
         r = s.get(url)
         # status code is always 200
-        if '一共0条内容' not in r.text:
+        if 'data-cat' in r.text:
             contents.append(r.text)
         else:
             break
