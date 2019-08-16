@@ -4,12 +4,14 @@
 
 __author__ = 'Benny <benny.think@gmail.com>'
 
+import logging
+import re
+
+from copy import deepcopy
 from typing import List, Dict
 from uuid import uuid4
+
 from bs4 import BeautifulSoup
-import re
-from copy import deepcopy
-import logging
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 

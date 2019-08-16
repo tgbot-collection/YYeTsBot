@@ -4,8 +4,8 @@
 
 __author__ = 'Benny <benny.think@gmail.com>'
 
-import requests
 import logging
+import requests
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 

@@ -4,9 +4,9 @@
 
 __author__ = 'Benny <benny.think@gmail.com>'
 
-import os
 import dbm
 import json
+import os
 
 db_path = os.path.join(os.path.dirname(__file__), 'data', 'yyets.dbm')
 db = dbm.open(db_path, 'c')

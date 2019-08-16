@@ -6,13 +6,14 @@ __author__ = 'Benny <benny.think@gmail.com>'
 
 import os
 import logging
-import telebot
-from config import TOKEN
-from telebot import types
-from utils import bunch_upsert, get
 
+import telebot
+from telebot import types
+
+from config import TOKEN
 from html_parser import parser
 from html_request import get_html
+from utils import bunch_upsert, get
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 # from telebot import apihelper
