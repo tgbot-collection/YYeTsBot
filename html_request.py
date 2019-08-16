@@ -16,7 +16,7 @@ s = requests.Session()
 
 def get_html(kw: str) -> list:
     contents = []
-    for i in range(1, 20):
+    for i in range(1, 10):
         url = URL.format(kw=kw, page=i)
         logging.info('Requesting %s' % url)
         r = s.get(url)

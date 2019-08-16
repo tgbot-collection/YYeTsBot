@@ -67,19 +67,23 @@ def send_link(message):
         dict_r = dict(dict_r, **r2)
     if not dict_r:
         bot.send_chat_action(message.chat.id, 'find_location')
-        bot.send_message(message.chat.id, "没有找到您想要的信息🤪")
+        bot.send_message(message.chat.id, "没有找到你想要的信息🤪")
+        bot.send_chat_action(message.chat.id, 'typing')
+        bot.send_message(message.chat.id, "莫非你是想调戏我哦😏")
         return
 
     # saved dict_r
     bunch_upsert(dict_r)
 
     markup = types.InlineKeyboardMarkup()
-    for item in list_r:
-        btn = types.InlineKeyboardButton(item['name'], callback_data=item['id'])
-        markup.add(btn)
+    for i in range(0, len(list_r), 20):
+        part = list_r[i:i + 20]
+        for item in part:
+            btn = types.InlineKeyboardButton(item['name'], callback_data=item['id'])
+            markup.add(btn)
 
-    bot.send_chat_action(message.chat.id, 'upload_document')
-    bot.send_message(message.chat.id, "点击按钮获取下载链接", reply_markup=markup)
+        bot.send_chat_action(message.chat.id, 'upload_document')
+        bot.send_message(message.chat.id, "点击按钮获取下载链接", reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -87,10 +91,10 @@ def callback_handle(call):
     bot.send_chat_action(call.message.chat.id, 'typing')
     dict_r = get(call.data)
     if not dict_r:
-        bot.send_message(call.message.chat.id, '请在聊天框内重新发送你想要的影视名称')
+        bot.send_message(call.message.chat.id, '我失忆惹，请在聊天框内重新发送你想要的影视名称')
     bot.answer_callback_query(call.id, '文件大小为%s' % dict_r['size'])
-    bot.send_message(call.message.chat.id, dict_r['ed2k'])
-    bot.send_message(call.message.chat.id, dict_r['magnet'])
+    bot.send_message(call.message.chat.id, dict_r['ed2k'] if dict_r['ed2k'] else '哎呀，没有ed2k链接')
+    bot.send_message(call.message.chat.id, dict_r['magnet'] if dict_r['magnet'] else '哎呀，没有magnet链接')
 
 
 if __name__ == '__main__':
