@@ -14,7 +14,7 @@
 ## 1. 环境
 推荐使用Python 3，Python 2未进行测试，使用pip安装依赖
 ```bash
-pip install requests pytelegrambotapi beautifulsoup4
+pip install requests pytelegrambotapi beautifulsoup4 lxml
 ```
 ## 2. 配置TOKEN
 修改`config.py`，把TOKEN修改为你的bot token
