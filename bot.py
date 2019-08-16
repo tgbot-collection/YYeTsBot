@@ -26,7 +26,9 @@ bot = telebot.TeleBot(os.environ.get('TOKEN') or TOKEN)
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     bot.send_chat_action(message.chat.id, 'typing')
-    bot.send_message(message.chat.id, '欢迎使用，发送想要的剧集标题，我会帮你搜索')
+    bot.send_message(message.chat.id, '欢迎使用，发送想要的剧集标题，我会帮你搜索。'
+                                      '建议使用<a href="http://www.zmz2019.com/">人人影视</a>标准译名',
+                     parse_mode='html')
 
 
 @bot.message_handler(commands=['help'])
