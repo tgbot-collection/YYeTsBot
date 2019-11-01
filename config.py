@@ -5,3 +5,5 @@
 __author__ = 'Benny <benny.think@gmail.com>'
 
 TOKEN = "TOKEN"
+
+MAINTAINER = '260260121'

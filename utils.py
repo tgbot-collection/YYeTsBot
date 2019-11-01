@@ -25,6 +25,12 @@ def get(key: str) -> dict:
     return json.loads(db.get(key, '{}'), encoding='utf-8')
 
 
+def save_dump(err):
+    f = open(os.path.join(os.path.dirname(__file__), 'data', 'error.txt'), 'w', encoding='u8')
+    f.write(err)
+    f.close()
+
+
 if __name__ == '__main__':
     s = {
         'e4b6bb1cb95c4f3d': {

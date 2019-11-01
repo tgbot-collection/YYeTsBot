@@ -14,8 +14,9 @@ URL = 'http://oabt007.com/index/index/k/{kw}/p/{page}'
 s = requests.Session()
 
 
-def get_html(kw: str) -> list:
+def get_html(kw: str) -> (list, str, str):
     contents = []
+    url = r = '40404'
     for i in range(1, 10):
         url = URL.format(kw=kw, page=i)
         logging.info('Requesting %s' % url)
@@ -25,7 +26,7 @@ def get_html(kw: str) -> list:
             contents.append(r.text)
         else:
             break
-    return contents
+    return contents, url, r.text
 
 
 if __name__ == '__main__':

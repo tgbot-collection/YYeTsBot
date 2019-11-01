@@ -5,15 +5,15 @@
 __author__ = 'Benny <benny.think@gmail.com>'
 
 import os
+import time
 import logging
 
 import telebot
 from telebot import types
-
-from config import TOKEN
+from config import TOKEN, MAINTAINER
 from html_parser import parser
 from html_request import get_html
-from utils import bunch_upsert, get
+from utils import bunch_upsert, get, save_dump
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 # from telebot import apihelper
@@ -57,7 +57,8 @@ def send_link(message):
     logging.info('Receiving message about %s from user %s(%s)' % (name, message.chat.username,
                                                                   message.chat.id))
     # get html content
-    contents = get_html(name)
+    contents, req_url, req_text = get_html(name)
+    # contents, req_url, req_text = [],'url','html'
     # get download link
     bot.send_chat_action(message.chat.id, 'upload_video')
     list_r, dict_r = [], {}
@@ -66,16 +67,29 @@ def send_link(message):
         list_r.extend(r1)
         dict_r = dict(dict_r, **r2)
     if not dict_r:
+        markup = types.InlineKeyboardMarkup()
         bot.send_chat_action(message.chat.id, 'find_location')
-        bot.send_message(message.chat.id, "没有找到你想要的信息🤪")
+        bot.send_message(message.chat.id, "没有找到你想要的信息🤪\n莫非你是想调戏我哦😏")
         bot.send_chat_action(message.chat.id, 'typing')
-        bot.send_message(message.chat.id, "莫非你是想调戏我哦😏")
+
+        btn = types.InlineKeyboardButton("快来修复啦", callback_data="fix")
+        markup.add(btn)
+        bot.send_chat_action(message.chat.id, 'upload_document')
+        bot.send_message(message.chat.id, f"《{name}》😭😭😭\n机器人不好用了？点下面的按钮叫 @BennyThink 来修！",
+                         reply_markup=markup)
+        e = f""" 报告者：@{message.chat.username}({message.chat.id})
+                问题发生时间：{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.date))}
+                请求内容：{name} 
+                请求URL：{req_url}\n\n
+                返回内容：{req_text}
+            """
+        save_dump(e)
         return
 
     # saved dict_r
     bunch_upsert(dict_r)
-
-    for i in range(0, len(list_r), 20):
+    size = 20
+    for i in range(0, len(list_r), size):
         logging.info("I'm sending you links now😉")
         markup = types.InlineKeyboardMarkup()
         part = list_r[i:i + 20]
@@ -87,8 +101,8 @@ def send_link(message):
         bot.send_message(message.chat.id, "点击按钮获取下载链接", reply_markup=markup)
 
 
-@bot.callback_query_handler(func=lambda call: True)
-def callback_handle(call):
+@bot.callback_query_handler(func=lambda call: call.data != 'fix')
+def movie_handle(call):
     bot.send_chat_action(call.message.chat.id, 'typing')
     dict_r = get(call.data)
     if not dict_r:
@@ -96,6 +110,14 @@ def callback_handle(call):
     bot.answer_callback_query(call.id, '文件大小为%s' % dict_r['size'])
     bot.send_message(call.message.chat.id, dict_r['ed2k'] if dict_r['ed2k'] else '哎呀，没有ed2k链接')
     bot.send_message(call.message.chat.id, dict_r['magnet'] if dict_r['magnet'] else '哎呀，没有magnet链接')
+
+
+@bot.callback_query_handler(func=lambda call: call.data == 'fix')
+def report_error(call):
+    bot.send_chat_action(call.message.chat.id, 'typing')
+    bot.send_message(MAINTAINER, '人人影视机器人似乎出现了一些问题🤔🤔🤔……')
+    debug = open(os.path.join(os.path.dirname(__file__), 'data', 'error.txt'), 'r', encoding='u8')
+    bot.send_document(MAINTAINER, debug)
 
 
 if __name__ == '__main__':
