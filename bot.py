@@ -120,7 +120,8 @@ def report_error(call):
     bot.send_message(MAINTAINER, '人人影视机器人似乎出现了一些问题🤔🤔🤔……')
     debug = open(os.path.join(os.path.dirname(__file__), 'data', 'error.txt'), 'r', encoding='u8')
     bot.send_document(MAINTAINER, debug)
-
+    bot.answer_callback_query(call.id, 'Debug信息已经发送给维护者，请耐心等待修复~', show_alert=True)
+    
 
 if __name__ == '__main__':
     logging.info('YYeTs bot is running...')
