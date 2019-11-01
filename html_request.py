@@ -9,7 +9,7 @@ import requests
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 
-URL = 'http://oabt005.com/index/index/k/{kw}/p/{page}'
+URL = 'http://oabt007.com/index/index/k/{kw}/p/{page}'
 
 s = requests.Session()
 
