@@ -67,6 +67,7 @@ def send_link(message):
         list_r.extend(r1)
         dict_r = dict(dict_r, **r2)
     if not dict_r:
+        logging.warning("Nothing found, 404.")
         markup = types.InlineKeyboardMarkup()
         bot.send_chat_action(message.chat.id, 'find_location')
         bot.send_message(message.chat.id, "没有找到你想要的信息🤪\n莫非你是想调戏我哦😏")
@@ -114,6 +115,7 @@ def movie_handle(call):
 
 @bot.callback_query_handler(func=lambda call: call.data == 'fix')
 def report_error(call):
+    logging.error("Reporting error to maintainer.")
     bot.send_chat_action(call.message.chat.id, 'typing')
     bot.send_message(MAINTAINER, '人人影视机器人似乎出现了一些问题🤔🤔🤔……')
     debug = open(os.path.join(os.path.dirname(__file__), 'data', 'error.txt'), 'r', encoding='u8')
