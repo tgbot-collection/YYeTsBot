@@ -11,19 +11,31 @@
 ![](assets/2.jpg)
 
 # 部署方法
-## 1. 环境
+## 使用docker
+```bash
+docker pull bennythink/yyetsbot
+docker run -d --restart=always -e TOKEN="TOKEN"  bennythink/yyetsbot
+```
+构建docker image，在克隆回项目之后：
+```bash
+docker build -t yyetsbot .
+
+```
+
+## 常规方式
+### 1. 环境
 推荐使用Python 3，Python 2未进行测试，使用pip安装依赖
 ```bash
 pip install requests pytelegrambotapi beautifulsoup4 lxml
 ```
-## 2. 配置TOKEN
+### 2. 配置TOKEN
 修改`config.py`，把TOKEN修改为你的bot token
-## 3. 克隆&运行
+### 3. 克隆&运行
 ```bash
 git clone https://github.com/BennyThink/YYeTsBot
 python /path/to/YYeTsBot/bot.py
 ```
-## 4. systemd 单元文件
+### 4. systemd 单元文件
 ```bash
 [Unit]
 Description=A Telegram Bot for YYeTs
