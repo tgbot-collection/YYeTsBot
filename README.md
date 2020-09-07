@@ -6,6 +6,15 @@
 * 通过rss获取链接
 * 获取分享页地址
 
+# Cookie
+* GKEY
+* GINFO
+
+# form data
+account:1
+password:2
+remember:1
+
 # 使用说明
 直接发送想要看的剧集名称就可以了，会返回ed2k和磁力链接
 

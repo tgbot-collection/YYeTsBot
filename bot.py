@@ -12,7 +12,7 @@ import telebot
 from telebot import types
 from config import TOKEN, MAINTAINER
 from html_parser import parser
-from html_request import get_html
+from html_request import get_search_html
 from utils import bunch_upsert, get, save_dump
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
@@ -57,7 +57,7 @@ def send_link(message):
     logging.info('Receiving message about %s from user %s(%s)' % (name, message.chat.username,
                                                                   message.chat.id))
     # get html content
-    contents, req_url, req_text = get_html(name)
+    contents, req_url, req_text = get_search_html(name)
     # contents, req_url, req_text = [],'url','html'
     # get download link
     bot.send_chat_action(message.chat.id, 'upload_video')
