@@ -109,4 +109,7 @@ venv.bak/
 /.idea/misc.xml
 /.idea/modules.xml
 /.idea/vcs.xml
-/.idea/YYeTsBot.iml
+.idea/
+/data/cookies.dump
+/.idea/inspectionProfiles/profiles_settings.xml
+data/
