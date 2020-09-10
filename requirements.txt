@@ -3,3 +3,4 @@ pytelegrambotapi
 beautifulsoup4
 lxml
 feedparser
+pysocks
