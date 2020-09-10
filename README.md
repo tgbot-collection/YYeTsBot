@@ -1,20 +1,6 @@
 # YYeTsBot
 人人影视bot，[戳我使用](https://t.me/yyets_bot)
 
-# v2计划
-* 模拟登录人人影视
-* 通过rss获取链接
-* 获取分享页地址
-
-# Cookie
-* GKEY
-* GINFO
-
-# form data
-account:1
-password:2
-remember:1
-
 # 使用说明
 直接发送想要看的剧集名称就可以了，会返回ed2k和磁力链接
 
@@ -30,41 +16,30 @@ remember:1
 docker pull bennythink/yyetsbot
 docker run -d --restart=always -e TOKEN="TOKEN"  bennythink/yyetsbot
 ```
-构建docker image，在克隆回项目之后：
+根据情况，还可以 `-e USERNAME="1234"`
+
+也可以自己构建docker image：
 ```bash
 docker build -t yyetsbot .
-
 ```
 
 ## 常规方式
 ### 1. 环境
-推荐使用Python 3，Python 2未进行测试，使用pip安装依赖
+推荐使用Python 3.6+
 ```bash
-pip install requests pytelegrambotapi beautifulsoup4 lxml
+pip install -r requirements.py
 ```
 ### 2. 配置TOKEN
-修改`config.py`，把TOKEN修改为你的bot token
+修改`config.py`，把TOKEN修改为你的bot token, USERNAME PASSWORD看需求修改
+
+也可以使用环境变量
 ### 3. 克隆&运行
 ```bash
 git clone https://github.com/BennyThink/YYeTsBot
 python /path/to/YYeTsBot/bot.py
 ```
 ### 4. systemd 单元文件
-```bash
-[Unit]
-Description=A Telegram Bot for YYeTs
-After=network.target network-online.target nss-lookup.target
-
-[Service]
-User=nobody
-Group=nobody
-Restart=on-failure
-Type=simple
-ExecStart=/usr/bin/python /home/YYeTsBot/bot.py
-
-[Install]
-WantedBy=multi-user.target
-```
+参考 `yyets.service`
 
 # Credits
 * [人人影视](http://www.zmz2019.com/)
