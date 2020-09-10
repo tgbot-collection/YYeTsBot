@@ -16,7 +16,7 @@ AJAX_LOGIN = "http://www.rrys2020.com/User/Login/ajaxLogin"
 SHARE_URL = "http://www.rrys2020.com/resource/ushare"
 SHARE_WEB = "http://got002.com/resource.html?code={code}"
 TOKEN = os.environ.get("TOKEN") or "TOKEN"
-USERNAME = os.environ.get("USERNAME") or "username"
+USERNAME = os.environ.get("USERNAME") or "USERNAME"
 PASSWORD = os.environ.get("PASSWORD") or "password"
 PROXY = os.environ.get("PROXY")
 MAINTAINER = os.environ.get("MAINTAINER")

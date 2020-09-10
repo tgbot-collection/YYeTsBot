@@ -19,10 +19,11 @@ s = requests.Session()
 
 
 def get_search_html(kw: str) -> str:
-    if not os.path.exists(cookie_file) or not is_cookie_valid():
-        logging.warning("Cookie file not found or invalid")
+    if not os.path.exists(cookie_file):
+        logging.warning("Cookie file not found")
         login()
-
+    if not is_cookie_valid():
+        login()
     cookie = load_cookies()
     logging.info("searching for %s", kw)
     r = s.get(SEARCH_URL.format(kw=kw), cookies=cookie)

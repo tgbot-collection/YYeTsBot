@@ -4,13 +4,9 @@ After=network.target network-online.target nss-lookup.target
 
 [Service]
 User=nobody
-Environment="TOKEN=xxx"
-Environment="USERNAME=123" "PASSWORD=456"
-Environment="PROXY=proxy.123.com:3128"
-Environment="MAINTAINER=1234"
 Restart=on-failure
 Type=simple
-ExecStart=/usr/bin/python /home/YYeTsBot/bot.py
+ExecStart=/usr/bin/python3 /home/YYeTsBot/bot.py
 
 [Install]
 WantedBy=multi-user.target

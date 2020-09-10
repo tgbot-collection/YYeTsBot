@@ -6,6 +6,7 @@ __author__ = 'Benny <benny.think@gmail.com>'
 
 import dbm
 import os
+import sys
 import pickle
 import json
 import logging
@@ -61,4 +62,5 @@ def login():
         save_cookies(r.cookies)
     else:
         logging.error("Login failed! %s", resp)
+        sys.exit(1)
     r.close()
