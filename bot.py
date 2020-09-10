@@ -68,7 +68,7 @@ def send_search(message):
 
     bot.send_message(message.chat.id, "选一个呗！", reply_markup=markup)
     if not result:
-        bot.send_chat_action(message.chat.id, 'find_location')
+        bot.send_chat_action(message.chat.id, 'typing')
 
         encoded = quote_plus(name)
         bot.send_message(message.chat.id, f"没有找到你想要的信息🤪\n莫非你是想调戏我哦😏\n\n"
@@ -91,7 +91,7 @@ def send_search(message):
 
 @bot.callback_query_handler(func=lambda call: 'resource' in call.data)
 def choose_link(call):
-    bot.send_chat_action(call.message.chat.id, 'find_location')
+    bot.send_chat_action(call.message.chat.id, 'typing')
     resource_url = call.data
     link = get_detail_page(resource_url)
     upsert(call.id, link)
@@ -104,7 +104,7 @@ def choose_link(call):
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"share(\d*)", call.data))
 def share_page(call):
-    bot.send_chat_action(call.message.chat.id, 'find_location')
+    bot.send_chat_action(call.message.chat.id, 'typing')
     cid = re.findall(r"share(\d*)", call.data)[0]
     result = get(cid)
     bot.send_message(call.message.chat.id, result['share'])
@@ -112,19 +112,25 @@ def share_page(call):
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"select(\d*)", call.data))
 def select_episode(call):
-    bot.send_chat_action(call.message.chat.id, 'find_location')
+    bot.send_chat_action(call.message.chat.id, 'typing')
     cid = re.findall(r"select(\d*)", call.data)[0]
     result = get(cid)
     markup = types.InlineKeyboardMarkup()
-    for guid, detail in result['rss'].items():
-        btn = types.InlineKeyboardButton(detail['title'], callback_data=f"cid{cid}guid{guid}")
+
+    if not result['rss']:
+        btn = types.InlineKeyboardButton("点击打开分享网站", url=result['share'])
         markup.add(btn)
-    bot.send_message(call.message.chat.id, "选一集吧！", reply_markup=markup)
+        bot.send_message(call.message.chat.id, "哎呀呀，这是个电影，恐怕没得选吧！", reply_markup=markup)
+    else:
+        for guid, detail in result['rss'].items():
+            btn = types.InlineKeyboardButton(detail['title'], callback_data=f"cid{cid}guid{guid}")
+            markup.add(btn)
+        bot.send_message(call.message.chat.id, "选一集吧！", reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"cid(\d*)guid(.*)", call.data))
 def send_link(call):
-    bot.send_chat_action(call.message.chat.id, 'find_location')
+    bot.send_chat_action(call.message.chat.id, 'typing')
     data = re.findall(r"cid(\d*)guid(.*)", call.data)[0]
     cid, guid = data[0], data[1]
     links = get(cid)['rss'][guid]
@@ -150,4 +156,4 @@ def report_error(call):
 
 if __name__ == '__main__':
     logging.info('YYeTs bot is running...')
-    bot.polling()
+    bot.polling(none_stop=True,)
