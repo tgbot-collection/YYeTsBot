@@ -92,8 +92,8 @@ def is_cookie_valid() -> bool:
 
 
 if __name__ == '__main__':
-    search = get_search_html('轮到你了')
-    search_result = analyse_search_html(search)
-    chose = "http://www.rrys2020.com/resource/38000"
-    link = get_detail_page(chose)
-    print(link)
+    __search = get_search_html('轮到你了')
+    __search_result = analyse_search_html(__search)
+    __chose = "http://www.rrys2020.com/resource/38000"
+    __link = get_detail_page(__chose)
+    print(__link)

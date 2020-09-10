@@ -20,3 +20,4 @@ SHARE_WEB = "http://got002.com/resource.html?code={code}"
 TOKEN = os.environ.get("TOKEN") or "TOKEN"
 USERNAME = os.environ.get("USERNAME") or "username"
 PASSWORD = os.environ.get("PASSWORD") or "password"
+PROXY = os.environ.get("PROXY")

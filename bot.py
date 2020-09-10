@@ -4,23 +4,20 @@
 
 __author__ = 'Benny <benny.think@gmail.com>'
 
-import os
 import time
-import logging
-import urllib
+import re
+
 from urllib.parse import quote_plus
 
-import re
 import telebot
-from telebot import types
-from config import TOKEN, MAINTAINER
+from telebot import types, apihelper
+
 from html_request import *
 from utils import *
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
-from telebot import apihelper
-
-apihelper.proxy = {'https': 'http://proxy.12345.com:3128'}
+if PROXY:
+    apihelper.proxy = {'https': PROXY}
 
 bot = telebot.TeleBot(os.environ.get('TOKEN') or TOKEN)
 
@@ -91,6 +88,7 @@ def send_link(message):
 
 @bot.callback_query_handler(func=lambda call: 'resource' in call.data)
 def choose_link(call):
+    bot.send_chat_action(call.message.chat.id, 'find_location')
     resource_url = call.data
     link = get_detail_page(resource_url)
     upsert(call.id, link)
@@ -103,6 +101,7 @@ def choose_link(call):
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"share(\d*)", call.data))
 def share_page(call):
+    bot.send_chat_action(call.message.chat.id, 'find_location')
     cid = re.findall(r"share(\d*)", call.data)[0]
     result = get(cid)
     bot.send_message(call.message.chat.id, result['share'])
@@ -110,6 +109,7 @@ def share_page(call):
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"select(\d*)", call.data))
 def select_episode(call):
+    bot.send_chat_action(call.message.chat.id, 'find_location')
     cid = re.findall(r"select(\d*)", call.data)[0]
     result = get(cid)
     markup = types.InlineKeyboardMarkup()
@@ -121,6 +121,7 @@ def select_episode(call):
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"cid(\d*)guid(.*)", call.data))
 def send_link(call):
+    bot.send_chat_action(call.message.chat.id, 'find_location')
     data = re.findall(r"cid(\d*)guid(.*)", call.data)[0]
     cid, guid = data[0], data[1]
     links = get(cid)['rss'][guid]
