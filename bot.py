@@ -6,14 +6,17 @@ __author__ = 'Benny <benny.think@gmail.com>'
 
 import time
 import re
+import os
+import logging
 
 from urllib.parse import quote_plus
 
 import telebot
 from telebot import types, apihelper
 
-from html_request import *
-from utils import *
+from html_request import get_search_html, analyse_search_html, get_detail_page
+from utils import save_dump, upsert, get
+from config import PROXY, TOKEN, SEARCH_URL, MAINTAINER
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 if PROXY:
@@ -50,11 +53,11 @@ def send_credits(message):
 
 
 @bot.message_handler()
-def send_link(message):
+def send_search(message):
     bot.send_chat_action(message.chat.id, 'record_video')
     name = message.text
-    logging.info('Receiving message about %s from user %s(%s)' % (name, message.chat.username,
-                                                                  message.chat.id))
+    logging.info('Receiving message about %s from user %s(%s)', name, message.chat.username,
+                 message.chat.id)
     html = get_search_html(name)
     result = analyse_search_html(html)
 
@@ -77,13 +80,13 @@ def send_link(message):
         bot.send_chat_action(message.chat.id, 'upload_document')
         bot.send_message(message.chat.id, f"《{name}》😭😭😭\n机器人不好用了？点下面的按钮叫 @BennyThink 来修！",
                          reply_markup=markup)
-        e = f""" 报告者：@{message.chat.username}({message.chat.id})
-                        问题发生时间：{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.date))}
+        content = f""" 报告者：@{message.chat.username}({message.chat.id})
+                        问题发生时间：{time.strftime("%Y-%m-%data %H:%M:%S", time.localtime(message.date))}
                         请求内容：{name} 
                         请求URL：{SEARCH_URL.format(kw=encoded)}\n\n
                         返回内容：{html}
                     """
-        save_dump(e)
+        save_dump(content)
 
 
 @bot.callback_query_handler(func=lambda call: 'resource' in call.data)

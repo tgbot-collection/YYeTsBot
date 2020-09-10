@@ -4,12 +4,13 @@
 
 __author__ = 'Benny <benny.think@gmail.com>'
 
+import os
 import logging
 import requests
 import feedparser
 from bs4 import BeautifulSoup
 
-from config import *
+from config import SEARCH_URL, GET_USER, RSS_URL, BASE_URL, SHARE_WEB, SHARE_URL, RESOURCE_SCORE
 from utils import load_cookies, cookie_file, login
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
@@ -56,7 +57,7 @@ def analyse_search_html(html: str) -> dict:
 
 def analyse_rss(feed_url: str) -> dict:
     d = feedparser.parse(feed_url)
-    # d['feed']['title']
+    # data['feed']['title']
     result = {}
     for item in d['entries']:
         download = {

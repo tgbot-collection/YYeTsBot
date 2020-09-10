@@ -5,20 +5,22 @@
 __author__ = 'Benny <benny.think@gmail.com>'
 
 import dbm
+import os
 import pickle
 import json
 import logging
 import requests
-from config import *
+
+from config import AJAX_LOGIN, USERNAME, PASSWORD
 
 db_path = os.path.join(os.path.dirname(__file__), 'data', 'yyets.dbm')
 db = dbm.open(db_path, 'c')
 cookie_file = os.path.join(os.path.dirname(__file__), 'data', 'cookies.dump')
 
 
-def batch_upsert(d: dict) -> None:
-    for k in d:
-        upsert(k, d[k])
+def batch_upsert(data: dict) -> None:
+    for k in data:
+        upsert(k, data[k])
 
 
 def upsert(key: str, value: dict) -> None:
