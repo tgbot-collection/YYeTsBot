@@ -6,7 +6,6 @@ __author__ = 'Benny <benny.think@gmail.com>'
 
 import logging
 import requests
-import os
 import feedparser
 from bs4 import BeautifulSoup
 
@@ -18,7 +17,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(le
 s = requests.Session()
 
 
-def get_search_html(kw: str) -> (list, str, str):
+def get_search_html(kw: str) -> str:
     if not os.path.exists(cookie_file) or not is_cookie_valid():
         logging.warning("Cookie file not found or invalid")
         login()
@@ -31,13 +30,15 @@ def get_search_html(kw: str) -> (list, str, str):
     return r.text
 
 
-def get_detail_page(url):
-    logging.info("Geting rss...")
+def get_detail_page(url: str):
+    logging.info("Getting rss...")
     rss_url = RSS_URL.format(id=url.split("/")[-1])
     rss_result = analyse_rss(rss_url)
 
     logging.info("loading detail page %s", url)
     share_link = analysis_share_page(url)
+
+    return {"rss": rss_result, "share": share_link}
 
 
 def analyse_search_html(html: str) -> dict:
@@ -53,19 +54,21 @@ def analyse_search_html(html: str) -> dict:
     return list_result
 
 
-def analyse_rss(feed_url) -> dict:
+def analyse_rss(feed_url: str) -> dict:
     d = feedparser.parse(feed_url)
     # d['feed']['title']
     result = {}
     for item in d['entries']:
-        download = {"ed2k": getattr(item, "ed2k", ""),
-                    "magnet": getattr(item, "magnet", ""),
-                    "pan": getattr(item, "pan", "")}
-        result[item.title] = download
+        download = {
+            "title": getattr(item, "title", ""),
+            "ed2k": getattr(item, "ed2k", ""),
+            "magnet": getattr(item, "magnet", ""),
+            "pan": getattr(item, "pan", "")}
+        result[item.guid] = download
     return result
 
 
-def analysis_share_page(detail_url) -> str:
+def analysis_share_page(detail_url: str) -> str:
     rid = detail_url.split('/')[-1]
     logging.info("rid is %s", rid)
 
@@ -77,7 +80,7 @@ def analysis_share_page(detail_url) -> str:
     return share_url
 
 
-def get_score(rid) -> float:
+def get_score(rid: str) -> float:
     return s.post(RESOURCE_SCORE, data={"rid": rid}).json()['score']
 
 
@@ -90,6 +93,7 @@ def is_cookie_valid() -> bool:
 
 if __name__ == '__main__':
     search = get_search_html('轮到你了')
-    result = analyse_search_html(search)
+    search_result = analyse_search_html(search)
     chose = "http://www.rrys2020.com/resource/38000"
-    get_detail_page(chose)
+    link = get_detail_page(chose)
+    print(link)

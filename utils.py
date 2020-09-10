@@ -29,6 +29,10 @@ def get(key: str) -> dict:
     return json.loads(db.get(key, '{}'), encoding='utf-8')
 
 
+def delete(key: str) -> None:
+    del db[key]
+
+
 def save_dump(err):
     f = open(os.path.join(os.path.dirname(__file__), 'data', 'error.txt'), 'w', encoding='u8')
     f.write(err)
