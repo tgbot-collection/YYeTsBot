@@ -4,3 +4,4 @@ beautifulsoup4
 lxml
 feedparser
 pysocks
+tgbot-ping

@@ -13,8 +13,8 @@ from urllib.parse import quote_plus
 
 import telebot
 from telebot import types, apihelper
+from tgbot_ping import get_runtime
 
-from status import get_runtime
 from html_request import get_search_html, analyse_search_html, get_detail_page
 from utils import save_dump, upsert, get
 from config import PROXY, TOKEN, SEARCH_URL, MAINTAINER
@@ -45,7 +45,8 @@ def send_help(message):
 @bot.message_handler(commands=['ping'])
 def send_help(message):
     bot.send_chat_action(message.chat.id, 'typing')
-    bot.send_message(message.chat.id, get_runtime(), parse_mode='markdown')
+    info = get_runtime("botsrunner_yyets_1")
+    bot.send_message(message.chat.id, info, parse_mode='markdown')
 
 
 @bot.message_handler(commands=['credits'])
