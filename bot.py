@@ -14,6 +14,7 @@ from urllib.parse import quote_plus
 import telebot
 from telebot import types, apihelper
 
+from status import get_runtime
 from html_request import get_search_html, analyse_search_html, get_detail_page
 from utils import save_dump, upsert, get
 from config import PROXY, TOKEN, SEARCH_URL, MAINTAINER
@@ -39,6 +40,12 @@ def send_help(message):
     bot.send_message(message.chat.id, '''机器人无法使用或者报错？
     @BennyThink 或者<a href='https://github.com/BennyThink/YYeTsBot/issues'>Github issues</a>''',
                      parse_mode='html')
+
+
+@bot.message_handler(commands=['ping'])
+def send_help(message):
+    bot.send_chat_action(message.chat.id, 'typing')
+    bot.send_message(message.chat.id, get_runtime(), parse_mode='markdown')
 
 
 @bot.message_handler(commands=['credits'])
@@ -156,4 +163,4 @@ def report_error(call):
 
 if __name__ == '__main__':
     logging.info('YYeTs bot is running...')
-    bot.polling(none_stop=True,)
+    bot.polling(none_stop=True, )
