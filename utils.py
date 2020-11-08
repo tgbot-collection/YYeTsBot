@@ -29,7 +29,7 @@ def upsert(key: str, value: dict) -> None:
 
 
 def get(key: str) -> dict:
-    return json.loads(db.get(key, '{}'), encoding='utf-8')
+    return json.loads(db.get(key, '{}'))
 
 
 def delete(key: str) -> None:
