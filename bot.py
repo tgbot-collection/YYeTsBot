@@ -62,6 +62,14 @@ def send_credits(message):
 
 @bot.message_handler()
 def send_search(message):
+    if message.reply_to_message and \
+            message.reply_to_message.document.file_name == 'error.txt' and str(message.chat.id) == MAINTAINER:
+        bot.send_chat_action(message.chat.id, 'typing')
+        uid = message.reply_to_message.caption
+        bot.send_message(uid, message.text)
+        bot.send_message(message.chat.id, "回复已经发送给这位用户")
+        return
+
     bot.send_chat_action(message.chat.id, 'record_video')
     name = message.text
     logging.info('Receiving message about %s from user %s(%s)', name, message.chat.username,
@@ -80,7 +88,7 @@ def send_search(message):
 
         encoded = quote_plus(name)
         bot.send_message(message.chat.id, f"没有找到你想要的信息🤪\n莫非你是想调戏我哦😏\n\n"
-                                          f"你先看看这个链接有没有结果。 {SEARCH_URL.format(kw=encoded)}"
+                                          f"你先看看这个链接有没有结果。 {SEARCH_URL.format(kw=encoded)} "
                                           "如果有的话，那报错给我吧", reply_markup=markup, disable_web_page_preview=True)
         markup = types.InlineKeyboardMarkup()
         btn = types.InlineKeyboardButton("快来修复啦", callback_data="fix")
@@ -158,7 +166,7 @@ def report_error(call):
     bot.send_chat_action(call.message.chat.id, 'typing')
     bot.send_message(MAINTAINER, '人人影视机器人似乎出现了一些问题🤔🤔🤔……')
     debug = open(os.path.join(os.path.dirname(__file__), 'data', 'error.txt'), 'r', encoding='u8')
-    bot.send_document(MAINTAINER, debug)
+    bot.send_document(MAINTAINER, debug, caption=str(call.message.chat.id))
     bot.answer_callback_query(call.id, 'Debug信息已经发送给维护者，请耐心等待修复~', show_alert=True)
 
 
