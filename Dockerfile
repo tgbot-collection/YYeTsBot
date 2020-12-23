@@ -9,7 +9,7 @@ ENV TZ=Asia/Shanghai
 WORKDIR /YYeTsBot
 
 
-CMD python bot.py
+CMD ["python", "bot.py"]
 
 # usage
 # docker build -t yyetsbot .
