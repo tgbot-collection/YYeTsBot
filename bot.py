@@ -4,6 +4,7 @@
 
 __author__ = 'Benny <benny.think@gmail.com>'
 
+import io
 import time
 import re
 import os
@@ -30,20 +31,21 @@ bot = telebot.TeleBot(os.environ.get('TOKEN') or TOKEN)
 def send_welcome(message):
     bot.send_chat_action(message.chat.id, 'typing')
     bot.send_message(message.chat.id, '欢迎使用，发送想要的剧集标题，我会帮你搜索。'
-                                      '建议使用<a href="http://www.zmz2019.com/">人人影视</a>标准译名',
+                                      '建议使用<a href="http://www.zmz2019.com/">人人影视</a> 标准译名',
                      parse_mode='html')
 
 
 @bot.message_handler(commands=['help'])
 def send_help(message):
     bot.send_chat_action(message.chat.id, 'typing')
-    bot.send_message(message.chat.id, '''机器人无法使用或者报错？
-    @BennyThink 或者<a href='https://github.com/BennyThink/YYeTsBot/issues'>Github issues</a>''',
-                     parse_mode='html')
+    bot.send_message(message.chat.id, '''机器人无法使用或者报错？你可以使用如下方式寻求使用帮助和报告错误：\n
+    1. @BennyThink
+    2. <a href='https://github.com/BennyThink/YYeTsBot/issues'>Github issues</a>
+    3. <a href='https://t.me/mikuri520'>Telegram Channel</a>''', parse_mode='html', disable_web_page_preview=True)
 
 
 @bot.message_handler(commands=['ping'])
-def send_help(message):
+def send_ping(message):
     bot.send_chat_action(message.chat.id, 'typing')
     info = get_runtime("botsrunner_yyets_1")
     bot.send_message(message.chat.id, info, parse_mode='markdown')
@@ -55,23 +57,55 @@ def send_credits(message):
     bot.send_message(message.chat.id, '''感谢字幕组的无私奉献！本机器人资源来源:\n
     <a href="http://www.zmz2019.com/">人人影视</a>
     <a href="http://oabt005.com/home.html">磁力下载站</a>
-    <a href="http://www.zhuixinfan.com/main.php ">追新番</a>
-    <a href="http://www.zimuxia.cn/">FIX字幕侠</a>
+    <a href="http://www.zhuixinfan.com/main.php">追新番</a>
     ''', parse_mode='html')
 
 
-@bot.message_handler()
+def download_to_io(photo):
+    logging.info("Initializing bytes io...")
+    mem = io.BytesIO()
+    file_id = photo[-1].file_id
+    logging.info("Downloading photos...")
+    file_info = bot.get_file(file_id)
+    content = bot.download_file(file_info.file_path)
+    mem.write(content)
+    logging.info("Downloading complete.")
+    return mem
+
+
+def send_my_response(message):
+    bot.send_chat_action(message.chat.id, 'record_video_note')
+    # I may also send picture
+    photo = message.photo
+    uid = message.reply_to_message.caption
+    text = f"主人说：{message.text or message.caption or '啥也没说😯'}"
+    if photo:
+        bot.send_chat_action(message.chat.id, 'typing')
+        logging.info("Photo received from maintainer")
+        mem = download_to_io(photo)
+        mem.name = f'{uid}.jpg'
+        bot.send_photo(uid, mem.getvalue(), caption=text)
+    else:
+        bot.send_message(uid, text)
+
+    bot.reply_to(message, "回复已经发送给这位用户")
+
+
+@bot.message_handler(content_types=["photo", "text"])
 def send_search(message):
     if message.reply_to_message and \
             message.reply_to_message.document.file_name == 'error.txt' and str(message.chat.id) == MAINTAINER:
-        bot.send_chat_action(message.chat.id, 'typing')
-        uid = message.reply_to_message.caption
-        bot.send_message(uid, message.text)
-        bot.send_message(message.chat.id, "回复已经发送给这位用户")
+        send_my_response(message)
+        return
+    bot.send_chat_action(message.chat.id, 'record_video')
+
+    name = message.text
+    if name is None:
+        with open('assets/warning.webp', 'rb') as sti:
+            bot.send_message(message.chat.id, "不要调戏我！我会报警的")
+            bot.send_sticker(message.chat.id, sti)
         return
 
-    bot.send_chat_action(message.chat.id, 'record_video')
-    name = message.text
     logging.info('Receiving message about %s from user %s(%s)', name, message.chat.username,
                  message.chat.id)
     html = get_search_html(name)
@@ -82,8 +116,9 @@ def send_search(message):
         btn = types.InlineKeyboardButton(detail['name'], callback_data=url)
         markup.add(btn)
 
-    bot.send_message(message.chat.id, "选一个呗！", reply_markup=markup)
-    if not result:
+    if result:
+        bot.send_message(message.chat.id, "呐，💐🌷🌹选一个呀！", reply_markup=markup)
+    else:
         bot.send_chat_action(message.chat.id, 'typing')
 
         encoded = quote_plus(name)
@@ -168,6 +203,7 @@ def report_error(call):
     debug = open(os.path.join(os.path.dirname(__file__), 'data', 'error.txt'), 'r', encoding='u8')
     bot.send_document(MAINTAINER, debug, caption=str(call.message.chat.id))
     bot.answer_callback_query(call.id, 'Debug信息已经发送给维护者，请耐心等待修复~', show_alert=True)
+    # bot.edit_message_text("好了，信息发过去了，坐等回复吧！", call.message.chat.id, call.message.message_id)
 
 
 if __name__ == '__main__':
