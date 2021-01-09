@@ -1,5 +1,5 @@
 requests
-pytelegrambotapi
+pytelegrambotapi==3.7.5
 beautifulsoup4
 lxml
 feedparser
