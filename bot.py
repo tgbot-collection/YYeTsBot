@@ -84,11 +84,16 @@ def send_my_response(message):
         logging.info("Photo received from maintainer")
         mem = download_to_io(photo)
         mem.name = f'{uid}.jpg'
-        bot.send_photo(uid, mem.getvalue(), caption=text)
+        r = bot.send_photo(uid, mem.getvalue(), caption=text)
     else:
-        bot.send_message(uid, text)
+        r = bot.send_message(uid, text)
 
+    logging.info("Reply has been sent to %s with message id %s", uid, r.message_id)
     bot.reply_to(message, "回复已经发送给这位用户")
+    fw = bot.forward_message(message.chat.id, uid, r.message_id)
+    time.sleep(3)
+    bot.delete_message(message.chat.id, fw.message_id)
+    logging.info("Forward has been deleted.")
 
 
 @bot.message_handler(content_types=["photo", "text"])
