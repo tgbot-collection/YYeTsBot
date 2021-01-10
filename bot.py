@@ -137,7 +137,7 @@ def send_search(message):
         markup.add(btn)
         bot.send_chat_action(message.chat.id, 'upload_document')
         bot.send_message(message.chat.id, f"《{name}》😭😭😭\n机器人不好用了？点下面的按钮叫 @BennyThink 来修！"
-                                          f"⚠️别乱点啊，看好自己搜的是什么，不乖的话我可是会报警的哦。",
+                                          f"⚠️你真的要报错吗，别乱点啊，看好自己搜的是什么，不乖的话我可是会报警的哦。",
                          reply_markup=markup)
         content = f""" 报告者：{message.chat.first_name}@{message.chat.username}({message.chat.id})
                         问题发生时间：{time.strftime("%Y-%m-%data %H:%M:%S", time.localtime(message.date))}
