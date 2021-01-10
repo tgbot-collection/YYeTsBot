@@ -19,7 +19,7 @@ from telebot import types, apihelper
 from tgbot_ping import get_runtime
 
 from html_request import get_search_html, analyse_search_html, get_detail_page
-from utils import save_dump, save_to_cache, get_from_cache
+from utils import save_error_dump, save_to_cache, get_from_cache, get_error_dump
 from config import PROXY, TOKEN, SEARCH_URL, MAINTAINER
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
@@ -157,7 +157,7 @@ def send_search(message):
         btn = types.InlineKeyboardButton("快来修复啦", callback_data="fix")
         markup.add(btn)
         bot.send_chat_action(message.chat.id, 'upload_document')
-        bot.send_message(message.chat.id, f"《{name}》😭😭😭\n机器人不好用了？点下面的按钮叫 @BennyThink 来修！"
+        bot.send_message(message.chat.id, f"《{name}》😭😭😭\n机器人不好用了？点下面的按钮叫 @BennyThink 来修！\n"
                                           f"⚠️你真的要报错吗，别乱点啊，看好自己搜的是什么，不乖的话我可是会报警的哦。",
                          reply_markup=markup)
         content = f""" 报告者：{message.chat.first_name}{message.chat.last_name or ""}@{message.chat.username or ""}({message.chat.id})
@@ -166,7 +166,7 @@ def send_search(message):
                         请求URL：{SEARCH_URL.format(kw=encoded)}\n\n
                         返回内容：{html}
                     """
-        save_dump(content)
+        save_error_dump(message.chat.id, content)
 
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"choose(\S*)", call.data))
@@ -208,7 +208,7 @@ def all_episode(call):
     with tempfile.NamedTemporaryFile(mode='wb+', prefix=result["cnname"], suffix=".txt") as tmp:
         bytes_data = json.dumps(result["all"], ensure_ascii=False, indent=4).encode('u8')
         tmp.write(bytes_data)
-
+        tmp.flush()
         with open(tmp.name, "rb") as f:
             bot.send_chat_action(call.message.chat.id, 'upload_document')
             bot.send_document(call.message.chat.id, f)
@@ -218,11 +218,20 @@ def all_episode(call):
 def report_error(call):
     logging.error("Reporting error to maintainer.")
     bot.send_chat_action(call.message.chat.id, 'typing')
-    bot.send_message(MAINTAINER, '人人影视机器人似乎出现了一些问题🤔🤔🤔……')
-    debug = open(os.path.join(os.path.dirname(__file__), 'data', 'error.txt'), 'r', encoding='u8')
-    bot.send_document(MAINTAINER, debug, caption=str(call.message.chat.id))
-    bot.answer_callback_query(call.id, 'Debug信息已经发送给维护者，请耐心等待修复~', show_alert=True)
-    # bot.edit_message_text("好了，信息发过去了，坐等回复吧！", call.message.chat.id, call.message.message_id)
+    error_content = get_error_dump(call.message.chat.id)
+
+    text = f'人人影视机器人似乎出现了一些问题🤔🤔🤔……{error_content[0:300]}'
+    bot.send_message(MAINTAINER, text, disable_web_page_preview=True)
+
+    with tempfile.NamedTemporaryFile(mode='wb+', prefix=f"error_{call.message.chat.id}_", suffix=".txt") as tmp:
+        tmp.write(error_content.encode('u8'))
+        tmp.flush()
+
+        with open(tmp.name, "rb") as f:
+            bot.send_chat_action(call.message.chat.id, 'upload_document')
+            bot.send_document(MAINTAINER, f, caption=str(call.message.chat.id))
+
+    bot.answer_callback_query(call.id, 'Debug信息已经发送给维护者，请耐心等待回复~', show_alert=True)
 
 
 if __name__ == '__main__':
