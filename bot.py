@@ -62,7 +62,7 @@ def send_credits(message):
     <a href="http://www.zmz2019.com/">人人影视</a>
     <a href="http://cili001.com/">磁力下载站</a>
     <a href="http://www.zhuixinfan.com/main.php">追新番</a>
-    ''', parse_mode='html')
+    ''', parse_mode='html', disable_web_page_preview=True)
 
 
 def download_to_io(photo):
@@ -103,7 +103,7 @@ def send_my_response(message):
 @bot.message_handler(content_types=["photo", "text"])
 def send_search(message):
     if message.reply_to_message and message.reply_to_message.document and \
-            message.reply_to_message.document.file_name == 'error.txt' and str(message.chat.id) == MAINTAINER:
+            message.reply_to_message.document.file_name.startswith("error") and str(message.chat.id) == MAINTAINER:
         send_my_response(message)
         return
     bot.send_chat_action(message.chat.id, 'record_video')
@@ -207,9 +207,10 @@ def send_unwelcome(call):
     uid = re.findall(r"unwelcome(\d*)", call.data)[0]
 
     if uid:
-        text = "人人影视主要提供欧美日韩等海外资源，你的这个真没有🤷‍。\n<b>麻烦你先从自己身上找原因</b>。我又不是你的专属客服。\n" \
+        text = "人人影视主要提供欧美日韩等海外资源，你的这个真没有🤷‍。\n" \
+               "<b>麻烦你先从自己身上找原因</b>，我又不是你的专属客服。\n" \
                "不要再报告这种错误了🙄️，面倒な。😡"
-        bot.send_message(uid, text,parse_mode="html")
+        bot.send_message(uid, text, parse_mode="html")
         bot.reply_to(message, f"有生之日 生气次数：{angry_count}")
 
 
