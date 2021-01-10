@@ -5,3 +5,4 @@ lxml
 feedparser
 pysocks
 tgbot-ping
+redis

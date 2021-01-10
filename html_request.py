@@ -10,7 +10,7 @@ import requests
 import feedparser
 from bs4 import BeautifulSoup
 
-from config import SEARCH_URL, GET_USER, RSS_URL, BASE_URL, SHARE_WEB, SHARE_URL, RESOURCE_SCORE
+from config import SEARCH_URL, GET_USER, RSS_URL, BASE_URL, SHARE_WEB, SHARE_URL, RESOURCE_SCORE, SHARE_API
 from utils import load_cookies, cookie_file, login
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
@@ -32,15 +32,22 @@ def get_search_html(kw: str) -> str:
     return r.text
 
 
-def get_detail_page(url: str):
+def get_detail_page(url: str) -> dict:
+    logging.info("loading detail page %s", url)
+    share_link, api_res = analysis_share_page(url)
+    cnname = api_res["data"]["info"]["cnname"]
+    logging.info("Share page complete for %s", cnname)
+
     logging.info("Getting rss...")
     rss_url = RSS_URL.format(id=url.split("/")[-1])
     rss_result = analyse_rss(rss_url)
+    logging.info("RSS complete...")
 
-    logging.info("loading detail page %s", url)
-    share_link = analysis_share_page(url)
+    # get name from here...
+    if not rss_result:
+        rss_result = api_res
 
-    return {"rss": rss_result, "share": share_link}
+    return {"all": rss_result, "share": share_link, "cnname": cnname}
 
 
 def analyse_search_html(html: str) -> dict:
@@ -70,7 +77,7 @@ def analyse_rss(feed_url: str) -> dict:
     return result
 
 
-def analysis_share_page(detail_url: str) -> str:
+def analysis_share_page(detail_url: str) -> (str, dict):
     rid = detail_url.split('/')[-1]
     logging.info("rid is %s", rid)
 
@@ -79,7 +86,10 @@ def analysis_share_page(detail_url: str) -> str:
     logging.info("Share code is %s", share_code)
     share_url = SHARE_WEB.format(code=share_code)
     logging.info("Share url %s", share_url)
-    return share_url
+
+    # get api response
+    api_response = s.get(SHARE_API.format(code=share_code)).json()
+    return share_url, api_response
 
 
 def get_score(rid: str) -> float:

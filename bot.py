@@ -9,6 +9,8 @@ import time
 import re
 import os
 import logging
+import json
+import tempfile
 
 from urllib.parse import quote_plus
 
@@ -17,7 +19,7 @@ from telebot import types, apihelper
 from tgbot_ping import get_runtime
 
 from html_request import get_search_html, analyse_search_html, get_detail_page
-from utils import save_dump, upsert, get
+from utils import save_dump, save_to_cache, get_from_cache
 from config import PROXY, TOKEN, SEARCH_URL, MAINTAINER
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
@@ -111,14 +113,13 @@ def send_search(message):
             bot.send_sticker(message.chat.id, sti)
         return
 
-    logging.info('Receiving message about %s from user %s(%s)', name, message.chat.username,
-                 message.chat.id)
+    logging.info('Receiving message about %s from user %s(%s)', name, message.chat.username, message.chat.id)
     html = get_search_html(name)
     result = analyse_search_html(html)
 
     markup = types.InlineKeyboardMarkup()
     for url, detail in result.items():
-        btn = types.InlineKeyboardButton(detail['name'], callback_data=url)
+        btn = types.InlineKeyboardButton(detail['name'], callback_data="choose%s" % url)
         markup.add(btn)
 
     if result:
@@ -145,59 +146,46 @@ def send_search(message):
         save_dump(content)
 
 
-@bot.callback_query_handler(func=lambda call: 'resource' in call.data)
+@bot.callback_query_handler(func=lambda call: re.findall(r"choose(\S*)", call.data))
 def choose_link(call):
     bot.send_chat_action(call.message.chat.id, 'typing')
-    resource_url = call.data
-    link = get_detail_page(resource_url)
-    upsert(call.id, link)
+    # call.data is url, http://www.rrys2020.com/resource/36588
+    resource_url = re.findall(r"choose(\S*)", call.data)[0]
+
+    link = get_from_cache(resource_url)
+    if not link:
+        link = get_detail_page(resource_url)
+        save_to_cache(resource_url, link)
+
     markup = types.InlineKeyboardMarkup()
-    btn1 = types.InlineKeyboardButton("分享页面", callback_data="share%s" % call.id)
-    btn2 = types.InlineKeyboardButton("继续点按钮", callback_data="select%s" % call.id)
+    btn1 = types.InlineKeyboardButton("分享页面", callback_data="share%s" % resource_url)
+    btn2 = types.InlineKeyboardButton("我全都要", callback_data="all%s" % resource_url)
     markup.add(btn1, btn2)
-    bot.send_message(call.message.chat.id, "想要分享页面，还是继续点击按钮", reply_markup=markup)
+    bot.send_message(call.message.chat.id, "想要分享页面，还是我全都要？", reply_markup=markup)
 
 
-@bot.callback_query_handler(func=lambda call: re.findall(r"share(\d*)", call.data))
+@bot.callback_query_handler(func=lambda call: re.findall(r"share(\S*)", call.data))
 def share_page(call):
     bot.send_chat_action(call.message.chat.id, 'typing')
-    cid = re.findall(r"share(\d*)", call.data)[0]
-    result = get(cid)
+    resource_url = re.findall(r"share(\S*)", call.data)[0]
+    result = get_from_cache(resource_url)
     bot.send_message(call.message.chat.id, result['share'])
 
 
-@bot.callback_query_handler(func=lambda call: re.findall(r"select(\d*)", call.data))
-def select_episode(call):
+@bot.callback_query_handler(func=lambda call: re.findall(r"all(\S*)", call.data))
+def all_episode(call):
+    # just send a file
     bot.send_chat_action(call.message.chat.id, 'typing')
-    cid = re.findall(r"select(\d*)", call.data)[0]
-    result = get(cid)
-    markup = types.InlineKeyboardMarkup()
+    resource_url = re.findall(r"all(\S*)", call.data)[0]
+    result = get_from_cache(resource_url)
 
-    if not result['rss']:
-        btn = types.InlineKeyboardButton("点击打开分享网站", url=result['share'])
-        markup.add(btn)
-        bot.send_message(call.message.chat.id, "哎呀呀，这是个电影，恐怕没得选吧！", reply_markup=markup)
-    else:
-        for guid, detail in result['rss'].items():
-            btn = types.InlineKeyboardButton(detail['title'], callback_data=f"cid{cid}guid{guid}")
-            markup.add(btn)
-        bot.send_message(call.message.chat.id, "选一集吧！", reply_markup=markup)
+    with tempfile.NamedTemporaryFile(mode='wb+', prefix=result["cnname"], suffix=".txt") as tmp:
+        bytes_data = json.dumps(result["all"], ensure_ascii=False, indent=4).encode('u8')
+        tmp.write(bytes_data)
 
-
-@bot.callback_query_handler(func=lambda call: re.findall(r"cid(\d*)guid(.*)", call.data))
-def send_link(call):
-    bot.send_chat_action(call.message.chat.id, 'typing')
-    data = re.findall(r"cid(\d*)guid(.*)", call.data)[0]
-    cid, guid = data[0], data[1]
-    links = get(cid)['rss'][guid]
-    ed2k, magnet, pan = "`{}`".format(links['ed2k']), "`{}`".format(links['magnet']), "`{}`".format(links['pan'])
-    bot.send_message(call.message.chat.id, f"{links['title']}的下载资源如下")
-    if ed2k != "``":
-        bot.send_message(call.message.chat.id, ed2k, parse_mode='markdown')
-    if magnet != "``":
-        bot.send_message(call.message.chat.id, magnet, parse_mode='markdown')
-    if pan != "``":
-        bot.send_message(call.message.chat.id, pan, parse_mode='markdown')
+        bot.send_chat_action(call.message.chat.id, 'upload_document')
+        with open(tmp.name, "rb") as f:
+            bot.send_document(call.message.chat.id, f)
 
 
 @bot.callback_query_handler(func=lambda call: call.data == 'fix')

@@ -4,36 +4,38 @@
 
 __author__ = 'Benny <benny.think@gmail.com>'
 
-import dbm
 import os
 import sys
 import pickle
 import json
 import logging
 import requests
+import redis
 
-from config import AJAX_LOGIN, USERNAME, PASSWORD
+from config import AJAX_LOGIN, USERNAME, PASSWORD, REDIS
 
-db_path = os.path.join(os.path.dirname(__file__), 'data', 'yyets.dbm')
-db = dbm.open(db_path, 'c')
+r = redis.StrictRedis(host=REDIS, decode_responses=True)
+
 cookie_file = os.path.join(os.path.dirname(__file__), 'data', 'cookies.dump')
 
 
-def batch_upsert(data: dict) -> None:
-    for k in data:
-        upsert(k, data[k])
+def save_to_cache(url: str, value: dict) -> None:
+    data = json.dumps(value, ensure_ascii=False)
+    r.set(url, data, ex=3600 * 12)
 
 
-def upsert(key: str, value: dict) -> None:
-    db[key] = json.dumps(value, ensure_ascii=False)
+def get_from_cache(url: str) -> dict:
+    logging.info("Reading data from cache %s", url)
+    from html_request import get_detail_page
 
-
-def get(key: str) -> dict:
-    return json.loads(db.get(key, '{}'))
-
-
-def delete(key: str) -> None:
-    del db[key]
+    data = r.get(url)
+    if data:
+        logging.info("cache hit")
+        return json.loads(data)
+    else:
+        logging.info("cache miss")
+        save_to_cache(url, get_detail_page(url))
+        return get_from_cache(url)
 
 
 def save_dump(err):
