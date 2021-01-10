@@ -6,3 +6,4 @@ feedparser
 pysocks
 tgbot-ping
 redis
+cchardet
