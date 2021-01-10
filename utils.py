@@ -38,10 +38,16 @@ def get_from_cache(url: str) -> dict:
         return get_from_cache(url)
 
 
-def save_dump(err):
-    f = open(os.path.join(os.path.dirname(__file__), 'data', 'error.txt'), 'w', encoding='u8')
-    f.write(err)
-    f.close()
+def save_error_dump(uid, err: str):
+    r.set(uid, err)
+
+
+def get_error_dump(uid) -> str:
+    err = r.get(uid)
+    r.delete(uid)
+    if not err:
+        err = ""
+    return err
 
 
 def save_cookies(requests_cookiejar):
