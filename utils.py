@@ -45,6 +45,8 @@ def save_error_dump(uid, err: str):
 def get_error_dump(uid) -> str:
     err = r.get(uid)
     r.delete(uid)
+    if not err:
+        err = ""
     return err
 
 
