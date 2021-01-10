@@ -32,9 +32,10 @@ bot = telebot.TeleBot(os.environ.get('TOKEN') or TOKEN)
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     bot.send_chat_action(message.chat.id, 'typing')
-    bot.send_message(message.chat.id, '欢迎使用，发送想要的剧集标题，我会帮你搜索。'
+    bot.send_message(message.chat.id, '欢迎使用，发送想要的剧集标题，我会帮你搜索。\n'
+                                      '人人影视倾向于欧美日韩剧集，请不要反馈"我搜不到喜羊羊与灰太狼"这种问题😠。\n'
                                       '建议使用<a href="http://www.zmz2019.com/">人人影视</a> 标准译名',
-                     parse_mode='html')
+                     parse_mode='html', disable_web_page_preview=True)
 
 
 @bot.message_handler(commands=['help'])
@@ -128,16 +129,17 @@ def send_search(message):
         bot.send_chat_action(message.chat.id, 'typing')
 
         encoded = quote_plus(name)
-        bot.send_message(message.chat.id, f"没有找到你想要的信息🤪\n莫非你是想调戏我哦😏\n\n"
+        bot.send_message(message.chat.id, f"没有找到你想要的信息🤪\n莫非你是想调戏我哦，😏\n\n"
                                           f"你先看看这个链接有没有结果。 {SEARCH_URL.format(kw=encoded)} "
                                           "如果有的话，那报错给我吧", reply_markup=markup, disable_web_page_preview=True)
         markup = types.InlineKeyboardMarkup()
         btn = types.InlineKeyboardButton("快来修复啦", callback_data="fix")
         markup.add(btn)
         bot.send_chat_action(message.chat.id, 'upload_document')
-        bot.send_message(message.chat.id, f"《{name}》😭😭😭\n机器人不好用了？点下面的按钮叫 @BennyThink 来修！",
+        bot.send_message(message.chat.id, f"《{name}》😭😭😭\n机器人不好用了？点下面的按钮叫 @BennyThink 来修！"
+                                          f"⚠️别乱点啊，看好自己搜的是什么，不乖的话我可是会报警的哦。",
                          reply_markup=markup)
-        content = f""" 报告者：@{message.chat.username}({message.chat.id})
+        content = f""" 报告者：{message.chat.first_name}@{message.chat.username}({message.chat.id})
                         问题发生时间：{time.strftime("%Y-%m-%data %H:%M:%S", time.localtime(message.date))}
                         请求内容：{name} 
                         请求URL：{SEARCH_URL.format(kw=encoded)}\n\n
