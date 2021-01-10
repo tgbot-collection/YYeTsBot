@@ -33,7 +33,7 @@ bot = telebot.TeleBot(os.environ.get('TOKEN') or TOKEN)
 def send_welcome(message):
     bot.send_chat_action(message.chat.id, 'typing')
     bot.send_message(message.chat.id, '欢迎使用，发送想要的剧集标题，我会帮你搜索。\n'
-                                      '人人影视倾向于欧美日韩剧集，请不要反馈"我搜不到喜羊羊与灰太狼"这种问题😠。\n'
+                                      '人人影视倾向于欧美日韩剧集，请不要反馈“我搜不到喜羊羊与灰太狼”这种问题😠。\n'
                                       '建议使用<a href="http://www.zmz2019.com/">人人影视</a> 标准译名',
                      parse_mode='html', disable_web_page_preview=True)
 
@@ -101,7 +101,7 @@ def send_my_response(message):
 
 @bot.message_handler(content_types=["photo", "text"])
 def send_search(message):
-    if message.reply_to_message and \
+    if message.reply_to_message and message.reply_to_message.document and \
             message.reply_to_message.document.file_name == 'error.txt' and str(message.chat.id) == MAINTAINER:
         send_my_response(message)
         return
@@ -163,7 +163,10 @@ def choose_link(call):
     btn1 = types.InlineKeyboardButton("分享页面", callback_data="share%s" % resource_url)
     btn2 = types.InlineKeyboardButton("我全都要", callback_data="all%s" % resource_url)
     markup.add(btn1, btn2)
-    bot.send_message(call.message.chat.id, "想要分享页面，还是我全都要？", reply_markup=markup)
+    text = "想要分享页面，还是我全都要？\n\n" \
+           "名词解释：“分享页面”会返回给你一个网站，从那里可以看到全部的下载链接。\n" \
+           "“我全都要”会给你发送一个txt文件，文件里包含全部下载连接\n"
+    bot.send_message(call.message.chat.id, text, reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"share(\S*)", call.data))
@@ -185,8 +188,8 @@ def all_episode(call):
         bytes_data = json.dumps(result["all"], ensure_ascii=False, indent=4).encode('u8')
         tmp.write(bytes_data)
 
-        bot.send_chat_action(call.message.chat.id, 'upload_document')
         with open(tmp.name, "rb") as f:
+            bot.send_chat_action(call.message.chat.id, 'upload_document')
             bot.send_document(call.message.chat.id, f)
 
 
