@@ -27,6 +27,7 @@ if PROXY:
     apihelper.proxy = {'https': PROXY}
 
 bot = telebot.TeleBot(os.environ.get('TOKEN') or TOKEN)
+angry_count = 0
 
 
 @bot.message_handler(commands=['start'])
@@ -62,6 +63,24 @@ def send_credits(message):
     <a href="http://cili001.com/">磁力下载站</a>
     <a href="http://www.zhuixinfan.com/main.php">追新番</a>
     ''', parse_mode='html')
+
+
+@bot.message_handler(commands=['unwelcome'])
+def send_unwelcome(message):
+    # this will come from me only
+    bot.send_chat_action(message.chat.id, 'typing')
+
+    if str(message.chat.id) != MAINTAINER:
+        bot.send_message(message.chat.id, "Not you.")
+        return
+
+    # angry_count = angry_count + 1
+    global angry_count
+    angry_count += 1
+    uid = message.reply_to_message.caption
+    if uid:
+        bot.send_message(uid, "人人影视主要提供欧美日韩等海外资源，你的这个真没有。不要再报告这种错误了🙄️，面倒な。😡")
+        bot.reply_to(message, f"有生之日 生气次数：{angry_count}")
 
 
 def download_to_io(photo):
