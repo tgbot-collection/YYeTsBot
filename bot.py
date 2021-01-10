@@ -59,7 +59,7 @@ def send_credits(message):
     bot.send_chat_action(message.chat.id, 'typing')
     bot.send_message(message.chat.id, '''感谢字幕组的无私奉献！本机器人资源来源:\n
     <a href="http://www.zmz2019.com/">人人影视</a>
-    <a href="http://oabt005.com/home.html">磁力下载站</a>
+    <a href="http://cili001.com/">磁力下载站</a>
     <a href="http://www.zhuixinfan.com/main.php">追新番</a>
     ''', parse_mode='html')
 
@@ -139,7 +139,7 @@ def send_search(message):
         bot.send_message(message.chat.id, f"《{name}》😭😭😭\n机器人不好用了？点下面的按钮叫 @BennyThink 来修！"
                                           f"⚠️你真的要报错吗，别乱点啊，看好自己搜的是什么，不乖的话我可是会报警的哦。",
                          reply_markup=markup)
-        content = f""" 报告者：{message.chat.first_name}@{message.chat.username}({message.chat.id})
+        content = f""" 报告者：{message.chat.first_name}{message.chat.last_name or ""}@{message.chat.username or ""}({message.chat.id})
                         问题发生时间：{time.strftime("%Y-%m-%data %H:%M:%S", time.localtime(message.date))}
                         请求内容：{name} 
                         请求URL：{SEARCH_URL.format(kw=encoded)}\n\n
