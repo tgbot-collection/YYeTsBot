@@ -16,6 +16,8 @@ from utils import load_cookies, cookie_file, login
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 
 s = requests.Session()
+ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+s.headers.update({"User-Agent": ua})
 
 
 def get_search_html(kw: str) -> str:
@@ -64,17 +66,19 @@ def analyse_search_html(html: str) -> dict:
 
 
 def analyse_rss(feed_url: str) -> dict:
-    d = feedparser.parse(feed_url)
-    # data['feed']['title']
-    result = {}
-    for item in d['entries']:
-        download = {
-            "title": getattr(item, "title", ""),
-            "ed2k": getattr(item, "ed2k", ""),
-            "magnet": getattr(item, "magnet", ""),
-            "pan": getattr(item, "pan", "")}
-        result[item.guid] = download
-    return result
+    # feed parser is meaningless now
+    return {}
+    # d = feedparser.parse(feed_url)
+    # # data['feed']['title']
+    # result = {}
+    # for item in d['entries']:
+    #     download = {
+    #         "title": getattr(item, "title", ""),
+    #         "ed2k": getattr(item, "ed2k", ""),
+    #         "magnet": getattr(item, "magnet", ""),
+    #         "pan": getattr(item, "pan", "")}
+    #     result[item.guid] = download
+    # return result
 
 
 def analysis_share_page(detail_url: str) -> (str, dict):
@@ -93,7 +97,9 @@ def analysis_share_page(detail_url: str) -> (str, dict):
 
 
 def get_score(rid: str) -> float:
-    return s.post(RESOURCE_SCORE, data={"rid": rid}).json()['score']
+    # there is actually no meaning in getting score for now
+    return 10.0
+    # return s.post(RESOURCE_SCORE, data={"rid": rid}).json()['score']
 
 
 def is_cookie_valid() -> bool:
