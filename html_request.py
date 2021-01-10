@@ -99,7 +99,6 @@ def get_score(rid: str) -> float:
 def is_cookie_valid() -> bool:
     cookie = load_cookies()
     r = s.get(GET_USER, cookies=cookie)
-    logging.info("cookie valid? %s", r.json())
     return r.json()['status'] == 1
 
 
