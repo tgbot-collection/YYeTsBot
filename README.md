@@ -1,11 +1,13 @@
 # YYeTsBot
 
-人人影视bot，[戳我使用](https://t.me/yyets_bot) 此机器人长期维护，如果遇到问题可以发送报告给我。
+人人影视bot，[戳我使用](https://t.me/yyets_bot) 
+
+此机器人长期维护，如果遇到问题可以发送报告给我。
 
 # 使用说明
 直接发送想要看的剧集名称就可以了，可选分享网页或者链接（ed2k和磁力链接）。
 
-**由于译名的不同，建议输入部分译名，然后从列表中进行选择。**
+**由于译名的不同，建议输入部分译名，然后从列表中进行选择。比如说想看权力的游戏第四季，那么直接搜索"权力的游戏"就可以了。**
 
 # commands
 
@@ -45,9 +47,9 @@ pip install -r requirements.py
 * TOKEN：bot token
 * USERNAME：USERNAME和PASSWORD是在人人影视的有效的用户名和密码
 * PASSWORD ：USERNAME和PASSWORD是在人人影视的有效的用户名和密码
-* PROXY ：是否需要使用代理 格式 `socks5://userproxy:password@proxy_address:port`
+* PROXY ：是否需要使用代理 格式 `http://userproxy:password@proxy_address:port`
 * MAINTAINER：维护者的Telegram UserID
-* REDIS：redis的地址，一般为localhost，
+* REDIS：redis的地址，一般为localhost
 
 也可以使用环境变量，如 `export TOKEN="1234"`
 
@@ -63,7 +65,11 @@ python /path/to/YYeTsBot/bot.py
 
 # Help
 
-- [ ] test case...
+- [ ] test case...谁来帮我写
+
+# 归档资源下载
+包含了2021年1月11日为止的最新资源，有兴趣的盆友可以用这个数据进行二次开发
+[戳我查看详情](https://t.me/mikuri520/668)
 
 # Credits
 
