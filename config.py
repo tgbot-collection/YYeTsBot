@@ -25,3 +25,4 @@ PASSWORD = os.environ.get("PASSWORD") or "password"
 PROXY = os.environ.get("PROXY")
 MAINTAINER = os.environ.get("MAINTAINER")
 REDIS = os.environ.get("REDIS") or "redis"
+REPORT = os.environ.get("REPORT") or False
