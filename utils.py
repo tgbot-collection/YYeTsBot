@@ -30,10 +30,10 @@ def get_from_cache(url: str) -> dict:
 
     data = r.get(url)
     if data:
-        logging.info("cache hit")
+        logging.info("Cache hit")
         return json.loads(data)
     else:
-        logging.info("cache miss")
+        logging.info("Cache miss")
         save_to_cache(url, get_detail_page(url))
         return get_from_cache(url)
 
@@ -62,7 +62,7 @@ def load_cookies():
 
 def login():
     data = {"account": USERNAME, "password": PASSWORD, "remember": 1}
-    logging.info("login in as %s", data)
+    logging.info("Login in as %s", data)
     r = requests.post(AJAX_LOGIN, data=data)
     resp = r.json()
     if resp.get('status') == 1:

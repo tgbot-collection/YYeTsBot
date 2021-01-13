@@ -27,7 +27,7 @@ def get_search_html(kw: str) -> str:
     if not is_cookie_valid():
         login()
     cookie = load_cookies()
-    logging.info("searching for %s", kw)
+    logging.info("Searching for %s", kw)
     r = s.get(SEARCH_URL.format(kw=kw), cookies=cookie)
 
     r.close()
@@ -35,15 +35,13 @@ def get_search_html(kw: str) -> str:
 
 
 def get_detail_page(url: str) -> dict:
-    logging.info("loading detail page %s", url)
+    logging.info("Loading detail page %s", url)
     share_link, api_res = analysis_share_page(url)
     cnname = api_res["data"]["info"]["cnname"]
-    logging.info("Share page complete for %s", cnname)
 
-    logging.info("Getting rss...")
+    logging.info("Loading rss...")
     rss_url = RSS_URL.format(id=url.split("/")[-1])
     rss_result = analyse_rss(rss_url)
-    logging.info("RSS complete...")
 
     # get name from here...
     if not rss_result:
@@ -83,13 +81,11 @@ def analyse_rss(feed_url: str) -> dict:
 
 def analysis_share_page(detail_url: str) -> (str, dict):
     rid = detail_url.split('/')[-1]
-    logging.info("rid is %s", rid)
 
     res = s.post(SHARE_URL, data={"rid": rid}, cookies=load_cookies()).json()
     share_code = res['data'].split('/')[-1]
-    logging.info("Share code is %s", share_code)
     share_url = SHARE_WEB.format(code=share_code)
-    logging.info("Share url %s", share_url)
+    logging.info("Share url is %s", share_url)
 
     # get api response
     api_response = s.get(SHARE_API.format(code=share_code)).json()
