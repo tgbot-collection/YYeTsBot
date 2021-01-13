@@ -126,8 +126,10 @@ def send_search(message):
         markup.add(btn)
 
     if result:
+        logging.info("🎉Resource match.")
         bot.send_message(message.chat.id, "呐，💐🌷🌹选一个呀！", reply_markup=markup)
     else:
+        logging.warning("⚠️Resource not found")
         bot.send_chat_action(message.chat.id, 'typing')
 
         encoded = quote_plus(name)
