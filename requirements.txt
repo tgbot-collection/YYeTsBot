@@ -7,3 +7,4 @@ pysocks
 tgbot-ping
 redis
 cchardet
+apscheduler

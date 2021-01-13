@@ -17,9 +17,11 @@ from urllib.parse import quote_plus
 import telebot
 from telebot import types, apihelper
 from tgbot_ping import get_runtime
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from html_request import get_search_html, analyse_search_html, get_detail_page
-from utils import save_error_dump, save_to_cache, get_from_cache, get_error_dump
+from utils import (save_error_dump, save_to_cache, get_from_cache, get_error_dump,
+                   reset_request, today_request, show_usage)
 from config import PROXY, TOKEN, SEARCH_URL, MAINTAINER, REPORT
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
@@ -51,9 +53,17 @@ def send_help(message):
 
 @bot.message_handler(commands=['ping'])
 def send_ping(message):
+    logging.info("Pong!")
     bot.send_chat_action(message.chat.id, 'typing')
+
     info = get_runtime("botsrunner_yyets_1")
-    bot.send_message(message.chat.id, info, parse_mode='markdown')
+    redis = get_runtime("botsrunner_redis_1", "Redis")
+
+    usage = ""
+    if str(message.chat.id) == MAINTAINER:
+        usage = show_usage()
+
+    bot.send_message(message.chat.id, f"{info}\n{redis}\n\n{usage}", parse_mode='markdown')
 
 
 @bot.message_handler(commands=['credits'])
@@ -103,14 +113,17 @@ def send_my_response(message):
 
 @bot.message_handler(content_types=["photo", "text"])
 def send_search(message):
+    today_request("total")
     if message.reply_to_message and message.reply_to_message.document and \
             message.reply_to_message.document.file_name.startswith("error") and str(message.chat.id) == MAINTAINER:
+        today_request("answer")
         send_my_response(message)
         return
     bot.send_chat_action(message.chat.id, 'record_video')
 
     name = message.text
     if name is None:
+        today_request("invalid")
         with open('assets/warning.webp', 'rb') as sti:
             bot.send_message(message.chat.id, "不要调戏我！我会报警的")
             bot.send_sticker(message.chat.id, sti)
@@ -126,10 +139,12 @@ def send_search(message):
         markup.add(btn)
 
     if result:
-        logging.info("🎉Resource match.")
+        logging.info("🎉 Resource match.")
+        today_request("success")
         bot.send_message(message.chat.id, "呐，💐🌷🌹选一个呀！", reply_markup=markup)
     else:
-        logging.warning("⚠️Resource not found")
+        logging.warning("⚠️️ Resource not found")
+        today_request("fail")
         bot.send_chat_action(message.chat.id, 'typing')
 
         encoded = quote_plus(name)
@@ -249,4 +264,7 @@ def report_error(call):
 
 if __name__ == '__main__':
     logging.info('YYeTs bot is running...')
-    bot.polling(none_stop=True, )
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(reset_request, 'cron', hour=0, minute=0)
+    scheduler.start()
+    bot.polling(none_stop=True)
