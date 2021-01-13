@@ -20,7 +20,7 @@ from tgbot_ping import get_runtime
 
 from html_request import get_search_html, analyse_search_html, get_detail_page
 from utils import save_error_dump, save_to_cache, get_from_cache, get_error_dump
-from config import PROXY, TOKEN, SEARCH_URL, MAINTAINER
+from config import PROXY, TOKEN, SEARCH_URL, MAINTAINER, REPORT
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 if PROXY:
@@ -33,8 +33,9 @@ angry_count = 0
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     bot.send_chat_action(message.chat.id, 'typing')
-    bot.send_message(message.chat.id, '欢迎使用，发送想要的剧集标题，我会帮你搜索。\n'
-                                      '人人影视倾向于欧美日韩剧集，请不要反馈“我搜不到喜羊羊与灰太狼”这种问题😠。\n'
+    bot.send_message(message.chat.id, '欢迎使用，直接发送想要的剧集标题给我就可以了，不需要其他关键字，我会帮你搜索。\n\n'
+                                      '人人影视专注于欧美日韩剧集，请不要反馈“我搜不到喜羊羊与灰太狼/流浪地球”这种问题，'
+                                      '我会生气的😠😡🤬😒\n\n'
                                       '建议使用<a href="http://www.zmz2019.com/">人人影视</a> 标准译名',
                      parse_mode='html', disable_web_page_preview=True)
 
@@ -130,23 +131,25 @@ def send_search(message):
         bot.send_chat_action(message.chat.id, 'typing')
 
         encoded = quote_plus(name)
-        bot.send_message(message.chat.id, f"没有找到你想要的信息🤪\n莫非你是想调戏我哦，😏\n\n"
-                                          f"你先看看这个链接有没有结果。 {SEARCH_URL.format(kw=encoded)} "
-                                          "如果有的话，那报错给我吧", reply_markup=markup, disable_web_page_preview=True)
-        markup = types.InlineKeyboardMarkup()
-        btn = types.InlineKeyboardButton("快来修复啦", callback_data="fix")
-        markup.add(btn)
-        bot.send_chat_action(message.chat.id, 'upload_document')
-        bot.send_message(message.chat.id, f"《{name}》😭😭😭\n机器人不好用了？点下面的按钮叫 @BennyThink 来修！\n"
-                                          f"⚠️你真的要报错吗，别乱点啊，看好自己搜的是什么，不乖的话我可是会报警的哦。",
-                         reply_markup=markup)
-        content = f""" 报告者：{message.chat.first_name}{message.chat.last_name or ""}@{message.chat.username or ""}({message.chat.id})
-                        问题发生时间：{time.strftime("%Y-%m-%data %H:%M:%S", time.localtime(message.date))}
-                        请求内容：{name} 
-                        请求URL：{SEARCH_URL.format(kw=encoded)}\n\n
-                        返回内容：{html}
-                    """
-        save_error_dump(message.chat.id, content)
+        bot.send_message(message.chat.id, f"没有找到你想要的信息，是不是你打了错别字，或者搜索了一些国产影视剧。🤪\n"
+                                          f"还是你想调戏我哦🙅‍️\n\n"
+                                          f"可以看看这个链接，看看有没有结果。 {SEARCH_URL.format(kw=encoded)} \n\n"
+                                          "⚠️如果确定要我背锅，那么请使用 /help ", disable_web_page_preview=True)
+        if REPORT:
+            btn = types.InlineKeyboardButton("快来修复啦", callback_data="fix")
+            markup.add(btn)
+            bot.send_chat_action(message.chat.id, 'upload_document')
+            bot.send_message(message.chat.id, f"《{name}》😭\n大部分情况下机器人是好用的，不要怀疑我的代码质量.\n"
+                                              f"如果你真的确定是机器人出问题了，那么点下面的按钮叫 @BennyThink 来修！\n"
+                                              f"⚠️报错前请三思，不要乱点，确保这锅应该甩给我。否则我会很生气的😡小心被拉黑哦",
+                             reply_markup=markup)
+            content = f""" 报告者：{message.chat.first_name}{message.chat.last_name or ""}@{message.chat.username or ""}({message.chat.id})
+                            问题发生时间：{time.strftime("%Y-%m-%data %H:%M:%S", time.localtime(message.date))}
+                            请求内容：{name} 
+                            请求URL：{SEARCH_URL.format(kw=encoded)}\n\n
+                            返回内容：{html}
+                        """
+            save_error_dump(message.chat.id, content)
 
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"choose(\S*)", call.data))
