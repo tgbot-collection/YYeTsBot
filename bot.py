@@ -326,4 +326,4 @@ if __name__ == '__main__':
     scheduler = BackgroundScheduler()
     scheduler.add_job(reset_request, 'cron', hour=0, minute=0)
     scheduler.start()
-    bot.polling(none_stop=True)
+    bot.polling(none_stop=True, timeout=40, long_polling_timeout=40)
