@@ -20,9 +20,9 @@ ping - 运行状态
 
 # 截图
 
-![](assets/1.jpg)
+![](assets/1.png)
 
-![](assets/2.jpg)
+![](assets/2.png)
 
 # 部署方法
 
