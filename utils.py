@@ -24,7 +24,7 @@ def save_to_cache(url: str, value: dict) -> None:
     r.set(url, data, ex=3600 * 12)
 
 
-def get_from_cache(url: str) -> dict:
+def yyets_get_from_cache(url: str) -> dict:
     logging.info("Reading data from cache %s", url)
     from html_request import get_detail_page
 
@@ -35,7 +35,7 @@ def get_from_cache(url: str) -> dict:
     else:
         logging.info("Cache miss")
         save_to_cache(url, get_detail_page(url))
-        return get_from_cache(url)
+        return yyets_get_from_cache(url)
 
 
 def save_error_dump(uid, err: str):
