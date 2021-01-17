@@ -68,7 +68,7 @@ def send_ping(message):
     announcement = redis_announcement() or ""
     if announcement:
         announcement = f"\n\n*公告：{announcement}*\n\n"
-    bot.send_message(message.chat.id, f"{announcement}{info}\n{redis}\n\n{usage}\n{announcement}",
+    bot.send_message(message.chat.id, f"{info}\n{redis}\n\n{usage}\n{announcement}",
                      parse_mode='markdown')
 
 
