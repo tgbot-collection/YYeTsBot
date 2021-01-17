@@ -10,7 +10,7 @@ import requests
 import feedparser
 from bs4 import BeautifulSoup
 
-from config import SEARCH_URL, GET_USER, RSS_URL, BASE_URL, SHARE_WEB, SHARE_URL, RESOURCE_SCORE, SHARE_API
+from config import SEARCH_URL, GET_USER, RSS_URL, BASE_URL, SHARE_WEB, SHARE_URL, WORKERS, SHARE_API
 from utils import load_cookies, cookie_file, login
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
@@ -43,7 +43,7 @@ def get_detail_page(url: str) -> dict:
     rss_url = RSS_URL.format(id=url.split("/")[-1])
     rss_result = analyse_rss(rss_url)
 
-    # get name from here...
+    # get search_content from here...
     if not rss_result:
         rss_result = api_res
 
@@ -58,7 +58,7 @@ def analyse_search_html(html: str) -> dict:
     for block in link_list:
         name = block.find_all('a')[-1].text
         url = BASE_URL + block.find_all('a')[-1].attrs['href']
-        list_result[url] = {"name": name, "score": get_score(url.split('/')[-1])}
+        list_result[url] = name
 
     return list_result
 
@@ -92,21 +92,36 @@ def analysis_share_page(detail_url: str) -> (str, dict):
     return share_url, api_response
 
 
-def get_score(rid: str) -> float:
-    # there is actually no meaning in getting score for now
-    return 10.0
-    # return s.post(RESOURCE_SCORE, data={"rid": rid}).json()['score']
-
-
 def is_cookie_valid() -> bool:
     cookie = load_cookies()
     r = s.get(GET_USER, cookies=cookie)
     return r.json()['status'] == 1
 
 
+def offline_search(search_content):
+    # from cloudflare workers
+    # no redis cache for now
+    logging.info("Loading data from cfkv...")
+    index = WORKERS.format(id="index")
+    data: dict = requests.get(index).json()
+    logging.info("Loading complete, searching now...")
+
+    results = {}
+    for name, rid in data.items():
+        if search_content in name:
+            fake_url = f"http://www.rrys2020.com/resource/{rid}"
+            results[fake_url] = name.replace("\n", " ")
+    logging.info("Search complete")
+    return results
+
+
+def offline_link(resource_url) -> str:
+    rid = resource_url.split("/")[-1]
+    query_url = WORKERS.format(id=rid)
+    # TODO: too lazy to optimize cloudflare worker page.
+    return query_url
+
+
 if __name__ == '__main__':
-    __search = get_search_html('轮到你了')
-    __search_result = analyse_search_html(__search)
-    __chose = "http://www.rrys2020.com/resource/38000"
-    __link = get_detail_page(__chose)
-    print(__link)
+    a = offline_search("越狱")
+    print(a)

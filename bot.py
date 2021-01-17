@@ -19,10 +19,11 @@ from telebot import types, apihelper
 from tgbot_ping import get_runtime
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from html_request import get_search_html, analyse_search_html, get_detail_page
-from utils import (save_error_dump, save_to_cache, get_from_cache, get_error_dump,
-                   reset_request, today_request, show_usage)
-from config import PROXY, TOKEN, SEARCH_URL, MAINTAINER, REPORT
+from html_request import get_search_html, analyse_search_html, get_detail_page, offline_search, offline_link
+from utils import (save_error_dump, save_to_cache, yyets_get_from_cache, get_error_dump,
+                   reset_request, today_request, show_usage
+                   )
+from config import PROXY, TOKEN, SEARCH_URL, MAINTAINER, REPORT, WORKERS, OFFLINE
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 if PROXY:
@@ -119,9 +120,10 @@ def send_search(message):
         today_request("answer")
         send_my_response(message)
         return
-    bot.send_chat_action(message.chat.id, 'record_video')
 
+    bot.send_chat_action(message.chat.id, 'record_video')
     name = message.text
+    logging.info('Receiving message: %s from user %s(%s)', name, message.chat.username, message.chat.id)
     if name is None:
         today_request("invalid")
         with open('assets/warning.webp', 'rb') as sti:
@@ -129,13 +131,18 @@ def send_search(message):
             bot.send_sticker(message.chat.id, sti)
         return
 
-    logging.info('Receiving message about %s from user %s(%s)', name, message.chat.username, message.chat.id)
-    html = get_search_html(name)
-    result = analyse_search_html(html)
+    if OFFLINE:
+        logging.warning("☢️ Going offline mode!!!")
+        bot.send_message(message.chat.id, "人人影视官网不可用，目前在使用离线模式，可能没有最新的剧集。")
+        html = ""
+        result = offline_search(name)
+    else:
+        html = get_search_html(name)
+        result = analyse_search_html(html)
 
     markup = types.InlineKeyboardMarkup()
     for url, detail in result.items():
-        btn = types.InlineKeyboardButton(detail['name'], callback_data="choose%s" % url)
+        btn = types.InlineKeyboardButton(detail, callback_data="choose%s" % url)
         markup.add(btn)
 
     if result:
@@ -151,7 +158,7 @@ def send_search(message):
         bot.send_message(message.chat.id, f"没有找到你想要的信息，是不是你打了错别字，或者搜索了一些国产影视剧。🤪\n"
                                           f"还是你想调戏我哦🙅‍️\n\n"
                                           f"可以看看这个链接，看看有没有结果。 {SEARCH_URL.format(kw=encoded)} \n\n"
-                                          "⚠️如果确定要我背锅，那么请使用 /help ", disable_web_page_preview=True)
+                                          "⚠️如果确定要我背锅，那么请使用 /help 来提交错误", disable_web_page_preview=True)
         if REPORT:
             btn = types.InlineKeyboardButton("快来修复啦", callback_data="fix")
             markup.add(btn)
@@ -174,13 +181,20 @@ def choose_link(call):
     bot.send_chat_action(call.message.chat.id, 'typing')
     # call.data is url, http://www.rrys2020.com/resource/36588
     resource_url = re.findall(r"choose(\S*)", call.data)[0]
+    markup = types.InlineKeyboardMarkup()
 
-    link = get_from_cache(resource_url)
+    if OFFLINE:
+        worker_page = offline_link(resource_url)
+        btn1 = types.InlineKeyboardButton("打开网页", url=worker_page)
+        markup.add(btn1)
+        bot.send_message(call.message.chat.id, "离线模式，点击按钮打开网页获取结果", reply_markup=markup)
+        return
+
+    link = yyets_get_from_cache(resource_url)
     if not link:
         link = get_detail_page(resource_url)
         save_to_cache(resource_url, link)
 
-    markup = types.InlineKeyboardMarkup()
     btn1 = types.InlineKeyboardButton("分享页面", callback_data="share%s" % resource_url)
     btn2 = types.InlineKeyboardButton("我全都要", callback_data="all%s" % resource_url)
     markup.add(btn1, btn2)
@@ -194,7 +208,7 @@ def choose_link(call):
 def share_page(call):
     bot.send_chat_action(call.message.chat.id, 'typing')
     resource_url = re.findall(r"share(\S*)", call.data)[0]
-    result = get_from_cache(resource_url)
+    result = yyets_get_from_cache(resource_url)
     bot.send_message(call.message.chat.id, result['share'])
 
 
@@ -203,7 +217,7 @@ def all_episode(call):
     # just send a file
     bot.send_chat_action(call.message.chat.id, 'typing')
     resource_url = re.findall(r"all(\S*)", call.data)[0]
-    result = get_from_cache(resource_url)
+    result = yyets_get_from_cache(resource_url)
 
     with tempfile.NamedTemporaryFile(mode='wb+', prefix=result["cnname"], suffix=".txt") as tmp:
         bytes_data = json.dumps(result["all"], ensure_ascii=False, indent=4).encode('u8')
