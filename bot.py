@@ -114,6 +114,8 @@ def send_my_response(message):
 
 @bot.message_handler(content_types=["photo", "text"])
 def send_search(message):
+    bot.send_chat_action(message.chat.id, 'typing')
+
     today_request("total")
     if message.reply_to_message and message.reply_to_message.document and \
             message.reply_to_message.document.file_name.startswith("error") and str(message.chat.id) == MAINTAINER:
@@ -121,7 +123,6 @@ def send_search(message):
         send_my_response(message)
         return
 
-    bot.send_chat_action(message.chat.id, 'record_video')
     name = message.text
     logging.info('Receiving message: %s from user %s(%s)', name, message.chat.username, message.chat.id)
     if name is None:
@@ -135,6 +136,7 @@ def send_search(message):
         logging.warning("☢️ Going offline mode!!!")
         bot.send_message(message.chat.id, "人人影视官网不可用，目前在使用离线模式，可能没有最新的剧集。")
         html = ""
+        bot.send_chat_action(message.chat.id, 'upload_document')
         result = offline_search(name)
     else:
         html = get_search_html(name)
