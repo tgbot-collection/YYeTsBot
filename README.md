@@ -16,6 +16,7 @@ start - 开始使用
 help - 帮助
 credits - 致谢
 ping - 运行状态
+settings - 获取公告
 ```
 
 # 截图
