@@ -50,6 +50,15 @@ def get_error_dump(uid) -> str:
     return err
 
 
+def redis_announcement(content="", op="get"):
+    if op == "get":
+        return r.get("announcement")
+    elif op == "set":
+        r.set("announcement", content)
+    elif op == "del":
+        r.delete("announcement")
+
+
 def save_cookies(requests_cookiejar):
     with open(cookie_file, 'wb') as f:
         pickle.dump(requests_cookiejar, f)

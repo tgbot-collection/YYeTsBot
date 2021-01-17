@@ -21,7 +21,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from html_request import get_search_html, analyse_search_html, get_detail_page, offline_search, offline_link
 from utils import (save_error_dump, save_to_cache, yyets_get_from_cache, get_error_dump,
-                   reset_request, today_request, show_usage
+                   reset_request, today_request, show_usage,
+                   redis_announcement
                    )
 from config import PROXY, TOKEN, SEARCH_URL, MAINTAINER, REPORT, WORKERS, OFFLINE
 
@@ -46,7 +47,8 @@ def send_welcome(message):
 @bot.message_handler(commands=['help'])
 def send_help(message):
     bot.send_chat_action(message.chat.id, 'typing')
-    bot.send_message(message.chat.id, '''机器人无法使用或者报错？你可以使用如下方式寻求使用帮助和报告错误：\n
+    bot.send_message(message.chat.id, '''机器人无法使用或者报错？从 /ping 里可以看到运行状态以及最新信息。
+    同时，你可以使用如下方式寻求使用帮助和报告错误：\n
     1. @BennyThink
     2. <a href='https://github.com/BennyThink/YYeTsBot/issues'>Github issues</a>
     3. <a href='https://t.me/mikuri520'>Telegram Channel</a>''', parse_mode='html', disable_web_page_preview=True)
@@ -63,8 +65,49 @@ def send_ping(message):
     usage = ""
     if str(message.chat.id) == MAINTAINER:
         usage = show_usage()
+    announcement = redis_announcement() or ""
+    if announcement:
+        announcement = f"\n\n*公告：{announcement}*\n\n"
+    bot.send_message(message.chat.id, f"{announcement}{info}\n{redis}\n\n{usage}\n{announcement}",
+                     parse_mode='markdown')
 
-    bot.send_message(message.chat.id, f"{info}\n{redis}\n\n{usage}", parse_mode='markdown')
+
+@bot.message_handler(commands=['settings'])
+def settings(message):
+    is_admin = str(message.chat.id) == MAINTAINER
+    # 普通用户只可以查看，不可以设置。
+    # 管理员可以查看可以设置
+    if message.text != "/settings" and not is_admin:
+        bot.send_message(message.chat.id, "此功能只允许管理员使用。请使用 /ping 和 /settings 查看相关信息")
+        return
+
+    # 删除公告，设置新公告
+    if message.text != "/settings":
+        date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        text = message.text.replace("/settings", f"{date}\t")
+        logging.info("New announcement %s", text)
+        redis_announcement(text, "set")
+        setattr(message, "text", "/settings")
+        settings(message)
+        return
+
+    announcement = redis_announcement()
+    markup = types.InlineKeyboardMarkup()
+    btn1 = types.InlineKeyboardButton("删除公告", callback_data="announcement")
+    if is_admin and announcement:
+        markup.add(btn1)
+
+    bot.send_message(message.chat.id, f"目前公告：\n\n {announcement or '暂无公告'}", reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: re.findall(r"announcement(\S*)", call.data))
+def delete_announcement(call):
+    bot.send_chat_action(call.message.chat.id, 'typing')
+    redis_announcement(op="del")
+
+    bot.edit_message_text(f"目前公告：\n\n {redis_announcement() or '暂无公告'}",
+                          call.message.chat.id,
+                          call.message.message_id)
 
 
 @bot.message_handler(commands=['credits'])
