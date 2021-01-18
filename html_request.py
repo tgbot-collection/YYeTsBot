@@ -20,6 +20,24 @@ ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
 s.headers.update({"User-Agent": ua})
 
 
+class BaseFansub:
+
+    def get_search_html(self):
+        pass
+
+    def analyse_search_html(self):
+        pass
+
+    def get_detail_page(self):
+        pass
+
+    def login_check(self):
+        pass
+
+    def offline_search(self):
+        pass
+
+
 def get_search_html(kw: str) -> str:
     if not os.path.exists(cookie_file):
         logging.warning("Cookie file not found")
