@@ -64,9 +64,13 @@ python /path/to/YYeTsBot/bot.py
 
 参考 `yyets.service`
 
-# Help
+# TODO
+- [ ] 添加对FIX的支持
+- [ ] 整理fix资源
+- [ ] 文件/函数重命名，类化
+- [ ] test case...啊不想写
 
-- [ ] test case...谁来帮我写
+参见分支 `zimuxia`
 
 # 归档资源下载
 包含了2021年1月11日为止的最新资源，有兴趣的盆友可以用这个数据进行二次开发
