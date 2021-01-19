@@ -64,7 +64,8 @@ class YYeTsTest(unittest.TestCase):
 
     @requests_mock.mock()
     def test_get_search_html(self, m):
-        html = "a response"
+        with open("sample_search.html") as f:
+            html = f.read()
         m.get('http://www.rrys2020.com/search?keyword=abc&type=resource', text=html)
         response = self.ins.__get_search_html__("abc")
         self.assertEqual(html, response)
