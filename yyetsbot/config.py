@@ -23,7 +23,7 @@ USERNAME = os.environ.get("USERNAME") or "USERNAME"
 PASSWORD = os.environ.get("PASSWORD") or "password"
 PROXY = os.environ.get("PROXY")
 MAINTAINER = os.environ.get("MAINTAINER")
-REDIS = os.environ.get("REDIS") or "redis"
+REDIS = os.environ.get("REDIS") or "localhost"
 REPORT = os.environ.get("REPORT") or False
 OFFLINE = os.environ.get("OFFLINE") or False
 

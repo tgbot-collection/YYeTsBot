@@ -8,3 +8,4 @@ tgbot-ping
 redis
 cchardet
 apscheduler
+coverage
