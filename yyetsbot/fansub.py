@@ -120,10 +120,10 @@ class BaseFansub:
         else:
             logging.info("Cache miss")
             result_method = getattr(self, method_name)
-            self.__save_to_cache(url, result_method())
+            self.__save_to_cache__(url, result_method())
             return self.__get_from_cache__(url, method_name)
 
-    def __save_to_cache(self, url: str, value: dict, ex=3600 * 12) -> None:
+    def __save_to_cache__(self, url: str, value: dict, ex=3600 * 12) -> None:
         data = json.dumps(value, ensure_ascii=False)
         self.redis.set(url, data, ex=ex)
 
