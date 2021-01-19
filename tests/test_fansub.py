@@ -4,6 +4,9 @@ import unittest
 import os
 import sys
 
+import requests_mock
+from unittest import mock
+
 sys.path.append("../yyetsbot")
 
 from fansub import BaseFansub, YYeTs
@@ -26,6 +29,11 @@ class TestBaseFunsub(unittest.TestCase):
         exists = os.path.exists(self.ins.cookie_file)
         self.assertTrue(exists)
 
+    def test_load_cookies(self):
+        self.test_save_cookies()
+        cookie = self.ins.__load_cookies__()
+        self.assertEqual(cookie, self.cookie_jar)
+
     def test_get_from_cache(self):
         value = self.ins.__get_from_cache__("http://test.url", "__hash__")
         self.assertEqual(value, self.ins.__hash__())
@@ -39,7 +47,27 @@ class TestBaseFunsub(unittest.TestCase):
 
 
 class YYeTsTest(unittest.TestCase):
-    pass
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.ins = YYeTs()
+        cls.cookie_jar = dict(name="hello yyets")
+        cls.ins.cookie_file = "test_cookies.dump"  # generate on tests/test_cookies.dump
+        cls.ins.url = "http://www.rrys2020.com/resource/1988"
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls().ins.redis.flushall()
+        # os.unlink(cls().ins.cookie_file)
+
+    def test_get_id(self):
+        self.assertEqual(self.ins.id, "1988")
+
+    @requests_mock.mock()
+    def test_get_search_html(self, m):
+        html = "a response"
+        m.get('http://www.rrys2020.com/search?keyword=abc&type=resource', text=html)
+        response = self.ins.__get_search_html__("abc")
+        self.assertEqual(html, response)
 
 
 if __name__ == '__main__':

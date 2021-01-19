@@ -9,3 +9,4 @@ redis
 cchardet
 apscheduler
 coverage
+requests-mock
