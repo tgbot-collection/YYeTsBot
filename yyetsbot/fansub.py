@@ -1,5 +1,5 @@
 # coding: utf-8
-# YYeTsBot - funsub_resource.py
+# YYeTsBot - fansub.py
 # 2019/8/15 18:30
 
 __author__ = 'Benny <benny.think@gmail.com>'
@@ -51,7 +51,7 @@ class BaseFansub:
         # return html text of search page
         pass
 
-    def online_search_preview(self, search_text: str) -> dict[str:str]:
+    def online_search_preview(self, search_text: str) -> dict:
         # try to retrieve critical information from html
         # this result must return to bot for manual selection
         # {"url1": "name1", "url2": "name2"}
@@ -77,7 +77,7 @@ class BaseFansub:
         """
         pass
 
-    def offline_search_preview(self, search_text: str) -> dict[str:str]:
+    def offline_search_preview(self, search_text: str) -> dict:
         # this result must return to bot for manual selection
         # the same as online
         pass
@@ -130,7 +130,7 @@ class BaseFansub:
 
 class YYeTs(BaseFansub):
     label = "yyets"
-    cookie_file = "cookies.dump"
+    cookie_file = os.path.join("data", "cookies.dump")
 
     @property
     def id(self):
@@ -146,7 +146,7 @@ class YYeTs(BaseFansub):
         r.close()
         return r.text
 
-    def online_search_preview(self, search_text: str) -> dict[str:str]:
+    def online_search_preview(self, search_text: str) -> dict:
         html_text = self.__get_search_html__(search_text)
         logging.info('Parsing html...')
         soup = BeautifulSoup(html_text, 'lxml')
@@ -197,6 +197,7 @@ class YYeTs(BaseFansub):
         if not os.path.exists(self.cookie_file):
             logging.warning("Cookie file not found")
             self.__manual_login()
+
         cookie = self.__load_cookies()
         r = session.get(GET_USER, cookies=cookie)
         if not r.json()['status'] == 1:
