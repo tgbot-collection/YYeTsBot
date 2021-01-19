@@ -172,8 +172,8 @@ class YYeTs(BaseFansub):
 
     def offline_search_preview(self, search_text: str) -> dict:
         # from cloudflare workers
-        # no redis cache for now
-        logging.info("Loading data from cfkv...")
+        # no redis cache for now - why? because we may update cloudflare
+        logging.info("Loading data from cloudflare KV storage...")
         index = WORKERS.format(id="index")
         data: dict = requests.get(index).json()
         logging.info("Loading complete, searching now...")
@@ -189,6 +189,7 @@ class YYeTs(BaseFansub):
     def offline_search_result(self, resource_url) -> dict:
         self.url = resource_url
         query_url = WORKERS.format(id=self.id)
+        # for universal purpose, we return the same structure.
         self.data = {"all": None, "share": query_url, "cnname": None}
         return self.data
 
@@ -229,6 +230,3 @@ class YYeTs(BaseFansub):
         api_response = session.get(SHARE_API.format(code=share_code)).json()
         return share_url, api_response
 
-
-if __name__ == '__main__':
-    y = YYeTs()
