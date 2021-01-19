@@ -178,12 +178,10 @@ def send_search(message):
     if OFFLINE:
         logging.warning("☢️ Going offline mode!!!")
         bot.send_message(message.chat.id, "人人影视官网不可用，目前在使用离线模式，可能没有最新的剧集。")
-        html = ""
         bot.send_chat_action(message.chat.id, 'upload_document')
         result = offline_search(name)
     else:
-        html = get_search_html(name)
-        result = analyse_search_html(html)
+        result = analyse_search_html(get_search_html(name))
 
     markup = types.InlineKeyboardMarkup()
     for url, detail in result.items():
@@ -216,7 +214,7 @@ def send_search(message):
                             问题发生时间：{time.strftime("%Y-%m-%data %H:%M:%S", time.localtime(message.date))}
                             请求内容：{name} 
                             请求URL：{SEARCH_URL.format(kw=encoded)}\n\n
-                            返回内容：{html}
+                            
                         """
             save_error_dump(message.chat.id, content)
 

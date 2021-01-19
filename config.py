@@ -9,8 +9,6 @@ import os
 BASE_URL = "http://www.rrys2020.com"
 LOGIN_URL = "http://www.rrys2020.com/user/login"
 GET_USER = "http://www.rrys2020.com/user/login/getCurUserTopInfo"
-# rss is unavailable as of 2021.01.10
-RSS_URL = "http://rss.rrys.tv/rss/feed/{id}"
 SEARCH_URL = "http://www.rrys2020.com/search?keyword={kw}&type=resource"
 AJAX_LOGIN = "http://www.rrys2020.com/User/Login/ajaxLogin"
 SHARE_URL = "http://www.rrys2020.com/resource/ushare"

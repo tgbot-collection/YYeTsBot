@@ -7,139 +7,226 @@ __author__ = 'Benny <benny.think@gmail.com>'
 import os
 import logging
 import requests
-import feedparser
+import pickle
+import sys
+import json
+
 from bs4 import BeautifulSoup
 
-from config import SEARCH_URL, GET_USER, RSS_URL, BASE_URL, SHARE_WEB, SHARE_URL, WORKERS, SHARE_API
-from utils import load_cookies, cookie_file, login
+from config import (SEARCH_URL, GET_USER, BASE_URL, SHARE_WEB,
+                    SHARE_URL, WORKERS, SHARE_API, USERNAME, PASSWORD,
+                    AJAX_LOGIN, REDIS)
+import redis
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 
-s = requests.Session()
+session = requests.Session()
 ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
-s.headers.update({"User-Agent": ua})
+session.headers.update({"User-Agent": ua})
 
 
 class BaseFansub:
+    """
+    all the subclass should implement three kinds of methods:
+    1. online search, contains preview for bot and complete result
+    2. offline search (set pass if not applicable)
+    3. login and check (set pass if not applicable)
+    4. search_result this is critical for bot to draw markup
 
-    def get_search_html(self):
+    """
+    label = None
+    cookie_file = None
+
+    def __init__(self):
+        self.data = None
+        self.url = None
+        self.redis = redis.StrictRedis(host=REDIS, decode_responses=True)
+
+    @property
+    def id(self):
+        # implement how to get the unique id for this resource
+        return None
+
+    def __get_search_html__(self, kw: str) -> str:
+        # return html text of search page
         pass
 
-    def analyse_search_html(self):
+    def online_search_preview(self, search_text: str) -> dict[str:str]:
+        # try to retrieve critical information from html
+        # this result must return to bot for manual selection
+        # {"url1": "name1", "url2": "name2"}
         pass
 
-    def get_detail_page(self):
+    def online_search_result(self, resource_url: str) -> dict:
+        """
+        This will happen when user click one of the button, only by then we can know the resource link
+        From the information above, try to get a detail dict structure.
+        This method should check cache first if applicable
+        This method should set self.link and self.data
+        This method should call __execute_online_search
+        :param resource_url:
+        :return:    {"all": rss_result, "share": share_link, "cnname": cnname}
+
+        """
         pass
 
-    def login_check(self):
+    def __execute_online_search_result(self) -> dict:
+        """
+        Do the real search job, without any cache mechanism
+        :return:    {"all": rss_result, "share": share_link, "cnname": cnname}
+        """
         pass
 
-    def offline_search(self):
+    def offline_search_preview(self, search_text: str) -> dict[str:str]:
+        # this result must return to bot for manual selection
+        # the same as online
         pass
 
+    def offline_search_result(self, resource_url) -> dict:
+        """
+        Same as online_search_result
+        :param resource_url:
+        :return:
+        """
+        pass
 
-def get_search_html(kw: str) -> str:
-    if not os.path.exists(cookie_file):
-        logging.warning("Cookie file not found")
-        login()
-    if not is_cookie_valid():
-        login()
-    cookie = load_cookies()
-    logging.info("Searching for %s", kw)
-    r = s.get(SEARCH_URL.format(kw=kw), cookies=cookie)
+    def __execute_offline_search_result(self) -> dict:
+        """
+        Do the search job, without any cache mechanism
+        :return:    {"all": rss_result, "share": share_link, "cnname": cnname}
+        """
+        pass
 
-    r.close()
-    return r.text
+    def __login_check(self):
+        pass
 
+    def __manual_login(self):
+        pass
 
-def get_detail_page(url: str) -> dict:
-    logging.info("Loading detail page %s", url)
-    share_link, api_res = analysis_share_page(url)
-    cnname = api_res["data"]["info"]["cnname"]
+    def __save_cookies(self, requests_cookiejar):
+        with open(self.cookie_file, 'wb') as f:
+            pickle.dump(requests_cookiejar, f)
 
-    logging.info("Loading rss...")
-    rss_url = RSS_URL.format(id=url.split("/")[-1])
-    rss_result = analyse_rss(rss_url)
+    def __load_cookies(self):
+        with open(self.cookie_file, 'rb') as f:
+            return pickle.load(f)
 
-    # get search_content from here...
-    if not rss_result:
-        rss_result = api_res
+    def __get_from_cache(self, url: str, method_name: str) -> dict:
+        logging.info("Reading %s data from cache %s", self.label, url)
+        data = self.redis.get(url)
+        if data:
+            logging.info("Cache hit")
+            return json.loads(data)
+        else:
+            logging.info("Cache miss")
+            result_method = getattr(self, method_name)
+            self.__save_to_cache(url, result_method(url))
+            return self.__get_from_cache(url, method_name)
 
-    return {"all": rss_result, "share": share_link, "cnname": cnname}
-
-
-def analyse_search_html(html: str) -> dict:
-    logging.info('Parsing html...')
-    soup = BeautifulSoup(html, 'lxml')
-    link_list = soup.find_all("div", class_="clearfix search-item")
-    list_result = {}
-    for block in link_list:
-        name = block.find_all('a')[-1].text
-        url = BASE_URL + block.find_all('a')[-1].attrs['href']
-        list_result[url] = name
-
-    return list_result
-
-
-def analyse_rss(feed_url: str) -> dict:
-    # feed parser is meaningless now
-    return {}
-    # d = feedparser.parse(feed_url)
-    # # data['feed']['title']
-    # result = {}
-    # for item in d['entries']:
-    #     download = {
-    #         "title": getattr(item, "title", ""),
-    #         "ed2k": getattr(item, "ed2k", ""),
-    #         "magnet": getattr(item, "magnet", ""),
-    #         "pan": getattr(item, "pan", "")}
-    #     result[item.guid] = download
-    # return result
+    def __save_to_cache(self, url: str, value: dict, ex=3600 * 12) -> None:
+        data = json.dumps(value, ensure_ascii=False)
+        self.redis.set(url, data, ex=ex)
 
 
-def analysis_share_page(detail_url: str) -> (str, dict):
-    rid = detail_url.split('/')[-1]
+class YYeTs(BaseFansub):
+    label = "yyets"
+    cookie_file = "cookies.dump"
 
-    res = s.post(SHARE_URL, data={"rid": rid}, cookies=load_cookies()).json()
-    share_code = res['data'].split('/')[-1]
-    share_url = SHARE_WEB.format(code=share_code)
-    logging.info("Share url is %s", share_url)
+    @property
+    def id(self):
+        # implement how to get the unique id for this resource
+        rid = self.url.split('/')[-1]
+        return rid
 
-    # get api response
-    api_response = s.get(SHARE_API.format(code=share_code)).json()
-    return share_url, api_response
+    def __get_search_html__(self, kw: str) -> str:
+        self.__login_check()
+        cookie = self.__load_cookies()
+        logging.info("Searching for %s", kw)
+        r = session.get(SEARCH_URL.format(kw=kw), cookies=cookie)
+        r.close()
+        return r.text
 
+    def online_search_preview(self, search_text: str) -> dict[str:str]:
+        html_text = self.__get_search_html__(search_text)
+        logging.info('Parsing html...')
+        soup = BeautifulSoup(html_text, 'lxml')
+        link_list = soup.find_all("div", class_="clearfix search-item")
+        dict_result = {}
+        for block in link_list:
+            name = block.find_all('a')[-1].text
+            url = BASE_URL + block.find_all('a')[-1].attrs['href']
+            dict_result[url] = name
 
-def is_cookie_valid() -> bool:
-    cookie = load_cookies()
-    r = s.get(GET_USER, cookies=cookie)
-    return r.json()['status'] == 1
+        return dict_result
 
+    def online_search_result(self, resource_url: str) -> dict:
+        self.url = resource_url
+        self.data = self.__get_from_cache(self.url, self.__execute_online_search_result.__name__)
+        return self.data
 
-def offline_search(search_content):
-    # from cloudflare workers
-    # no redis cache for now
-    logging.info("Loading data from cfkv...")
-    index = WORKERS.format(id="index")
-    data: dict = requests.get(index).json()
-    logging.info("Loading complete, searching now...")
+    def __execute_online_search_result(self) -> dict:
+        logging.info("Loading detail page %s", self.url)
+        share_link, api_res = self.__get_share_page()
+        cnname = api_res["data"]["info"]["cnname"]
+        self.data = {"all": api_res, "share": share_link, "cnname": cnname}
+        return self.data
 
-    results = {}
-    for name, rid in data.items():
-        if search_content in name:
-            fake_url = f"http://www.rrys2020.com/resource/{rid}"
-            results[fake_url] = name.replace("\n", " ")
-    logging.info("Search complete")
-    return results
+    def offline_search_preview(self, search_text: str) -> dict:
+        # from cloudflare workers
+        # no redis cache for now
+        logging.info("Loading data from cfkv...")
+        index = WORKERS.format(id="index")
+        data: dict = requests.get(index).json()
+        logging.info("Loading complete, searching now...")
 
+        results = {}
+        for name, rid in data.items():
+            if search_text in name:
+                fake_url = f"http://www.rrys2020.com/resource/{rid}"
+                results[fake_url] = name.replace("\n", " ")
+        logging.info("Search complete")
+        return results
 
-def offline_link(resource_url) -> str:
-    rid = resource_url.split("/")[-1]
-    query_url = WORKERS.format(id=rid)
-    # TODO: too lazy to optimize cloudflare worker page.
-    return query_url
+    def offline_search_result(self, resource_url) -> dict:
+        self.url = resource_url
+        query_url = WORKERS.format(id=self.id)
+        self.data = {"all": None, "share": query_url, "cnname": None}
+        return self.data
+
+    def __login_check(self):
+        if not os.path.exists(self.cookie_file):
+            logging.warning("Cookie file not found")
+            self.__manual_login()
+        cookie = self.__load_cookies()
+        r = session.get(GET_USER, cookies=cookie)
+        if not r.json()['status'] == 1:
+            self.__manual_login()
+
+    def __manual_login(self):
+        data = {"account": USERNAME, "password": PASSWORD, "remember": 1}
+        logging.info("Login in as %s", data)
+        r = requests.post(AJAX_LOGIN, data=data)
+        resp = r.json()
+        if resp.get('status') == 1:
+            logging.info("Login success! %s", r.cookies)
+            self.__save_cookies(r.cookies)
+        else:
+            logging.error("Login failed! %s", resp)
+            sys.exit(1)
+        r.close()
+
+    def __get_share_page(self):
+        rid = self.id
+
+        res = session.post(SHARE_URL, data={"rid": rid}, cookies=self.__load_cookies()).json()
+        share_code = res['data'].split('/')[-1]
+        share_url = SHARE_WEB.format(code=share_code)
+        logging.info("Share url is %s", share_url)
+
+        # get api response
+        api_response = session.get(SHARE_API.format(code=share_code)).json()
+        return share_url, api_response
 
 
 if __name__ == '__main__':
-    a = offline_search("越狱")
-    print(a)
+    y = YYeTs()
