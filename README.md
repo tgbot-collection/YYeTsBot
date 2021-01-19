@@ -46,12 +46,12 @@ pip install -r requirements.py
 修改`config.py`，根据需求修改如下配置项
 
 * TOKEN：bot token
-* USERNAME：USERNAME和PASSWORD是在人人影视的有效的用户名和密码
-* PASSWORD ：USERNAME和PASSWORD是在人人影视的有效的用户名和密码
+* USERNAME：人人影视的有效的用户名
+* PASSWORD ：人人影视的有效的密码
 * PROXY ：是否需要使用代理 格式 `http://userproxy:password@proxy_address:port`
 * MAINTAINER：维护者的Telegram UserID
 * REDIS：redis的地址，一般为localhost
-
+* OFFLINE： 离线模式，使用离线数据
 也可以使用环境变量，如 `export TOKEN="1234"`
 
 ### 3. 运行
@@ -69,6 +69,7 @@ python /path/to/YYeTsBot/bot.py
 - [ ] 整理fix资源
 - [ ] 文件/函数重命名，类化
 - [ ] test case...啊不想写
+- [ ] 优先字幕组顺序设置
 
 参见分支 `zimuxia`
 
