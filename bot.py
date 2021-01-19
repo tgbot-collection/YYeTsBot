@@ -19,7 +19,7 @@ from telebot import types, apihelper
 from tgbot_ping import get_runtime
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from html_request import get_search_html, analyse_search_html, get_detail_page, offline_search, offline_link
+from funsub_resource import get_search_html, analyse_search_html, get_detail_page, offline_search, offline_link
 from utils import (save_error_dump, save_to_cache, yyets_get_from_cache, get_error_dump,
                    reset_request, today_request, show_usage,
                    redis_announcement
