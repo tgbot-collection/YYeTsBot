@@ -28,6 +28,8 @@ from config import PROXY, TOKEN, SEARCH_URL, MAINTAINER, REPORT, OFFLINE
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 if PROXY:
     apihelper.proxy = {'https': PROXY}
+if OFFLINE:
+    logging.warning("⚠️️ YYeTs bot is running on offline mode!")
 
 bot = telebot.TeleBot(os.environ.get('TOKEN') or TOKEN)
 angry_count = 0
@@ -228,8 +230,8 @@ def choose_link(call):
     markup = types.InlineKeyboardMarkup()
 
     if OFFLINE:
-        worker_page = yyets.offline_search_result(resource_url)
-        btn1 = types.InlineKeyboardButton("打开网页", url=worker_page)
+        worker_page_data = yyets.offline_search_result(resource_url)
+        btn1 = types.InlineKeyboardButton("打开网页", url=worker_page_data["share"])
         markup.add(btn1)
         bot.send_message(call.message.chat.id, "离线模式，点击按钮打开网页获取结果", reply_markup=markup)
         return
