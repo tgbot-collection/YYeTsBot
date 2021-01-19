@@ -70,7 +70,7 @@ class BaseFansub:
         """
         pass
 
-    def __execute_online_search_result(self) -> dict:
+    def __execute_online_search_result__(self) -> dict:
         """
         Do the real search job, without any cache mechanism
         :return:    {"all": rss_result, "share": share_link, "cnname": cnname}
@@ -103,15 +103,15 @@ class BaseFansub:
     def __manual_login(self):
         pass
 
-    def __save_cookies(self, requests_cookiejar):
+    def __save_cookies__(self, requests_cookiejar):
         with open(self.cookie_file, 'wb') as f:
             pickle.dump(requests_cookiejar, f)
 
-    def __load_cookies(self):
+    def __load_cookies__(self):
         with open(self.cookie_file, 'rb') as f:
             return pickle.load(f)
 
-    def __get_from_cache(self, url: str, method_name: str) -> dict:
+    def __get_from_cache__(self, url: str, method_name: str) -> dict:
         logging.info("Reading %s data from cache %s", self.label, url)
         data = self.redis.get(url)
         if data:
@@ -120,8 +120,8 @@ class BaseFansub:
         else:
             logging.info("Cache miss")
             result_method = getattr(self, method_name)
-            self.__save_to_cache(url, result_method(url))
-            return self.__get_from_cache(url, method_name)
+            self.__save_to_cache(url, result_method())
+            return self.__get_from_cache__(url, method_name)
 
     def __save_to_cache(self, url: str, value: dict, ex=3600 * 12) -> None:
         data = json.dumps(value, ensure_ascii=False)
@@ -139,10 +139,9 @@ class YYeTs(BaseFansub):
         return rid
 
     def __get_search_html__(self, kw: str) -> str:
-        self.__login_check()
-        cookie = self.__load_cookies()
+        # don't have to login here
         logging.info("Searching for %s", kw)
-        r = session.get(SEARCH_URL.format(kw=kw), cookies=cookie)
+        r = session.get(SEARCH_URL.format(kw=kw))
         r.close()
         return r.text
 
@@ -161,10 +160,10 @@ class YYeTs(BaseFansub):
 
     def online_search_result(self, resource_url: str) -> dict:
         self.url = resource_url
-        self.data = self.__get_from_cache(self.url, self.__execute_online_search_result.__name__)
+        self.data = self.__get_from_cache__(self.url, self.__execute_online_search_result__.__name__)
         return self.data
 
-    def __execute_online_search_result(self) -> dict:
+    def __execute_online_search_result__(self) -> dict:
         logging.info("Loading detail page %s", self.url)
         share_link, api_res = self.__get_share_page()
         cnname = api_res["data"]["info"]["cnname"]
@@ -194,12 +193,12 @@ class YYeTs(BaseFansub):
         return self.data
 
     def __login_check(self):
+        logging.info("Checking login status...")
         if not os.path.exists(self.cookie_file):
             logging.warning("Cookie file not found")
             self.__manual_login()
 
-        cookie = self.__load_cookies()
-        r = session.get(GET_USER, cookies=cookie)
+        r = session.get(GET_USER, cookies=self.__load_cookies__())
         if not r.json()['status'] == 1:
             self.__manual_login()
 
@@ -210,16 +209,18 @@ class YYeTs(BaseFansub):
         resp = r.json()
         if resp.get('status') == 1:
             logging.info("Login success! %s", r.cookies)
-            self.__save_cookies(r.cookies)
+            self.__save_cookies__(r.cookies)
         else:
             logging.error("Login failed! %s", resp)
             sys.exit(1)
         r.close()
 
     def __get_share_page(self):
+        self.__login_check()
+
         rid = self.id
 
-        res = session.post(SHARE_URL, data={"rid": rid}, cookies=self.__load_cookies()).json()
+        res = session.post(SHARE_URL, data={"rid": rid}, cookies=self.__load_cookies__()).json()
         share_code = res['data'].split('/')[-1]
         share_url = SHARE_WEB.format(code=share_code)
         logging.info("Share url is %s", share_url)
