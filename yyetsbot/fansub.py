@@ -10,12 +10,14 @@ import requests
 import pickle
 import sys
 import json
+import hashlib
 
 from bs4 import BeautifulSoup
 
-from config import (SEARCH_URL, GET_USER, BASE_URL, SHARE_WEB,
+from config import (YYETS_SEARCH_URL, GET_USER, BASE_URL, SHARE_WEB,
                     SHARE_URL, WORKERS, SHARE_API, USERNAME, PASSWORD,
-                    AJAX_LOGIN, REDIS)
+                    AJAX_LOGIN, REDIS,
+                    FIX_SEARCH)
 import redis
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
@@ -112,7 +114,7 @@ class BaseFansub:
             return pickle.load(f)
 
     def __get_from_cache__(self, url: str, method_name: str) -> dict:
-        logging.info("Reading %s data from cache %s", self.label, url)
+        logging.info("[%s] Reading data from cache %s", self.label, url)
         data = self.redis.get(url)
         if data:
             logging.info("Cache hit")
@@ -140,14 +142,14 @@ class YYeTs(BaseFansub):
 
     def __get_search_html__(self, kw: str) -> str:
         # don't have to login here
-        logging.info("Searching for %s", kw)
-        r = session.get(SEARCH_URL.format(kw=kw))
+        logging.info("[%s] Searching for %s", self.label, kw)
+        r = session.get(YYETS_SEARCH_URL.format(kw=kw))
         r.close()
         return r.text
 
     def online_search_preview(self, search_text: str) -> dict:
         html_text = self.__get_search_html__(search_text)
-        logging.info('Parsing html...')
+        logging.info('[%s] Parsing html...', self.label)
         soup = BeautifulSoup(html_text, 'lxml')
         link_list = soup.find_all("div", class_="clearfix search-item")
         dict_result = {}
@@ -164,7 +166,7 @@ class YYeTs(BaseFansub):
         return self.data
 
     def __execute_online_search_result__(self) -> dict:
-        logging.info("Loading detail page %s", self.url)
+        logging.info("[%s] Loading detail page %s", self.label, self.url)
         share_link, api_res = self.__get_share_page()
         cnname = api_res["data"]["info"]["cnname"]
         self.data = {"all": api_res, "share": share_link, "cnname": cnname}
@@ -173,17 +175,16 @@ class YYeTs(BaseFansub):
     def offline_search_preview(self, search_text: str) -> dict:
         # from cloudflare workers
         # no redis cache for now - why? because we may update cloudflare
-        logging.info("Loading data from cloudflare KV storage...")
+        logging.info("[%s] Loading offline data from cloudflare KV storage...", self.label)
         index = WORKERS.format(id="index")
         data: dict = requests.get(index).json()
-        logging.info("Loading complete, searching now...")
 
         results = {}
         for name, rid in data.items():
             if search_text in name:
                 fake_url = f"http://www.rrys2020.com/resource/{rid}"
                 results[fake_url] = name.replace("\n", " ")
-        logging.info("Search complete")
+        logging.info("[%s] Offline search complete", self.label)
         return results
 
     def offline_search_result(self, resource_url) -> dict:
@@ -194,9 +195,9 @@ class YYeTs(BaseFansub):
         return self.data
 
     def __login_check(self):
-        logging.info("Checking login status...")
+        logging.debug("[%s] Checking login status...", self.label)
         if not os.path.exists(self.cookie_file):
-            logging.warning("Cookie file not found")
+            logging.warning("[%s] Cookie file not found", self.label)
             self.__manual_login()
 
         r = session.get(GET_USER, cookies=self.__load_cookies__())
@@ -205,11 +206,11 @@ class YYeTs(BaseFansub):
 
     def __manual_login(self):
         data = {"account": USERNAME, "password": PASSWORD, "remember": 1}
-        logging.info("Login in as %s", data)
+        logging.info("[%s] Login in as %s", self.label, data)
         r = requests.post(AJAX_LOGIN, data=data)
         resp = r.json()
         if resp.get('status') == 1:
-            logging.info("Login success! %s", r.cookies)
+            logging.debug("Login success! %s", r.cookies)
             self.__save_cookies__(r.cookies)
         else:
             logging.error("Login failed! %s", resp)
@@ -224,9 +225,68 @@ class YYeTs(BaseFansub):
         res = session.post(SHARE_URL, data={"rid": rid}, cookies=self.__load_cookies__()).json()
         share_code = res['data'].split('/')[-1]
         share_url = SHARE_WEB.format(code=share_code)
-        logging.info("Share url is %s", share_url)
+        logging.info("[%s] Share url is %s", self.label, share_url)
 
         # get api response
         api_response = session.get(SHARE_API.format(code=share_code)).json()
         return share_url, api_response
 
+
+class Zimuxia(BaseFansub):
+    label = "zimuxia"
+
+    @property
+    def id(self):
+        # implement how to get the unique id for this resource
+        rid = self.url.split('/')[-1]
+        return rid
+
+    def __get_search_html__(self, kw: str) -> str:
+        # don't have to login here
+        logging.info("[%s] Searching  for %s", self.label, kw)
+        r = session.get(FIX_SEARCH.format(kw=kw))
+        r.close()
+        return r.text
+
+    def online_search_preview(self, search_text: str) -> dict:
+        html_text = self.__get_search_html__(search_text)
+        logging.info('[%s] Parsing html...', self.label)
+        soup = BeautifulSoup(html_text, 'lxml')
+        link_list = soup.find_all("h2", class_="post-title")
+
+        dict_result = {}
+        for link in link_list:
+            # Warning: we can't simple return url here.
+            # Telegram bot button callback data must be less than 64bytes.
+            # Therefore we use sha1 to hash the url, save to redis.
+            url = link.a['href']
+            url_hash = hashlib.sha1(url.encode('u8')).hexdigest()
+            name = link.a.text
+            dict_result[url_hash] = name
+            self.redis.set(url_hash, url)
+
+        return dict_result
+
+    def online_search_result(self, url_hash: str) -> dict:
+        self.redis.get(url_hash)
+        self.url = self.redis.get(url_hash)
+        self.data = self.__get_from_cache__(self.url, self.__execute_online_search_result__.__name__)
+        return self.data
+
+    def __execute_online_search_result__(self) -> dict:
+        logging.info("[%s] Loading detail page %s", self.label, self.url)
+        cnname, html_text = self.obtain_all_response()
+        self.data = {"all": html_text, "share": self.url, "cnname": cnname}
+        return self.data
+
+    def obtain_all_response(self) -> (str, str):
+        r = session.get(self.url)
+        soup = BeautifulSoup(r.text, 'lxml')
+        cnname = soup.title.text.split("|")[0]
+        return cnname, dict(html=r.text)
+
+    def offline_search_preview(self, search_text: str) -> dict:
+        raise NotImplementedError("Give me some time...")
+
+    def offline_search_result(self, resource_url) -> dict:
+        raise NotImplementedError("Give me some time...")

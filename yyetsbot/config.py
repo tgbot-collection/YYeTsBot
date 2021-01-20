@@ -9,7 +9,7 @@ import os
 BASE_URL = "http://www.rrys2020.com"
 LOGIN_URL = "http://www.rrys2020.com/user/login"
 GET_USER = "http://www.rrys2020.com/user/login/getCurUserTopInfo"
-SEARCH_URL = "http://www.rrys2020.com/search?keyword={kw}&type=resource"
+YYETS_SEARCH_URL = "http://www.rrys2020.com/search?keyword={kw}&type=resource"
 AJAX_LOGIN = "http://www.rrys2020.com/User/Login/ajaxLogin"
 SHARE_URL = "http://www.rrys2020.com/resource/ushare"
 SHARE_WEB = "http://got002.com/resource.html?code={code}"
@@ -28,4 +28,4 @@ REPORT = os.environ.get("REPORT") or False
 OFFLINE = os.environ.get("OFFLINE") or False
 
 FIX_RESOURCE = "https://www.zimuxia.cn/portfolio/{name}"
-FIX_SEARCH = "https://www.zimuxia.cn/?s={name}"
+FIX_SEARCH = "https://www.zimuxia.cn/?s={kw}"

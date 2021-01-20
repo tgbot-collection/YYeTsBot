@@ -19,11 +19,13 @@ from telebot import types, apihelper
 from tgbot_ping import get_runtime
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from fansub import YYeTs
+from fansub import Zimuxia
+# mock
+YYeTs = Zimuxia
 from utils import (save_error_dump, get_error_dump, reset_request, today_request,
                    show_usage, redis_announcement
                    )
-from config import PROXY, TOKEN, SEARCH_URL, MAINTAINER, REPORT, OFFLINE
+from config import PROXY, TOKEN, YYETS_SEARCH_URL, MAINTAINER, REPORT, OFFLINE
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 if PROXY:
@@ -202,7 +204,7 @@ def send_search(message):
         encoded = quote_plus(name)
         bot.send_message(message.chat.id, f"没有找到你想要的信息，是不是你打了错别字，或者搜索了一些国产影视剧。🤪\n"
                                           f"还是你想调戏我哦🙅‍️\n\n"
-                                          f"可以看看这个链接，看看有没有结果。 {SEARCH_URL.format(kw=encoded)} \n\n"
+                                          f"可以看看这个链接，看看有没有结果。 {YYETS_SEARCH_URL.format(kw=encoded)} \n\n"
                                           "⚠️如果确定要我背锅，那么请使用 /help 来提交错误", disable_web_page_preview=True)
         if REPORT:
             btn = types.InlineKeyboardButton("快来修复啦", callback_data="fix")
@@ -215,7 +217,7 @@ def send_search(message):
             content = f""" 报告者：{message.chat.first_name}{message.chat.last_name or ""}@{message.chat.username or ""}({message.chat.id})
                             问题发生时间：{time.strftime("%Y-%m-%data %H:%M:%S", time.localtime(message.date))}
                             请求内容：{name} 
-                            请求URL：{SEARCH_URL.format(kw=encoded)}\n\n
+                            请求URL：{YYETS_SEARCH_URL.format(kw=encoded)}\n\n
                             
                         """
             save_error_dump(message.chat.id, content)
