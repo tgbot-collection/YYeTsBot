@@ -20,6 +20,7 @@ from tgbot_ping import get_runtime
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from fansub import Zimuxia
+
 # mock
 YYeTs = Zimuxia
 from utils import (save_error_dump, get_error_dump, reset_request, today_request,
@@ -120,6 +121,7 @@ def send_credits(message):
     <a href="http://www.zmz2019.com/">人人影视</a>
     <a href="http://cili001.com/">磁力下载站</a>
     <a href="http://www.zhuixinfan.com/main.php">追新番</a>
+    <a href="https://www.zimuxia.cn/">FIX 字幕侠</a>
     ''', parse_mode='html', disable_web_page_preview=True)
 
 
@@ -188,6 +190,8 @@ def send_search(message):
         result = yyets.online_search_preview(name)
 
     markup = types.InlineKeyboardMarkup()
+    source = result["source"]
+    result.pop("source")
     for url, detail in result.items():
         btn = types.InlineKeyboardButton(detail, callback_data="choose%s" % url)
         markup.add(btn)
@@ -195,7 +199,7 @@ def send_search(message):
     if result:
         logging.info("🎉 Resource match.")
         today_request("success")
-        bot.send_message(message.chat.id, "呐，💐🌷🌹选一个呀！", reply_markup=markup)
+        bot.send_message(message.chat.id, "呐，💐🌷🌹选一个呀！来源：%s" % source, reply_markup=markup)
     else:
         logging.warning("⚠️️ Resource not found")
         today_request("fail")

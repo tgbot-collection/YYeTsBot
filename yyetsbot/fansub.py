@@ -157,7 +157,7 @@ class YYeTs(BaseFansub):
             name = block.find_all('a')[-1].text
             url = BASE_URL + block.find_all('a')[-1].attrs['href']
             dict_result[url] = name
-
+        dict_result["source"] = self.label
         return dict_result
 
     def online_search_result(self, resource_url: str) -> dict:
@@ -219,7 +219,6 @@ class YYeTs(BaseFansub):
 
     def __get_share_page(self):
         self.__login_check()
-
         rid = self.id
 
         res = session.post(SHARE_URL, data={"rid": rid}, cookies=self.__load_cookies__()).json()
@@ -264,7 +263,7 @@ class Zimuxia(BaseFansub):
             name = link.a.text
             dict_result[url_hash] = name
             self.redis.set(url_hash, url)
-
+        dict_result["source"] = self.label
         return dict_result
 
     def online_search_result(self, url_hash: str) -> dict:
@@ -290,3 +289,7 @@ class Zimuxia(BaseFansub):
 
     def offline_search_result(self, resource_url) -> dict:
         raise NotImplementedError("Give me some time...")
+
+
+class FansubEntrance(BaseFansub):
+    pass
