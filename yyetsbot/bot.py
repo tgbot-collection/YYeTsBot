@@ -19,12 +19,10 @@ from telebot import types, apihelper
 from tgbot_ping import get_runtime
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from fansub import Zimuxia
+from fansub import FansubEntrance
 
-# mock
-YYeTs = Zimuxia
-from utils import (save_error_dump, get_error_dump, reset_request, today_request,
-                   show_usage, redis_announcement
+from utils import (save_error_dump, get_error_dump, reset_request,
+                   today_request, show_usage, redis_announcement
                    )
 from config import PROXY, TOKEN, YYETS_SEARCH_URL, MAINTAINER, REPORT, OFFLINE
 
@@ -162,7 +160,7 @@ def send_my_response(message):
 
 @bot.message_handler(content_types=["photo", "text"])
 def send_search(message):
-    yyets = YYeTs()
+    fan = FansubEntrance()
     bot.send_chat_action(message.chat.id, 'typing')
 
     today_request("total")
@@ -185,12 +183,13 @@ def send_search(message):
         logging.warning("☢️ Going offline mode!!!")
         bot.send_message(message.chat.id, "人人影视官网不可用，目前在使用离线模式，可能没有最新的剧集。")
         bot.send_chat_action(message.chat.id, 'upload_document')
-        result = yyets.offline_search_preview(name)
+        result = fan.offline_search_preview(name)
     else:
-        result = yyets.online_search_preview(name)
+        result = fan.online_search_preview(name)
 
     markup = types.InlineKeyboardMarkup()
-    source = result["source"]
+
+    source = result.get("source")
     result.pop("source")
     for url, detail in result.items():
         btn = types.InlineKeyboardButton(detail, callback_data="choose%s" % url)
@@ -208,7 +207,6 @@ def send_search(message):
         encoded = quote_plus(name)
         bot.send_message(message.chat.id, f"没有找到你想要的信息，是不是你打了错别字，或者搜索了一些国产影视剧。🤪\n"
                                           f"还是你想调戏我哦🙅‍️\n\n"
-                                          f"可以看看这个链接，看看有没有结果。 {YYETS_SEARCH_URL.format(kw=encoded)} \n\n"
                                           "⚠️如果确定要我背锅，那么请使用 /help 来提交错误", disable_web_page_preview=True)
         if REPORT:
             btn = types.InlineKeyboardButton("快来修复啦", callback_data="fix")
@@ -229,14 +227,14 @@ def send_search(message):
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"choose(\S*)", call.data))
 def choose_link(call):
-    yyets = YYeTs()
+    fan = FansubEntrance()
     bot.send_chat_action(call.message.chat.id, 'typing')
     # call.data is url, http://www.rrys2020.com/resource/36588
     resource_url = re.findall(r"choose(\S*)", call.data)[0]
     markup = types.InlineKeyboardMarkup()
 
     if OFFLINE:
-        worker_page_data = yyets.offline_search_result(resource_url)
+        worker_page_data = fan.offline_search_result(resource_url)
         btn1 = types.InlineKeyboardButton("打开网页", url=worker_page_data["share"])
         markup.add(btn1)
         bot.send_message(call.message.chat.id, "离线模式，点击按钮打开网页获取结果", reply_markup=markup)
@@ -253,20 +251,20 @@ def choose_link(call):
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"share(\S*)", call.data))
 def share_page(call):
-    yyets = YYeTs()
+    fan = FansubEntrance()
     bot.send_chat_action(call.message.chat.id, 'typing')
     resource_url = re.findall(r"share(\S*)", call.data)[0]
-    result = yyets.online_search_result(resource_url)
+    result = fan.online_search_result(resource_url)
     bot.send_message(call.message.chat.id, result['share'])
 
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"all(\S*)", call.data))
 def all_episode(call):
     # just send a file
-    yyets = YYeTs()
+    fan = FansubEntrance()
     bot.send_chat_action(call.message.chat.id, 'typing')
     resource_url = re.findall(r"all(\S*)", call.data)[0]
-    result = yyets.online_search_result(resource_url)
+    result = fan.online_search_result(resource_url)
 
     with tempfile.NamedTemporaryFile(mode='wb+', prefix=result["cnname"], suffix=".txt") as tmp:
         bytes_data = json.dumps(result["all"], ensure_ascii=False, indent=4).encode('u8')
