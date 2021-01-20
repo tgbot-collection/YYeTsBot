@@ -21,8 +21,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from fansub import FansubEntrance
 
-from utils import (save_error_dump, get_error_dump, reset_request, today_request,
-                   show_usage, redis_announcement
+from utils import (save_error_dump, get_error_dump, reset_request,
+                   today_request, show_usage, redis_announcement
                    )
 from config import PROXY, TOKEN, YYETS_SEARCH_URL, MAINTAINER, REPORT, OFFLINE
 
@@ -188,7 +188,8 @@ def send_search(message):
         result = fan.online_search_preview(name)
 
     markup = types.InlineKeyboardMarkup()
-    source = result["source"]
+
+    source = result.get("source")
     result.pop("source")
     for url, detail in result.items():
         btn = types.InlineKeyboardButton(detail, callback_data="choose%s" % url)
@@ -206,7 +207,6 @@ def send_search(message):
         encoded = quote_plus(name)
         bot.send_message(message.chat.id, f"没有找到你想要的信息，是不是你打了错别字，或者搜索了一些国产影视剧。🤪\n"
                                           f"还是你想调戏我哦🙅‍️\n\n"
-                                          f"可以看看这个链接，看看有没有结果。 {YYETS_SEARCH_URL.format(kw=encoded)} \n\n"
                                           "⚠️如果确定要我背锅，那么请使用 /help 来提交错误", disable_web_page_preview=True)
         if REPORT:
             btn = types.InlineKeyboardButton("快来修复啦", callback_data="fix")

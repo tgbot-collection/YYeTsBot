@@ -292,19 +292,27 @@ class Zimuxia(BaseFansub):
 
 
 class FansubEntrance(BaseFansub):
-    order = [Zimuxia, YYeTs]
-    sub_name = None
+    # order = [Zimuxia, YYeTs]
+    order = [YYeTs, Zimuxia]
+    fansub_class = None
 
     def online_search_preview(self, search_text: str) -> dict:
+        source = "聪明机智温柔可爱的benny"
         for sub in self.order:
+            logging.info("Looping from %s", sub)
             result = sub().online_search_preview(search_text)
+            # this result contains source:sub, so we'll pop and add it
+            source = result.pop("source")
             if result:
-                self.sub_name = sub
+                logging.info("Result hit in %s", sub)
+                FansubEntrance.fansub_class = sub
+                result["source"] = source
                 return result
-        return {}
+
+        return dict(source=source)
 
     def online_search_result(self, resource_url: str) -> dict:
-        return self.sub_name().online_search_result(resource_url)
+        return self.fansub_class().online_search_result(resource_url)
 
     def offline_search_preview(self, search_text: str) -> dict:
         pass
