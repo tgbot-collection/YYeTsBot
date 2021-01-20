@@ -9,7 +9,7 @@ import os
 BASE_URL = "http://www.rrys2020.com"
 LOGIN_URL = "http://www.rrys2020.com/user/login"
 GET_USER = "http://www.rrys2020.com/user/login/getCurUserTopInfo"
-SEARCH_URL = "http://www.rrys2020.com/search?keyword={kw}&type=resource"
+YYETS_SEARCH_URL = "http://www.rrys2020.com/search?keyword={kw}&type=resource"
 AJAX_LOGIN = "http://www.rrys2020.com/User/Login/ajaxLogin"
 SHARE_URL = "http://www.rrys2020.com/resource/ushare"
 SHARE_WEB = "http://got002.com/resource.html?code={code}"
