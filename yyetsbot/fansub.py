@@ -292,4 +292,22 @@ class Zimuxia(BaseFansub):
 
 
 class FansubEntrance(BaseFansub):
-    pass
+    order = [Zimuxia, YYeTs]
+    sub_name = None
+
+    def online_search_preview(self, search_text: str) -> dict:
+        for sub in self.order:
+            result = sub().online_search_preview(search_text)
+            if result:
+                self.sub_name = sub
+                return result
+        return {}
+
+    def online_search_result(self, resource_url: str) -> dict:
+        return self.sub_name().online_search_result(resource_url)
+
+    def offline_search_preview(self, search_text: str) -> dict:
+        pass
+
+    def offline_search_result(self, resource_url) -> dict:
+        pass
