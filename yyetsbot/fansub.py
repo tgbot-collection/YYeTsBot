@@ -10,6 +10,7 @@ import requests
 import pickle
 import sys
 import json
+import hashlib
 
 from bs4 import BeautifulSoup
 
@@ -254,15 +255,21 @@ class Zimuxia(BaseFansub):
         link_list = soup.find_all("h2", class_="post-title")
 
         dict_result = {}
-        for i in link_list:
-            url = i.a['href']
-            name = i.a.text
-            dict_result[url] = name
+        for link in link_list:
+            # Warning: we can't simple return url here.
+            # Telegram bot button callback data must be less than 64bytes.
+            # Therefore we use sha1 to hash the url, save to redis.
+            url = link.a['href']
+            url_hash = hashlib.sha1(url.encode('u8')).hexdigest()
+            name = link.a.text
+            dict_result[url_hash] = name
+            self.redis.set(url_hash, url)
 
         return dict_result
 
-    def online_search_result(self, resource_url: str) -> dict:
-        self.url = resource_url
+    def online_search_result(self, url_hash: str) -> dict:
+        self.redis.get(url_hash)
+        self.url = self.redis.get(url_hash)
         self.data = self.__get_from_cache__(self.url, self.__execute_online_search_result__.__name__)
         return self.data
 
@@ -276,7 +283,7 @@ class Zimuxia(BaseFansub):
         r = session.get(self.url)
         soup = BeautifulSoup(r.text, 'lxml')
         cnname = soup.title.text.split("|")[0]
-        return cnname, r.text
+        return cnname, dict(html=r.text)
 
     def offline_search_preview(self, search_text: str) -> dict:
         raise NotImplementedError("Give me some time...")

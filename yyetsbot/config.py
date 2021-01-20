@@ -28,4 +28,4 @@ REPORT = os.environ.get("REPORT") or False
 OFFLINE = os.environ.get("OFFLINE") or False
 
 FIX_RESOURCE = "https://www.zimuxia.cn/portfolio/{name}"
-FIX_SEARCH = "https://www.zimuxia.cn/?s={name}"
+FIX_SEARCH = "https://www.zimuxia.cn/?s={kw}"

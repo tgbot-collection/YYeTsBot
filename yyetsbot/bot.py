@@ -19,7 +19,9 @@ from telebot import types, apihelper
 from tgbot_ping import get_runtime
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from fansub import YYeTs
+from fansub import Zimuxia
+# mock
+YYeTs = Zimuxia
 from utils import (save_error_dump, get_error_dump, reset_request, today_request,
                    show_usage, redis_announcement
                    )
