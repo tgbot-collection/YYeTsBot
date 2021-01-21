@@ -18,6 +18,10 @@ help - 帮助
 credits - 致谢
 ping - 运行状态
 settings - 获取公告
+ZimuxiaOffline - 搜索字幕侠离线数据
+ZimuxiaOnline - 搜索字幕侠在线数据
+YYeTsOffline - 搜索人人影视离线数据
+YYeTsOnline - 搜索人人影视在线数据
 ```
 
 # 截图
@@ -52,7 +56,6 @@ pip install -r requirements.py
 * PROXY ：是否需要使用代理 格式 `http://userproxy:password@proxy_address:port`
 * MAINTAINER：维护者的Telegram UserID
 * REDIS：redis的地址，一般为localhost
-* OFFLINE： 离线模式，使用离线数据 也可以使用环境变量，如 `export TOKEN="1234"`
 
 ### 3. 运行
 

@@ -16,8 +16,7 @@ from bs4 import BeautifulSoup
 
 from config import (YYETS_SEARCH_URL, GET_USER, BASE_URL, SHARE_WEB,
                     SHARE_URL, WORKERS, SHARE_API, USERNAME, PASSWORD,
-                    AJAX_LOGIN, REDIS,
-                    FIX_SEARCH)
+                    AJAX_LOGIN, REDIS, FANSUB_ORDER, FIX_SEARCH)
 import redis
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
@@ -53,13 +52,15 @@ class BaseFansub:
         # return html text of search page
         pass
 
-    def online_search_preview(self, search_text: str) -> dict:
+    def search_preview(self, search_text: str) -> dict:
         # try to retrieve critical information from html
         # this result must return to bot for manual selection
         # {"url1": "name1", "url2": "name2"}
+        # don't forget to add this!
+        # dict_result["source"] = self.label
         pass
 
-    def online_search_result(self, resource_url: str) -> dict:
+    def search_result(self, resource_url: str) -> dict:
         """
         This will happen when user click one of the button, only by then we can know the resource link
         From the information above, try to get a detail dict structure.
@@ -72,29 +73,9 @@ class BaseFansub:
         """
         pass
 
-    def __execute_online_search_result__(self) -> dict:
+    def __execute_search_result__(self) -> dict:
         """
         Do the real search job, without any cache mechanism
-        :return:    {"all": rss_result, "share": share_link, "cnname": cnname}
-        """
-        pass
-
-    def offline_search_preview(self, search_text: str) -> dict:
-        # this result must return to bot for manual selection
-        # the same as online
-        pass
-
-    def offline_search_result(self, resource_url) -> dict:
-        """
-        Same as online_search_result
-        :param resource_url:
-        :return:
-        """
-        pass
-
-    def __execute_offline_search_result(self) -> dict:
-        """
-        Do the search job, without any cache mechanism
         :return:    {"all": rss_result, "share": share_link, "cnname": cnname}
         """
         pass
@@ -130,8 +111,8 @@ class BaseFansub:
         self.redis.set(url, data, ex=ex)
 
 
-class YYeTs(BaseFansub):
-    label = "yyets"
+class YYeTsOnline(BaseFansub):
+    label = "yyets online"
     cookie_file = os.path.join("data", "cookies.dump")
 
     @property
@@ -147,7 +128,7 @@ class YYeTs(BaseFansub):
         r.close()
         return r.text
 
-    def online_search_preview(self, search_text: str) -> dict:
+    def search_preview(self, search_text: str) -> dict:
         html_text = self.__get_search_html__(search_text)
         logging.info('[%s] Parsing html...', self.label)
         soup = BeautifulSoup(html_text, 'html.parser')
@@ -160,38 +141,16 @@ class YYeTs(BaseFansub):
         dict_result["source"] = self.label
         return dict_result
 
-    def online_search_result(self, resource_url: str) -> dict:
+    def search_result(self, resource_url: str) -> dict:
         self.url = resource_url
-        self.data = self.__get_from_cache__(self.url, self.__execute_online_search_result__.__name__)
+        self.data = self.__get_from_cache__(self.url, self.__execute_search_result__.__name__)
         return self.data
 
-    def __execute_online_search_result__(self) -> dict:
+    def __execute_search_result__(self) -> dict:
         logging.info("[%s] Loading detail page %s", self.label, self.url)
         share_link, api_res = self.__get_share_page()
         cnname = api_res["data"]["info"]["cnname"]
         self.data = {"all": api_res, "share": share_link, "cnname": cnname}
-        return self.data
-
-    def offline_search_preview(self, search_text: str) -> dict:
-        # from cloudflare workers
-        # no redis cache for now - why? because we may update cloudflare
-        logging.info("[%s] Loading offline data from cloudflare KV storage...", self.label)
-        index = WORKERS.format(id="index")
-        data: dict = requests.get(index).json()
-
-        results = {}
-        for name, rid in data.items():
-            if search_text in name:
-                fake_url = f"http://www.rrys2020.com/resource/{rid}"
-                results[fake_url] = name.replace("\n", " ")
-        logging.info("[%s] Offline search complete", self.label)
-        return results
-
-    def offline_search_result(self, resource_url) -> dict:
-        self.url = resource_url
-        query_url = WORKERS.format(id=self.id)
-        # for universal purpose, we return the same structure.
-        self.data = {"all": None, "share": query_url, "cnname": None}
         return self.data
 
     def __login_check(self):
@@ -231,8 +190,36 @@ class YYeTs(BaseFansub):
         return share_url, api_response
 
 
-class Zimuxia(BaseFansub):
-    label = "zimuxia"
+class YYeTsOffline(BaseFansub):
+    label = "yyets offline"
+
+    def search_preview(self, search_text: str) -> dict:
+        # from cloudflare workers
+        # no redis cache for now - why? because we may update cloudflare
+        logging.info("[%s] Loading offline data from cloudflare KV storage...", self.label)
+        index = WORKERS.format(id="index")
+        data: dict = requests.get(index).json()
+
+        results = {}
+        for name, rid in data.items():
+            # make them both lower
+            if search_text.lower() in name.lower():
+                fake_url = f"http://www.rrys2020.com/resource/{rid}"
+                results[fake_url] = name.replace("\n", " ")
+        logging.info("[%s] Offline search complete", self.label)
+        results["source"] = self.label
+        return results
+
+    def search_result(self, resource_url) -> dict:
+        self.url = resource_url
+        query_url = WORKERS.format(id=self.id)
+        # for universal purpose, we return the same structure.
+        self.data = {"all": None, "share": query_url, "cnname": None}
+        return self.data
+
+
+class ZimuxiaOnline(BaseFansub):
+    label = "zimuxia online"
 
     @property
     def id(self):
@@ -247,7 +234,7 @@ class Zimuxia(BaseFansub):
         r.close()
         return r.text
 
-    def online_search_preview(self, search_text: str) -> dict:
+    def search_preview(self, search_text: str) -> dict:
         html_text = self.__get_search_html__(search_text)
         logging.info('[%s] Parsing html...', self.label)
         soup = BeautifulSoup(html_text, 'html.parser')
@@ -266,13 +253,13 @@ class Zimuxia(BaseFansub):
         dict_result["source"] = self.label
         return dict_result
 
-    def online_search_result(self, url_hash: str) -> dict:
+    def search_result(self, url_hash: str) -> dict:
         self.redis.get(url_hash)
         self.url = self.redis.get(url_hash)
-        self.data = self.__get_from_cache__(self.url, self.__execute_online_search_result__.__name__)
+        self.data = self.__get_from_cache__(self.url, self.__execute_search_result__.__name__)
         return self.data
 
-    def __execute_online_search_result__(self) -> dict:
+    def __execute_search_result__(self) -> dict:
         logging.info("[%s] Loading detail page %s", self.label, self.url)
         cnname, html_text = self.obtain_all_response()
         self.data = {"all": html_text, "share": self.url, "cnname": cnname}
@@ -284,24 +271,27 @@ class Zimuxia(BaseFansub):
         cnname = soup.title.text.split("|")[0]
         return cnname, dict(html=r.text)
 
-    def offline_search_preview(self, search_text: str) -> dict:
+
+class ZimuxiaOffline(BaseFansub):
+    label = "zimuxia offline"
+
+    def search_preview(self, search_text: str) -> dict:
         raise NotImplementedError("Give me some time...")
 
-    def offline_search_result(self, resource_url) -> dict:
+    def search_result(self, resource_url) -> dict:
         raise NotImplementedError("Give me some time...")
 
 
 class FansubEntrance(BaseFansub):
-    # TODO use environment variables to specified order
-    order = [Zimuxia, YYeTs]
-    # order = [YYeTs, Zimuxia]
+    order = FANSUB_ORDER.split(",")
     fansub_class = None
 
-    def online_search_preview(self, search_text: str) -> dict:
-        source = "聪明机智温柔可爱的benny"
+    def search_preview(self, search_text: str) -> dict:
+        source = "聪明机智温柔可爱善良的Benny"
         for sub in self.order:
             logging.info("Looping from %s", sub)
-            result = sub().online_search_preview(search_text)
+            class_ = globals().get(sub)
+            result = class_().search_preview(search_text)
             # this result contains source:sub, so we'll pop and add it
             source = result.pop("source")
             if result:
@@ -312,11 +302,11 @@ class FansubEntrance(BaseFansub):
 
         return dict(source=source)
 
-    def online_search_result(self, resource_url: str) -> dict:
-        return self.fansub_class().online_search_result(resource_url)
+    def search_result(self, resource_url: str) -> dict:
+        return self.fansub_class().search_result(resource_url)
 
-    def offline_search_preview(self, search_text: str) -> dict:
-        pass
 
-    def offline_search_result(self, resource_url) -> dict:
-        pass
+# we'll check if FANSUB_ORDER is correct. Must put it here, not before.
+for fs in FANSUB_ORDER.split(","):
+    if globals().get(fs) is None:
+        raise NameError(f"FANSUB_ORDER is incorrect! {fs}")

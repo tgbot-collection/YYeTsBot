@@ -9,7 +9,7 @@ from unittest import mock
 
 sys.path.append("../yyetsbot")
 
-from fansub import BaseFansub, YYeTs
+from fansub import BaseFansub, YYeTsOnline
 
 
 class TestBaseFunsub(unittest.TestCase):
@@ -49,7 +49,7 @@ class TestBaseFunsub(unittest.TestCase):
 class YYeTsTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.ins = YYeTs()
+        cls.ins = YYeTsOnline()
         cls.cookie_jar = dict(name="hello yyets")
         cls.ins.cookie_file = "test_cookies.dump"  # generate on tests/test_cookies.dump
         cls.ins.url = "http://www.rrys2020.com/resource/1988"
