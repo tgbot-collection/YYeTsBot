@@ -1,13 +1,13 @@
 FROM python:3.8-alpine
 
-RUN apk update && apk add --no-cache tzdata alpine-sdk libxml2 libxslt-dev
+RUN apk update && apk add --no-cache tzdata
 COPY requirements.txt /requirements.txt
 RUN pip3 install --no-cache-dir  -r /requirements.txt && rm /requirements.txt
 COPY . /YYeTsBot/
 
 ENV TZ=Asia/Shanghai
 
-WORKDIR /YYeTsBot
+WORKDIR /YYeTsBot/yyetsbot
 
 CMD ["python", "bot.py"]
 

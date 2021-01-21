@@ -110,6 +110,6 @@ venv.bak/
 /.idea/modules.xml
 /.idea/vcs.xml
 .idea/
-/data/cookies.dump
+/yyetsbot/data/cookies.dump
 /.idea/inspectionProfiles/profiles_settings.xml
-data/
+yyetsbot/data/
