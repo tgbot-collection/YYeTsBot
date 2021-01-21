@@ -150,7 +150,7 @@ class YYeTs(BaseFansub):
     def online_search_preview(self, search_text: str) -> dict:
         html_text = self.__get_search_html__(search_text)
         logging.info('[%s] Parsing html...', self.label)
-        soup = BeautifulSoup(html_text, 'lxml')
+        soup = BeautifulSoup(html_text, 'html.parser')
         link_list = soup.find_all("div", class_="clearfix search-item")
         dict_result = {}
         for block in link_list:
@@ -250,7 +250,7 @@ class Zimuxia(BaseFansub):
     def online_search_preview(self, search_text: str) -> dict:
         html_text = self.__get_search_html__(search_text)
         logging.info('[%s] Parsing html...', self.label)
-        soup = BeautifulSoup(html_text, 'lxml')
+        soup = BeautifulSoup(html_text, 'html.parser')
         link_list = soup.find_all("h2", class_="post-title")
 
         dict_result = {}
@@ -280,7 +280,7 @@ class Zimuxia(BaseFansub):
 
     def obtain_all_response(self) -> (str, str):
         r = session.get(self.url)
-        soup = BeautifulSoup(r.text, 'lxml')
+        soup = BeautifulSoup(r.text, 'html.parser')
         cnname = soup.title.text.split("|")[0]
         return cnname, dict(html=r.text)
 

@@ -1,12 +1,8 @@
 requests
-pytelegrambotapi==3.7.5
+pytelegrambotapi
 beautifulsoup4
-lxml
-feedparser
-pysocks
 tgbot-ping
 redis
-cchardet
 apscheduler
 coverage
 requests-mock
