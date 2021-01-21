@@ -19,18 +19,16 @@ from telebot import types, apihelper
 from tgbot_ping import get_runtime
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from fansub import FansubEntrance
+import fansub
 
 from utils import (save_error_dump, get_error_dump, reset_request,
                    today_request, show_usage, redis_announcement
                    )
-from config import PROXY, TOKEN, YYETS_SEARCH_URL, MAINTAINER, REPORT, OFFLINE
+from config import PROXY, TOKEN, YYETS_SEARCH_URL, MAINTAINER, REPORT, FANSUB_ORDER
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 if PROXY:
     apihelper.proxy = {'https': PROXY}
-if OFFLINE:
-    logging.warning("⚠️️ YYeTs bot is running on offline mode!")
 
 bot = telebot.TeleBot(os.environ.get('TOKEN') or TOKEN)
 angry_count = 0
@@ -123,6 +121,16 @@ def send_credits(message):
     ''', parse_mode='html', disable_web_page_preview=True)
 
 
+for sub_name in dir(fansub):
+    if sub_name.endswith("Offline") or sub_name.endswith("Online"):
+        @bot.message_handler(commands=[sub_name])
+        def varies_fansub(message):
+            # TODO fansub batch command
+            bot.send_chat_action(message.chat.id, 'typing')
+            class_ = getattr(fansub, message.text.replace("/", ""))
+            bot.send_message(message.chat.id, f"{class_.label}: under dev")
+
+
 def download_to_io(photo):
     logging.info("Initializing bytes io...")
     mem = io.BytesIO()
@@ -160,7 +168,7 @@ def send_my_response(message):
 
 @bot.message_handler(content_types=["photo", "text"])
 def send_search(message):
-    fan = FansubEntrance()
+    fan = fansub.FansubEntrance()
     bot.send_chat_action(message.chat.id, 'typing')
 
     today_request("total")
@@ -179,13 +187,7 @@ def send_search(message):
             bot.send_sticker(message.chat.id, sti)
         return
 
-    if OFFLINE:
-        logging.warning("☢️ Going offline mode!!!")
-        bot.send_message(message.chat.id, "人人影视官网不可用，目前在使用离线模式，可能没有最新的剧集。")
-        bot.send_chat_action(message.chat.id, 'upload_document')
-        result = fan.offline_search_preview(name)
-    else:
-        result = fan.online_search_preview(name)
+    result = fan.search_preview(name)
 
     markup = types.InlineKeyboardMarkup()
 
@@ -227,18 +229,11 @@ def send_search(message):
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"choose(\S*)", call.data))
 def choose_link(call):
-    fan = FansubEntrance()
+    fan = fansub.FansubEntrance()
     bot.send_chat_action(call.message.chat.id, 'typing')
     # call.data is url, http://www.rrys2020.com/resource/36588
     resource_url = re.findall(r"choose(\S*)", call.data)[0]
     markup = types.InlineKeyboardMarkup()
-
-    if OFFLINE:
-        worker_page_data = fan.offline_search_result(resource_url)
-        btn1 = types.InlineKeyboardButton("打开网页", url=worker_page_data["share"])
-        markup.add(btn1)
-        bot.send_message(call.message.chat.id, "离线模式，点击按钮打开网页获取结果", reply_markup=markup)
-        return
 
     btn1 = types.InlineKeyboardButton("分享页面", callback_data="share%s" % resource_url)
     btn2 = types.InlineKeyboardButton("我全都要", callback_data="all%s" % resource_url)
@@ -251,20 +246,20 @@ def choose_link(call):
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"share(\S*)", call.data))
 def share_page(call):
-    fan = FansubEntrance()
+    fan = fansub.FansubEntrance()
     bot.send_chat_action(call.message.chat.id, 'typing')
     resource_url = re.findall(r"share(\S*)", call.data)[0]
-    result = fan.online_search_result(resource_url)
+    result = fan.search_result(resource_url)
     bot.send_message(call.message.chat.id, result['share'])
 
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"all(\S*)", call.data))
 def all_episode(call):
     # just send a file
-    fan = FansubEntrance()
+    fan = fansub.FansubEntrance()
     bot.send_chat_action(call.message.chat.id, 'typing')
     resource_url = re.findall(r"all(\S*)", call.data)[0]
-    result = fan.online_search_result(resource_url)
+    result = fan.search_result(resource_url)
 
     with tempfile.NamedTemporaryFile(mode='wb+', prefix=result["cnname"], suffix=".txt") as tmp:
         bytes_data = json.dumps(result["all"], ensure_ascii=False, indent=4).encode('u8')

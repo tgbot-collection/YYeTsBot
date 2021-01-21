@@ -25,7 +25,10 @@ PROXY = os.environ.get("PROXY")
 MAINTAINER = os.environ.get("MAINTAINER")
 REDIS = os.environ.get("REDIS") or "localhost"
 REPORT = os.environ.get("REPORT") or False
-OFFLINE = os.environ.get("OFFLINE") or False
 
 FIX_RESOURCE = "https://www.zimuxia.cn/portfolio/{name}"
 FIX_SEARCH = "https://www.zimuxia.cn/?s={kw}"
+
+# This name must match class name, other wise this bot won't functional.
+
+FANSUB_ORDER: str = os.environ.get("order") or 'ZimuxiaOnline,YYeTsOffline'
