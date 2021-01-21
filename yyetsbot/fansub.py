@@ -292,8 +292,9 @@ class Zimuxia(BaseFansub):
 
 
 class FansubEntrance(BaseFansub):
-    # order = [Zimuxia, YYeTs]
-    order = [YYeTs, Zimuxia]
+    # TODO use environment variables to specified order
+    order = [Zimuxia, YYeTs]
+    # order = [YYeTs, Zimuxia]
     fansub_class = None
 
     def online_search_preview(self, search_text: str) -> dict:
