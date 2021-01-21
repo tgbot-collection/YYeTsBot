@@ -70,7 +70,8 @@ python /path/to/YYeTsBot/bot.py
 # TODO
 - [x] 添加对FIX的支持
 - [x] 文件/函数重命名，类化
-- [x] 优先字幕组顺序设置
+- [x] 优先字幕组顺序设置 - 动态设置
+- [ ] 添加个人喜好搜索
 - [ ] 整理fix资源
 - [ ] test case...啊不想写
 

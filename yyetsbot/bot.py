@@ -194,6 +194,7 @@ def send_search(message):
     source = result.get("source")
     result.pop("source")
     for url, detail in result.items():
+        # we don't need to save which fansub class we used here, because we saved an url and that's good enough.
         btn = types.InlineKeyboardButton(detail, callback_data="choose%s" % url)
         markup.add(btn)
 
@@ -227,17 +228,31 @@ def send_search(message):
             save_error_dump(message.chat.id, content)
 
 
+def magic_recycle(fan, call, url_hash):
+    if fan.redis.exists(url_hash):
+        return False
+    else:
+        logging.info("👏 Wonderful magic!")
+        bot.answer_callback_query(call.id, "小可爱使用魔法回收了你的搜索结果，你再搜索一次试试看", show_alert=True)
+        bot.delete_message(call.message.chat.id, call.message.message_id)
+        return True
+
+
 @bot.callback_query_handler(func=lambda call: re.findall(r"choose(\S*)", call.data))
 def choose_link(call):
     fan = fansub.FansubEntrance()
     bot.send_chat_action(call.message.chat.id, 'typing')
-    # call.data is url, http://www.rrys2020.com/resource/36588
-    resource_url = re.findall(r"choose(\S*)", call.data)[0]
-    markup = types.InlineKeyboardMarkup()
+    # call.data is url, with sha1, http://www.rrys2020.com/resource/36588
+    resource_url_hash = re.findall(r"choose(\S*)", call.data)[0]
+    if magic_recycle(fan, call, resource_url_hash):
+        return
 
-    btn1 = types.InlineKeyboardButton("分享页面", callback_data="share%s" % resource_url)
-    btn2 = types.InlineKeyboardButton("我全都要", callback_data="all%s" % resource_url)
+    markup = types.InlineKeyboardMarkup()
+    # add class
+    btn1 = types.InlineKeyboardButton("分享页面", callback_data="share%s" % resource_url_hash)
+    btn2 = types.InlineKeyboardButton("我全都要", callback_data="all%s" % resource_url_hash)
     markup.add(btn1, btn2)
+    # TODO use reply is better
     text = "想要分享页面，还是我全都要？\n\n" \
            "名词解释：“分享页面”会返回给你一个网站，从那里可以看到全部的下载链接。\n" \
            "“我全都要”会给你发送一个txt文件，文件里包含全部下载连接\n"
@@ -247,9 +262,13 @@ def choose_link(call):
 @bot.callback_query_handler(func=lambda call: re.findall(r"share(\S*)", call.data))
 def share_page(call):
     fan = fansub.FansubEntrance()
+    # need class name as str
     bot.send_chat_action(call.message.chat.id, 'typing')
-    resource_url = re.findall(r"share(\S*)", call.data)[0]
-    result = fan.search_result(resource_url)
+    resource_url_hash = re.findall(r"share(\S*)", call.data)[0]
+    if magic_recycle(fan, call, resource_url_hash):
+        return
+
+    result = fan.search_result(resource_url_hash)
     bot.send_message(call.message.chat.id, result['share'])
 
 
@@ -258,9 +277,11 @@ def all_episode(call):
     # just send a file
     fan = fansub.FansubEntrance()
     bot.send_chat_action(call.message.chat.id, 'typing')
-    resource_url = re.findall(r"all(\S*)", call.data)[0]
-    result = fan.search_result(resource_url)
+    resource_url_hash = re.findall(r"all(\S*)", call.data)[0]
+    if magic_recycle(fan, call, resource_url_hash):
+        return
 
+    result = fan.search_result(resource_url_hash)
     with tempfile.NamedTemporaryFile(mode='wb+', prefix=result["cnname"], suffix=".txt") as tmp:
         bytes_data = json.dumps(result["all"], ensure_ascii=False, indent=4).encode('u8')
         tmp.write(bytes_data)

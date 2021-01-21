@@ -30,9 +30,8 @@ class BaseFansub:
     """
     all the subclass should implement three kinds of methods:
     1. online search, contains preview for bot and complete result
-    2. offline search (set pass if not applicable)
-    3. login and check (set pass if not applicable)
-    4. search_result this is critical for bot to draw markup
+    2. login and check (set pass if not applicable)
+    3. search_result as this is critical for bot to draw markup
 
     """
     label = None
@@ -42,6 +41,10 @@ class BaseFansub:
         self.data = None
         self.url = None
         self.redis = redis.StrictRedis(host=REDIS, decode_responses=True)
+        # how to store data in redis:
+        # either online or offline, only these two type of data will be stored
+        # http://z.cn --> <html><head>.... valid for 12 hours, cache purpose
+        # 1273hda_hash_of_url - {url:http://z.cn,class:xxclass} forever
 
     @property
     def id(self):
@@ -55,9 +58,7 @@ class BaseFansub:
     def search_preview(self, search_text: str) -> dict:
         # try to retrieve critical information from html
         # this result must return to bot for manual selection
-        # {"url1": "name1", "url2": "name2"}
-        # don't forget to add this!
-        # dict_result["source"] = self.label
+        # {"url1": "name1", "url2": "name2", "source":"yyets"}
         pass
 
     def search_result(self, resource_url: str) -> dict:
@@ -67,8 +68,8 @@ class BaseFansub:
         This method should check cache first if applicable
         This method should set self.link and self.data
         This method should call __execute_online_search
-        :param resource_url:
-        :return:    {"all": rss_result, "share": share_link, "cnname": cnname}
+        :param resource_url: in entry method, this variable is hash. Otherwise it's plain url
+        :return:    {"all": dict_result, "share": share_link, "cnname": cnname}
 
         """
         pass
@@ -98,10 +99,10 @@ class BaseFansub:
         logging.info("[%s] Reading data from cache %s", self.label, url)
         data = self.redis.get(url)
         if data:
-            logging.info("Cache hit")
+            logging.info("😄 Cache hit")
             return json.loads(data)
         else:
-            logging.info("Cache miss")
+            logging.info("😱 Cache miss")
             result_method = getattr(self, method_name)
             self.__save_to_cache__(url, result_method())
             return self.__get_from_cache__(url, method_name)
@@ -111,15 +112,17 @@ class BaseFansub:
         self.redis.set(url, data, ex=ex)
 
 
-class YYeTsOnline(BaseFansub):
-    label = "yyets online"
-    cookie_file = os.path.join("data", "cookies.dump")
-
+class YYeTsBase(BaseFansub):
     @property
     def id(self):
         # implement how to get the unique id for this resource
         rid = self.url.split('/')[-1]
         return rid
+
+
+class YYeTsOnline(YYeTsBase):
+    label = "yyets online"
+    cookie_file = os.path.join("data", "cookies.dump")
 
     def __get_search_html__(self, kw: str) -> str:
         # don't have to login here
@@ -129,6 +132,7 @@ class YYeTsOnline(BaseFansub):
         return r.text
 
     def search_preview(self, search_text: str) -> dict:
+        # yyets online
         html_text = self.__get_search_html__(search_text)
         logging.info('[%s] Parsing html...', self.label)
         soup = BeautifulSoup(html_text, 'html.parser')
@@ -137,11 +141,14 @@ class YYeTsOnline(BaseFansub):
         for block in link_list:
             name = block.find_all('a')[-1].text
             url = BASE_URL + block.find_all('a')[-1].attrs['href']
-            dict_result[url] = name
+            url_hash = hashlib.sha1(url.encode('u8')).hexdigest()
+            dict_result[url_hash] = name
+            self.redis.hset(url_hash, mapping={"class": self.__class__.__name__, "url": url})
         dict_result["source"] = self.label
         return dict_result
 
     def search_result(self, resource_url: str) -> dict:
+        # yyets online
         self.url = resource_url
         self.data = self.__get_from_cache__(self.url, self.__execute_search_result__.__name__)
         return self.data
@@ -190,7 +197,7 @@ class YYeTsOnline(BaseFansub):
         return share_url, api_response
 
 
-class YYeTsOffline(BaseFansub):
+class YYeTsOffline(YYeTsBase):
     label = "yyets offline"
 
     def search_preview(self, search_text: str) -> dict:
@@ -205,27 +212,27 @@ class YYeTsOffline(BaseFansub):
             # make them both lower
             if search_text.lower() in name.lower():
                 fake_url = f"http://www.rrys2020.com/resource/{rid}"
-                results[fake_url] = name.replace("\n", " ")
+                url_hash = hashlib.sha1(fake_url.encode('u8')).hexdigest()
+                results[url_hash] = name.replace("\n", " ")
+                self.redis.hset(url_hash, mapping={"class": self.__class__.__name__, "url": fake_url})
+
         logging.info("[%s] Offline search complete", self.label)
         results["source"] = self.label
         return results
 
     def search_result(self, resource_url) -> dict:
+        # yyets offline
         self.url = resource_url
         query_url = WORKERS.format(id=self.id)
+        api_res = requests.get(query_url).json()
+        cnname = api_res["data"]["info"]["cnname"]
         # for universal purpose, we return the same structure.
-        self.data = {"all": None, "share": query_url, "cnname": None}
+        self.data = {"all": api_res, "share": query_url, "cnname": cnname}
         return self.data
 
 
 class ZimuxiaOnline(BaseFansub):
     label = "zimuxia online"
-
-    @property
-    def id(self):
-        # implement how to get the unique id for this resource
-        rid = self.url.split('/')[-1]
-        return rid
 
     def __get_search_html__(self, kw: str) -> str:
         # don't have to login here
@@ -235,6 +242,7 @@ class ZimuxiaOnline(BaseFansub):
         return r.text
 
     def search_preview(self, search_text: str) -> dict:
+        # zimuxia online
         html_text = self.__get_search_html__(search_text)
         logging.info('[%s] Parsing html...', self.label)
         soup = BeautifulSoup(html_text, 'html.parser')
@@ -242,20 +250,18 @@ class ZimuxiaOnline(BaseFansub):
 
         dict_result = {}
         for link in link_list:
-            # Warning: we can't simple return url here.
-            # Telegram bot button callback data must be less than 64bytes.
-            # Therefore we use sha1 to hash the url, save to redis.
+            # TODO wordpress search content and title, some cases it would be troublesome
             url = link.a['href']
             url_hash = hashlib.sha1(url.encode('u8')).hexdigest()
             name = link.a.text
             dict_result[url_hash] = name
-            self.redis.set(url_hash, url)
+            self.redis.hset(url_hash, mapping={"class": self.__class__.__name__, "url": url})
         dict_result["source"] = self.label
         return dict_result
 
-    def search_result(self, url_hash: str) -> dict:
-        self.redis.get(url_hash)
-        self.url = self.redis.get(url_hash)
+    def search_result(self, resource_url: str) -> dict:
+        # zimuxia online
+        self.url = resource_url
         self.data = self.__get_from_cache__(self.url, self.__execute_search_result__.__name__)
         return self.data
 
@@ -284,26 +290,30 @@ class ZimuxiaOffline(BaseFansub):
 
 class FansubEntrance(BaseFansub):
     order = FANSUB_ORDER.split(",")
-    fansub_class = None
 
     def search_preview(self, search_text: str) -> dict:
         source = "聪明机智温柔可爱善良的Benny"
-        for sub in self.order:
-            logging.info("Looping from %s", sub)
-            class_ = globals().get(sub)
-            result = class_().search_preview(search_text)
+        for sub_str in self.order:
+            logging.info("Looping from %s", sub_str)
+            fc = globals().get(sub_str)
+            result = fc().search_preview(search_text)
             # this result contains source:sub, so we'll pop and add it
             source = result.pop("source")
             if result:
-                logging.info("Result hit in %s", sub)
-                FansubEntrance.fansub_class = sub
+                logging.info("Result hit in %s %s", sub_str, fc)
+                FansubEntrance.fansub_class = fc
                 result["source"] = source
                 return result
 
         return dict(source=source)
 
-    def search_result(self, resource_url: str) -> dict:
-        return self.fansub_class().search_result(resource_url)
+    def search_result(self, resource_url_hash: str) -> dict:
+        # entrance
+        cache_data = self.redis.hgetall(resource_url_hash)
+        resource_url = cache_data["url"]
+        class_name = cache_data["class"]
+        fc = globals().get(class_name)
+        return fc().search_result(resource_url)
 
 
 # we'll check if FANSUB_ORDER is correct. Must put it here, not before.
