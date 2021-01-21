@@ -40,7 +40,7 @@ def send_welcome(message):
     bot.send_message(message.chat.id, '欢迎使用，直接发送想要的剧集标题给我就可以了，不需要其他关键字，我会帮你搜索。\n\n'
                                       '人人影视专注于欧美日韩剧集，请不要反馈“我搜不到喜羊羊与灰太狼/流浪地球”这种问题，'
                                       '我会生气的😠😡🤬😒\n\n'
-                                      '建议使用<a href="http://www.zmz2019.com/">人人影视</a> 标准译名',
+                                      f'目前搜索优先级 {FANSUB_ORDER}',
                      parse_mode='html', disable_web_page_preview=True)
 
 

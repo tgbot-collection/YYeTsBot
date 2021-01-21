@@ -56,6 +56,8 @@ class BaseFansub:
         # try to retrieve critical information from html
         # this result must return to bot for manual selection
         # {"url1": "name1", "url2": "name2"}
+        # don't forget to add this!
+        # dict_result["source"] = self.label
         pass
 
     def search_result(self, resource_url: str) -> dict:
@@ -200,10 +202,12 @@ class YYeTsOffline(BaseFansub):
 
         results = {}
         for name, rid in data.items():
-            if search_text in name:
+            # make them both lower
+            if search_text.lower() in name.lower():
                 fake_url = f"http://www.rrys2020.com/resource/{rid}"
                 results[fake_url] = name.replace("\n", " ")
         logging.info("[%s] Offline search complete", self.label)
+        results["source"] = self.label
         return results
 
     def search_result(self, resource_url) -> dict:
