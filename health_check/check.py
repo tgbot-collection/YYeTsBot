@@ -19,7 +19,7 @@ api_id = int(os.environ.get("API_ID") or "")
 api_hash = os.environ.get("API_HASH") or ""
 bot_name = os.environ.get("BOT_NAME") or "yyets_bot"
 compose_file = os.environ.get("COMPOSE") or "/Users/benny/PycharmProjects/BotsRunner/docker-compose.yml"
-client = TelegramClient('client', api_id, api_hash,
+client = TelegramClient('client-hc', api_id, api_hash,
                         device_model="Benny-health-check", system_version="89", app_version="1.0.0")
 check_status = []
 
@@ -48,7 +48,7 @@ async def restart_bot():
 
 if __name__ == '__main__':
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(send_health_check, 'interval', seconds=120)
+    scheduler.add_job(send_health_check, 'interval', seconds=300)
     scheduler.start()
     # send_health_check()
     client.start()
