@@ -7,3 +7,4 @@ apscheduler
 coverage
 requests-mock
 pymongo
+telethon

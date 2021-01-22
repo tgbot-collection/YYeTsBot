@@ -113,3 +113,4 @@ venv.bak/
 /yyetsbot/data/cookies.dump
 /.idea/inspectionProfiles/profiles_settings.xml
 yyetsbot/data/
+health_check/client.session
