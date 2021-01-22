@@ -6,11 +6,14 @@ __author__ = 'Benny <benny.think@gmail.com>'
 
 import os
 import logging
-import requests
 import pickle
 import sys
 import json
 import hashlib
+import re
+
+import requests
+import pymongo
 
 from bs4 import BeautifulSoup
 
@@ -200,21 +203,23 @@ class YYeTsOnline(YYeTsBase):
 class YYeTsOffline(YYeTsBase):
     label = "yyets offline"
 
+    def __init__(self):
+        super().__init__()
+        self.mongo = pymongo.MongoClient()
+        self.collection = self.mongo["yyets"]["resource"]
+
     def search_preview(self, search_text: str) -> dict:
-        # from cloudflare workers
-        # no redis cache for now - why? because we may update cloudflare
-        logging.info("[%s] Loading offline data from cloudflare KV storage...", self.label)
-        index = WORKERS.format(id="index")
-        data: dict = requests.get(index).json()
+        logging.info("[%s] Loading offline data from MongoDB...", self.label)
+        regex = re.compile(search_text, re.IGNORECASE)
+        condition = {"name": {"$regex": regex}}
+        data = self.collection.find(condition)
 
         results = {}
-        for name, rid in data.items():
-            # make them both lower
-            if search_text.lower() in name.lower():
-                fake_url = f"http://www.rrys2020.com/resource/{rid}"
-                url_hash = hashlib.sha1(fake_url.encode('u8')).hexdigest()
-                results[url_hash] = name.replace("\n", " ")
-                self.redis.hset(url_hash, mapping={"class": self.__class__.__name__, "url": fake_url})
+        for item in data:
+            fake_url = "http://www.rrys2020.com/resource/{}".format(item["id"])
+            url_hash = hashlib.sha1(fake_url.encode('u8')).hexdigest()
+            results[url_hash] = item["name"].replace("\n", " ")
+            self.redis.hset(url_hash, mapping={"class": self.__class__.__name__, "url": fake_url})
 
         logging.info("[%s] Offline search complete", self.label)
         results["source"] = self.label
@@ -223,12 +228,16 @@ class YYeTsOffline(YYeTsBase):
     def search_result(self, resource_url) -> dict:
         # yyets offline
         self.url = resource_url
-        query_url = WORKERS.format(id=self.id)
-        api_res = requests.get(query_url).json()
-        cnname = api_res["data"]["info"]["cnname"]
-        # for universal purpose, we return the same structure.
-        self.data = {"all": api_res, "share": query_url, "cnname": cnname}
+
+        data: dict = self.collection.find_one({"url": self.url})
+        rid = data["id"]
+        name = data["data"]["data"]["info"]["cnname"]
+        data.pop("_id")
+        self.data = {"all": data, "share": WORKERS.format(id=rid), "cnname": name}
         return self.data
+
+    def __del__(self):
+        self.mongo.close()
 
 
 class ZimuxiaOnline(BaseFansub):
