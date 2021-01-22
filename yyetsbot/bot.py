@@ -7,7 +7,6 @@ __author__ = 'Benny <benny.think@gmail.com>'
 import io
 import time
 import re
-import os
 import logging
 import json
 import tempfile
@@ -30,7 +29,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(le
 if PROXY:
     apihelper.proxy = {'https': PROXY}
 
-bot = telebot.TeleBot(os.environ.get('TOKEN') or TOKEN)
+bot = telebot.TeleBot(TOKEN)
 angry_count = 0
 
 
