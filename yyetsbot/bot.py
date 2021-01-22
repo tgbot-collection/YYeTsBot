@@ -27,7 +27,7 @@ from config import PROXY, TOKEN, YYETS_SEARCH_URL, MAINTAINER, REPORT, FANSUB_OR
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 if PROXY:
-    apihelper.proxy = {'https': PROXY}
+    apihelper.proxy = {'http': PROXY}
 
 bot = telebot.TeleBot(TOKEN)
 angry_count = 0
@@ -200,16 +200,16 @@ def send_search(message):
     if result:
         logging.info("🎉 Resource match.")
         today_request("success")
-        bot.send_message(message.chat.id, "呐，💐🌷🌹选一个呀！来源：%s" % source, reply_markup=markup)
+        bot.reply_to(message, "呐🌹，一共%d个结果，选一个呀！来源：%s" % (len(result), source), reply_markup=markup)
     else:
         logging.warning("⚠️️ Resource not found")
         today_request("fail")
         bot.send_chat_action(message.chat.id, 'typing')
 
         encoded = quote_plus(name)
-        bot.send_message(message.chat.id, f"没有找到你想要的信息，是不是你打了错别字，或者搜索了一些国产影视剧。🤪\n"
-                                          f"还是你想调戏我哦🙅‍️\n\n"
-                                          "⚠️如果确定要我背锅，那么请使用 /help 来提交错误", disable_web_page_preview=True)
+        bot.reply_to(message, f"没有找到你想要的信息，是不是你打了错别字，或者搜索了一些国产影视剧。🤪\n"
+                              f"还是你想调戏我哦🙅‍ 本小可爱拒绝被调戏️\n\n"
+                              "⚠️如果确定要我背锅，那么请使用 /help 来提交错误", disable_web_page_preview=True)
         if REPORT:
             btn = types.InlineKeyboardButton("快来修复啦", callback_data="fix")
             markup.add(btn)
@@ -232,7 +232,7 @@ def magic_recycle(fan, call, url_hash):
         return False
     else:
         logging.info("👏 Wonderful magic!")
-        bot.answer_callback_query(call.id, "小可爱使用魔法回收了你的搜索结果，你再搜索一次试试看", show_alert=True)
+        bot.answer_callback_query(call.id, "小可爱使用魔法回收了你的搜索结果，你再搜索一次试试看嘛🥺", show_alert=True)
         bot.delete_message(call.message.chat.id, call.message.message_id)
         return True
 
@@ -251,11 +251,11 @@ def choose_link(call):
     btn1 = types.InlineKeyboardButton("分享页面", callback_data="share%s" % resource_url_hash)
     btn2 = types.InlineKeyboardButton("我全都要", callback_data="all%s" % resource_url_hash)
     markup.add(btn1, btn2)
-    # TODO use reply is better
+
     text = "想要分享页面，还是我全都要？\n\n" \
            "名词解释：“分享页面”会返回给你一个网站，从那里可以看到全部的下载链接。\n" \
            "“我全都要”会给你发送一个txt文件，文件里包含全部下载连接\n"
-    bot.send_message(call.message.chat.id, text, reply_markup=markup)
+    bot.reply_to(call.message, text, reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"share(\S*)", call.data))
@@ -268,7 +268,7 @@ def share_page(call):
         return
 
     result = fan.search_result(resource_url_hash)
-    bot.send_message(call.message.chat.id, result['share'])
+    bot.send_message(call.message.chat.id, "{}  {}".format(result['cnname'], result['share']))
 
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"all(\S*)", call.data))
@@ -287,7 +287,7 @@ def all_episode(call):
         tmp.flush()
         with open(tmp.name, "rb") as f:
             bot.send_chat_action(call.message.chat.id, 'upload_document')
-            bot.send_document(call.message.chat.id, f)
+            bot.send_document(call.message.chat.id, f, caption="%s" % result["cnname"])
 
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"unwelcome(\d*)", call.data))
