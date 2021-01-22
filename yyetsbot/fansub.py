@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 
 from config import (YYETS_SEARCH_URL, GET_USER, BASE_URL, SHARE_WEB,
                     SHARE_URL, WORKERS, SHARE_API, USERNAME, PASSWORD,
-                    AJAX_LOGIN, REDIS, FANSUB_ORDER, FIX_SEARCH)
+                    AJAX_LOGIN, REDIS, FANSUB_ORDER, FIX_SEARCH, MONGO)
 import redis
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
@@ -205,7 +205,7 @@ class YYeTsOffline(YYeTsBase):
 
     def __init__(self):
         super().__init__()
-        self.mongo = pymongo.MongoClient()
+        self.mongo = pymongo.MongoClient(host=MONGO)
         self.collection = self.mongo["yyets"]["resource"]
 
     def search_preview(self, search_text: str) -> dict:
