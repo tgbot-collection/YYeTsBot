@@ -1,0 +1,12 @@
+name = "yyets"
+type = "webpack"
+account_id = "e8d3ba82fe9e9a41cceb0047c2a2ab4f"
+workers_dev = true
+route = ""
+zone_id = ""
+kv_namespaces = [
+  { binding = "yyets", id = "221f4a96954b4e0da7c5a3d71b486051", preview_id = "6bc8208fbc944ba88b6280977c164c53" }
+]
+
+[site]
+bucket = "./public"

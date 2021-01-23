@@ -21,7 +21,7 @@ SHARE_API = "http://got002.com/api/v1/static/resource/detail?code={code}"
 FIX_RESOURCE = "https://www.zimuxia.cn/portfolio/{name}"
 FIX_SEARCH = "https://www.zimuxia.cn/?s={kw}"
 # cloudflare worker
-WORKERS = "https://yyets.yyetsdb.workers.dev/?id={id}"
+WORKERS = "https://yyets.yyetsdb.workers.dev/resource.html?id={id}"
 
 # authentication config
 TOKEN = os.environ.get("TOKEN") or "TOKEN"

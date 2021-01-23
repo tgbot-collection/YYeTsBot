@@ -1,0 +1,877 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>最帅的资源信息限时分享站</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <style>
+    html, body {
+      padding: 0;
+      margin: 0;
+    }
+    #adv-70-1 iframe, #adv-70-2 iframe{
+      display: block;
+      width: 100%;
+      height: 96px;
+      border: none;
+    }
+
+    .ad-box {
+      max-height: 320px;
+      overflow: hidden;
+    }
+
+    .v-cloak {
+      visibility: hidden;
+    }
+
+    .skeleton {
+      /*margin-bottom: -1200px;*/
+    }
+
+    .skeleton .skeleton-head,
+    .skeleton .skeleton-sidebar {
+      background: rgb(194, 207, 214);
+    }
+
+    .skeleton-head {
+      height: 658px;
+      height: 338px;
+    }
+
+    .skeleton-body {
+      padding-top: 40px;
+      width: 1200px;
+      margin: 0 auto;
+      overflow: auto;
+    }
+
+    .skeleton-sidebar {
+      width: 154px;
+      min-height: 300px;
+      float: left;
+    }
+
+    .skeleton-tabs {
+      width: 80%;
+      min-height: 600px;
+      float: right;
+    }
+    .skeleton-tabs-head {
+      overflow: hidden;
+      margin-bottom: 15px;
+    }
+    .skeleton-tabs-head div{
+      float: left;
+      width: 98px;
+      height: 32px;
+      margin-right: 15px;
+      background: rgb(194, 207, 214);
+    }
+    .skeleton-tabs-body div{
+      height: 38px;
+      margin-bottom: 15px;
+      background: rgb(194, 207, 214);
+    }
+
+    .yyets-translate{
+      width:112px;
+      height:22px;
+      margin: 0 11px;
+      vertical-align:middle;
+    }
+    .unlimited {
+      left: 75%;
+      bottom: 70%;
+      position: absolute;
+      width:40px;
+      height:16px;
+      line-height: 16px;
+      background:#f57544;
+      border-radius:4px;
+      text-align: center;
+      font-size: 12px;
+      color: #fff;
+    }
+
+    .support-tip {
+      position: relative;
+    }
+
+    .support-tip:before {
+      content: '';
+      position: absolute;
+      /*background: url("http://tu.jstucdn.com/ftp/2019/1118/11bcd4d0f2daf8b02fecc72bc8ca38ab.png") center center / contain no-repeat;*/
+      width: 435px;
+      height: 185px;
+      top: -100px;
+      left: 0;
+      transform: translate(-48%, 0px);
+    }
+
+
+  </style>
+  <link rel="stylesheet" media="none" onload="this.media='all'" href='css/aYin.css'>
+  <link rel="stylesheet" media="none" onload="this.media='all'" href="css/font-awesome.min.css">
+  <link rel="stylesheet" media="none" onload="this.media='all'" href='css/bootstrap.min.css'>
+  <link rel="stylesheet" media="none" onload="this.media='all'" href='css/jquery.mCustomScrollbar.css'>
+  <link rel="stylesheet" media="all"  href='css/down-list-20180530.css'/>
+  <style>
+    .down-list > li .title > a.outside-btn {
+      position: relative;
+      z-index: 2;
+      display:inline-block;
+      float:left;
+      margin-left:15px;
+      cursor:pointer;
+      padding: .3rem 1rem;
+      height: 38px;
+      border-radius: 4px;
+      border: 1px solid #d9d9d9;
+      background-color: #fff;
+    }
+    .down-list > li .title > a:visited{
+      color:#337ab7;
+    }
+    .down-list > li .title > a.outside-btn .desc{
+      display: inline-block;
+      margin: 0;
+      font-size: 1.2rem;
+      padding: 0;
+      line-height: 2rem;
+    }
+    .down-list > li .title > a.outside-btn:hover {
+      background-color: #197fe6;
+      border: 1px solid #197fe6;
+      color: #fff;
+    }
+  </style>
+</head>
+<body class="view-tabs">
+<div class="skeleton" id="skeleton">
+  <div class="skeleton-head"></div>
+  <div class="skeleton-body">
+    <div class="skeleton-sidebar"></div>
+    <div class="skeleton-tabs">
+      <div class="skeleton-tabs-head">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <div class="skeleton-tabs-body">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="app" style="visibility: hidden">
+  <!-- 20200515启用顶部广告 -->
+  <div class="ad-box">
+    <div id="adv-69"></div>
+    <i class="fa fa-times" onclick="$('.ad-box').slideUp()"> 关闭</i>
+  </div>
+  <header class="ui-header">
+    <div class="ui-limit">
+      <div class="logo-wrapper">
+        <div class="logo"></div>
+        <div class="desc">资源分享站 - 归档</div>
+      </div>
+      <div class="btn-group" role="group" aria-label="...">
+        <a id="fa-share" class="btn btn-default btn-copy"><i class="fa fa-share"></i>分享本站地址</a>
+        <a class="btn btn-danger btn-toggle-view" @click="expanedAll"><i class="fa fa-th-list"></i>切换为平铺视图</a></div>
+      <div class="view-count">
+        <span class="desc"><i class="fa fa-eye"></i>访问量：</span>
+        <span class="count">{{ info.views }}</span>
+      </div>
+      <div class="count-down">
+        <p class="minfo">本页将于<strong class="timeout"></strong> 后自动删除</p>
+      </div>
+      <!-- 资源分享 -->
+      <div style="width: 100%; text-align: center;" id="adv-70-1" :class="{'support-tip': showTip}"></div>
+      <p class="film-title">
+        <span class="type">{{ info.channel_cn }}</span>
+        <span class="name-chs">《{{ info.cnname }}》</span>
+        <span class="name-eng">（{{ info.enname }}）</span>
+        <span class="desc">资源下载</span>
+      </p>
+    </div>
+  </header>
+  <div class="ui-content">
+    <div class="ui-limit">
+      <div class="row row-content">
+        <div class="col-box col-sidebar">
+          <div class="sidebar-warpper" id="scrollspy">
+            <div class="scroll-wrapper">
+              <!-- sidebar -->
+              <ul class="tab-header tab-side" role="tablist" id="menu" @mousedown="sidebarClick">
+                <li role="presentation" class="" v-for="(item, index) in list" :data-index="index">
+                  <a :href="'#sidetab-' + index" :aria-controls="'sidetab-' + index" role="tab" data-toggle="tab">{{ item.season_cn }}</a>
+                  <ul class="tab-header tab-info" role="tablist" @click.stop>
+                    <li role="presentation" v-for="(value, fileFormats) in item.itemsRender">
+                      <a :href="'#tab-g' + index + '-' + fileFormats" :aria-controls="'tab-g' + index + '-' + fileFormats" role="tab" data-toggle="tab">
+                        <template v-if="fileFormats == 'APP'">
+                          <i class="fa fa-play-circle-o"></i>在线看
+                        </template>
+                        <template v-else-if="hasCn(fileFormats)">
+                          {{ fileFormats }}<span class="badge">中字</span>
+                        </template>
+                        <template v-else>
+                          {{ fileFormats }}
+                        </template>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-box col-infomation">
+          <div class="tab-content info-content">
+            <!-- tabs -->
+            <div role="tabpanel" class="tab-pane" :id="'sidetab-' + index" v-for="(item, index) in list" v-if="item.render && item.items">
+              <ul class="tab-header tab-info" role="tablist">
+                <li role="presentation" v-if="item.items[fileFormats]" v-for="fileFormats in item.formats" @mousedown="item.itemsRender[fileFormats] = true">
+                  <a :href="'#tab-g' + index+ '-' + fileFormats" :aria-controls="'tab-g' + index+ '-' + fileFormats" role="tab"
+                     data-toggle="tab">
+                    <template v-if="fileFormats == 'APP'">
+                      <i class="fa fa-play-circle-o"></i>在线看
+                    </template>
+                    <template v-if="hasCn(fileFormats)">
+                      {{ fileFormats }}<span class="badge">中字</span>
+                    </template>
+                    <template v-else>
+                      {{ fileFormats }}
+                    </template>
+                  </a>
+                </li>
+              </ul>
+              <div class="tab-content info-content">
+                <!-- tabpanel -->
+                <template v-for="fileFormats in item.formats"  v-if="item.itemsRender[fileFormats] && item.items[fileFormats]">
+                  <!-- APP格式 -->
+                  <div role="tabpanel" class="tab-pane"  v-if="fileFormats == 'APP'" :id="'tab-g' + index+ '-' + fileFormats" >
+                    <div class="infobar">
+                      {{ item.season_cn }}
+                      <template v-if="fileFormats == 'APP'">
+                        专链+在线观看 （推荐）
+                      </template>
+                      <template v-else-if="hasCn(fileFormats)">
+                        {{ fileFormats }}<span class="badge">中字</span>
+                      </template>
+                      <template v-else>
+                        {{ fileFormats }}
+                      </template>
+                    </div>
+                    <ul class="down-list" :format="fileFormats">
+                      <li class="item"  :itemid="fileFormatsItem.itemid"  v-for="fileFormatsItem in item.items[fileFormats]">
+                        <div class="title">
+                          <span class="episode">{{ item.season_cn + ' 第' + fileFormatsItem.episode + '集' }}</span><img v-if="fileFormatsItem.yyets_trans == 1" src="img/yyetsTrans.png" class="yyets-translate" alt="人人影视翻译" />
+                          <ul class="down-links">
+                            <li v-if="fileFormatsItem.name">
+                              <a class="btn"
+                                 :href="fileFormatsItem.name"
+                                 :data-url="fileFormatsItem.name">
+                                <div class="down-img down-img-yyets"></div>
+                                <p class="desc">人人下载器</p>
+                              </a>
+                              <div class="down-popup">
+                                <div class="panel-inner-down">
+                                  <div class="panel-heading">
+                                    <span class="desc">请选择：</span>
+                                  </div>
+                                  <div class="panel-body">
+                                    <!-- 20201126 edit <a
+                                      :href="fileFormatsItem.name"
+                                      class="btn btn-download">点击链接直接下载(已安装客户端)</a>-->
+                                    <a
+                                      :data-url="fileFormatsItem.name"
+                                      class="btn rrdown btn-download">复制链接到播放器手动下载</a>
+                                    <a class="btn btn-download app_down_url">点击下载安装人人播放器客户端</a>
+                                    <p class="desc">安装人人播放器客户端获得最新最快的影视资讯信息,支持稳定的离线缓存下载,解决资源被网盘和迅雷被和谐的痛点</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </li>
+                            <template v-for="file in fileFormatsItem.files">
+                              <li>
+                                <a class="btn btn-download" :href="file.address"
+                                   target="_blank">
+                                  <!--                                  <label class="unlimited" v-if="file.way_cn == '微云'">不限速</label>-->
+                                  <div class="down-img" :class="['down-img-' + file.way]"></div>
+                                  <p class="desc">{{ file.way_cn }}</p>
+                                </a>
+                                <div class="copy-pass" :title="'网盘密码:' + file.passwd" v-if="file.passwd"></div>
+                              </li>
+                            </template>
+                          </ul>
+                          <a class="btn outside-btn" href="http://app.rrys.tv/" target="_blank">
+                            <p class="desc">人人影视APP</p>
+                          </a><!--20201010修改-->
+                          <span class="date">{{ fileFormatsItem.dateline | timeToDay }}</span>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                  <!-- 其他格式 -->
+                  <div role="tabpanel" class="tab-pane" v-else :id="'tab-g' + index+ '-' + fileFormats">
+                    <div class="infobar">
+                      {{ item.season_cn }}
+                      <template v-if="hasCn(fileFormats)">
+                        {{ fileFormats }}<span class="badge">中字</span>
+                      </template>
+                      <template v-else>
+                        {{ fileFormats }}
+                      </template>
+                    </div>
+                    <ul class="down-list">
+                      <li class="item" :itemid="fileFormatsItem.itemid" v-for="fileFormatsItem in item.items[fileFormats]">
+                        <div class="title">
+                          <span class="episode">{{ item.season_cn }} 第{{ fileFormatsItem.episode }}集</span><img v-if="fileFormatsItem.yyets_trans == 1" src="img/yyetsTrans.png" class="yyets-translate" alt="人人影视翻译" />
+                          <span class="filename">{{ fileFormatsItem.name }}</span>
+                          <span class="filesize">{{ fileFormatsItem.size }}</span>
+                          <span class="date">{{ fileFormatsItem.dateline | timeToDay }}</span>
+                        </div>
+                        <ul class="down-links">
+                          <li v-for="file in fileFormatsItem.files">
+                            <a class="btn btn-download" :href="file.address" :way="file.way">
+                              <!--                              <label class="unlimited" v-if="file.way_cn == '微云'">不限速</label>-->
+                              <div class="down-img" :class="['down-img-' + file.way]"></div>
+                              <p class="desc">{{ file.way_cn }}</p>
+                            </a>
+                            <div class="copy-pass" :title="'网盘密码:' + file.passwd" v-if="file.passwd"></div>
+                            <div :data-url="file.address" class="copy-link" title="复制链接"></div>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                    <div class="down-list-toolbar">
+                      <p class="title">一键复制上方特定链接：</p>
+                      <div class="btn-group" role="group" aria-label="...">
+<!--                        <a class="btn btn-default" rel="-1">迅雷</a>-->
+                        <a class="btn btn-default" rel="1">电驴</a>
+                        <a class="btn btn-default" rel="2">磁力</a>
+                        <a class="btn btn-default" rel="9">网盘</a>
+                        <a class="btn btn-default" rel="12">城通网盘</a>
+                        <a class="btn btn-default" rel="999">小米路由器远程离线下载</a>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div style="width: 100%; text-align: center;" id="adv-70-2"></div>
+<textarea id="copyArea" style="display: none; width: 1px; height: 1px"></textarea>
+<div class="ui-footer ui-footer-simple" style="visibility: hidden" id="footer">
+  <div class="copyright">
+    <p>最帅的分享站 2017 <a href="https://t.me/mikuri520">@BennyThink</a> </p>
+<!--    <script src="https://s19.cnzz.com/z_stat.php?id=1273422572&web_id=1273422572" language="JavaScript"></script>-->
+  </div>
+</div>
+<div class="hidden"></div>
+<script src='js/jquery.min.js'></script>
+<script src='js/aYin.js'></script>
+<script src='js/bootstrap.min.js'></script>
+<script src='js/jquery.mousewheel.min.js'></script>
+<script src='js/jquery.mCustomScrollbar.min.js'></script>
+<script src="js/rshare.js" type="text/javascript"></script>
+<!--<script src="http://js2.jstucdn.com/js/vue.min.js" type="text/javascript"></script>-->
+<script src="js/vue.js"></script>
+<!--<script src="vue.js"></script>-->
+<script>
+    if (typeof Object.assign != 'function') {
+        // Must be writable: true, enumerable: false, configurable: true
+        Object.defineProperty(Object, "assign", {
+            value: function assign(target, varArgs) { // .length of function is 2
+                'use strict';
+                if (target == null) { // TypeError if undefined or null
+                    throw new TypeError('Cannot convert undefined or null to object');
+                }
+
+                let to = Object(target);
+
+                for (var index = 1; index < arguments.length; index++) {
+                    var nextSource = arguments[index];
+
+                    if (nextSource != null) { // Skip over if undefined or null
+                        for (let nextKey in nextSource) {
+                            // Avoid bugs when hasOwnProperty is shadowed
+                            if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                                to[nextKey] = nextSource[nextKey];
+                            }
+                        }
+                    }
+                }
+                return to;
+            },
+            writable: true,
+            configurable: true
+        });
+    }
+</script>
+<script>
+  'use strict';
+
+  (function () {
+
+    var curDate = new Date();
+    curDate.setHours(0);
+    curDate.setMinutes(0);
+    curDate.setSeconds(0);
+    var curStartTime = (curDate.getTime() / 1000).toFixed(0);
+    var ms = 1000;
+    var oneDay = 24 * 3600;
+    var oneWeek = oneDay * 7;
+    var oneMonth = oneDay * 30;
+    var oneYear = oneDay * 365;
+    var curdayStr = '今天';
+    var yesterdayStr = '昨天';
+    var dayStr = '天前';
+    var weekStr = '周前';
+    var monthStr = '月前';
+    var yearStr = '年前';
+    var zero = '0';
+    var timeSplit = ':';
+
+    new Vue({
+      el: '#app',
+      data: {
+        showTip: false,
+        curTabIndex: 0,
+        info: {},
+        list: [],
+        ad: []
+      },
+      filters: {
+        timeToDay: function timeToDay(val) {
+            console.log(val);
+          if (!val) {
+            return '';
+          }
+          var realValue = val - curStartTime;
+          var v = Math.abs(val - curStartTime);
+          var rv = void 0;
+
+          if (v < oneDay) {
+            var dt = new Date(val * ms);
+            var h = zero + dt.getHours();
+            h = h.substr(h.length - 2, 2);
+            var m = zero + dt.getMinutes();
+            m = m.substr(m.length - 2, 2);
+            if (realValue >= 0) {
+                return curdayStr + h + timeSplit + m;
+            } else {
+                return yesterdayStr + h + timeSplit + m;
+            }
+          } else if (v < oneWeek) {
+            return Math.floor(v / oneDay) + dayStr;
+          } else if (v < oneMonth) {
+            return Math.floor(v / oneWeek) + weekStr;
+          } else if (v < oneYear) {
+            return Math.floor(v / oneMonth) + monthStr;
+          } else {
+            return Math.floor(v / oneYear) + yearStr;
+          }
+        }
+      },
+      created: function created() {
+        var me = this;
+        this.code = this.getQueryString('code');
+        this.itemsStore = [];
+        this.watchObj();
+        this.getData();
+      },
+      mounted: function mounted() {},
+
+      methods: {
+        addSupprtTip: function addSupprtTip() {
+          var _this = this;
+
+          if (this.ad_tip == 1) {
+            this.showTip = true;
+            this.$nextTick(function () {
+              setTimeout(function () {
+                _this.showTip = false;
+              }, 3000);
+            });
+          }
+        },
+        appendAdvs: function appendAdvs() {
+          var ad = this.ad;
+          var item,
+                  iframe,
+                  srcReg = /src=[\'\"]?([^\'\"]*)[\'\"]?/i;
+          for (var i = 0; i < ad.length; i++) {
+              item = ad[i];
+              /* 20200515启用顶部广告 if (item.code) {
+                if (item.id == 70) {
+                  var srcs = item.code.match(srcReg);
+                  if (srcs.length > 1) {
+                    iframe = document.createElement('iframe');
+                    iframe.src = 'advbox.html?ad=' + srcs[1];
+                    window['adv-70-1'].appendChild(iframe);
+                    iframe = document.createElement('iframe');
+                    iframe.src = 'advbox.html?ad=' + srcs[1];
+                    window['adv-70-2'].appendChild(iframe);
+                    iframe = null;
+                  }
+                }
+              }*/
+              if (item.code) {
+                  if (item.id == 69) {
+                    window['adv-69'].innerHTML = item.code;
+                  } else if (item.id == 70) {
+                    var srcs = item.code.match(srcReg);
+                    if (srcs.length > 1) {
+                      iframe = document.createElement('iframe');
+                      iframe.src = 'advbox.html?ad=' + srcs[1];
+                      window['adv-70-1'].appendChild(iframe);
+                      iframe = document.createElement('iframe');
+                      iframe.src = 'advbox.html?ad=' + srcs[1];
+                      window['adv-70-2'].appendChild(iframe);
+                      iframe = null;
+                    }
+                  }
+              }
+          }
+        },
+        getQueryString: function getQueryString(name) {
+          var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+          var r = window.location.search.substr(1).match(reg);
+          if (r != null) return r[2];
+          return null;
+        },
+        watchObj: function watchObj() {
+          var me = this;
+          this.$watch(function () {
+            var rv = {};
+            var list = me.list;
+            for (var item, i = 0; i < list.length; i++) {
+              item = list[i];
+              rv[i] = item.render;
+            }
+            return rv;
+          }, function (newVal, oldVal) {
+            for (var i in oldVal) {
+              if (oldVal[i] != newVal[i]) {
+                if (!me.list[+i].items) {
+                  me.list[+i].items = me.itemsStore[+i];
+                }
+                return;
+              }
+            }
+          });
+
+          this.$watch(function () {
+            var rv = {};
+            var list = me.list;
+            for (var item, i = 0; i < list.length; i++) {
+              item = list[i];
+              rv[i] = Object.assign({}, item.itemsRender);
+            }
+            return rv;
+          }, function (newVal, oldVal) {
+            this.$nextTick(function () {
+              $(".filename").attr("title", function () {
+                return $(this).text();
+              });
+              $('.filename').tooltip({
+                placement: "top",
+                delay: 1000,
+                template: '<div class="tooltip tooltip-filename" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
+              });
+
+              $(".copy-pass,.copy-link").tooltip({
+                placement: "right",
+                delay: 500,
+                template: '<div class="tooltip tooltip-copy" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
+              });
+              var down_url = navigator.platform.indexOf('Mac') == -1 ? 'http://appdown.rrys.tv/YYetsShare.exe' : 'https://appdown.rrysapp.com/YYetsShare.dmg';
+              $('a.app_down_url').attr('href', down_url);
+            });
+          });
+        },
+        expanedAll: function expanedAll() {
+          this.listRendered = true;
+          if (this.listRendered) {
+            this.renderItemChildren();
+            this.listRendered = false;
+          }
+        },
+        renderItemChildren: function renderItemChildren() {
+          var list = this.list;
+          for (var item, i = 0; i < list.length; i++) {
+            item = list[i];
+            item.render = true;
+            if (!item.items) {
+              item.items = this.itemsStore[i];
+            }
+            for (var fileFormate in item.itemsRender) {
+              item.itemsRender[fileFormate] = true;
+            }
+          }
+        },
+        sidebarClick: function sidebarClick(e) {
+          var target = e.target;
+          var tabsId, index;
+          if (target.tagName == 'A') {
+            tabsId = target.getAttribute('aria-controls');
+            index = target.parentNode.getAttribute('data-index');
+          } else if (target.tagName == 'LI') {
+            index = target.getAttribute('data-index');
+            tabsId = target.firstChild.getAttribute('aria-controls');
+          } else {
+            return;
+          }
+          this.list[+index].render = true;
+          this.curTabIndex = +index;
+          // if(this.viewsToggle){
+          //   this.renderItemChildren()
+          // }
+          this.$nextTick(function () {
+            var activeTabs = window[tabsId];
+            var li = activeTabs.querySelector('.tab-header > li.active') || activeTabs.querySelector('.tab-header > li');
+            li.firstChild.click();
+          });
+        },
+        hasCn: function hasCn(val) {
+          if (val == 'HR-HDTV' || val == 'MP4' || val == 'RMVB') {
+            return true;
+          } else return false;
+        },
+        getData: function getData() {
+          var me = this;
+          let resource_id = document.URL.split("id=")[1]
+
+          $.get("/id=" + resource_id, function (json) {
+            // json.data.info.expire < (Date.now()/1000)
+            if(json.status !=1 || !json.data ){
+              return location.href = location.origin
+            }
+            var data = json.data;
+            var list = data.list;
+            //me.addSupprtTip(data.ad_rate)
+            if (Array.isArray(list)) {
+              list.forEach(function (item, index) {
+                Object.freeze(item.items);
+                me.itemsStore.push(item.items);
+                var i = 0;
+                //设置子tab 默认选项
+                for (var type, j = 0; j < item.formats.length; j++) {
+                  type = item.formats[j];
+                  if (type in item.items) {
+                    if (i == 0) {
+                      item.itemsRender = {};
+                      item.itemsRender[type] = true;
+                      i = 1;
+                    } else {
+                      item.itemsRender[type] = false;
+                    }
+                  }
+                }
+
+                //设置tab 默认选项
+                if (index == 0) {
+                  item.render = true;
+                } else {
+                  item.render = false;
+                  item.items = null;
+                }
+              });
+            }
+            Object.assign(me, json.data);
+            share_prefix = json.data.info.channel_cn + '《' + json.data.info.cnname + '》';
+            // SHARE.TimeOut($('.timeout'), "me.info.expire");
+            //me.appendAdvs()
+            me.$nextTick(function () {
+              // menu.children[me.curTabIndex].firstChild.click()
+              $(".tab-header li:first-child").addClass("active");
+              $(".tab-content .tab-pane:first-child").addClass("active");
+              app.style.visibility = '';
+              footer.style.visibility = '';
+              skeleton.style.display = 'none';
+              //console.timeEnd('test')
+            });
+            SHARE.TimeOut($('.timeout'), Date.parse(new Date()) / 1000 + 723964);
+          });
+
+            //$.get("/api/v1/static/ad?r=" + Date.now(), function(json){
+          //   $.get("/api/v1/static/ad", function(json){
+          //   if(json.status !=1 || !json.data){
+          //     return
+          //   }
+          //   var data = json.data;
+          //   Object.assign(me, json.data);
+          //   me.appendAdvs();
+          //   me.addSupprtTip();
+          // });
+        }
+      }
+    });
+  })();
+</script>
+<script>
+    var share_url = location.href
+    // var share_prefix = '美剧《星蝶公主》';
+    // var expire_time = 1557156308;
+    var share_prefix = '';
+    var expire_time=0;
+    var res_url = 'http://js2.jstucdn.com/';
+    var is_mobile = 0;
+    share_page_init(1);
+</script>
+<script>
+    $(function () {
+        $(document).on('click','.tab-side a',function(){
+            var str = this.href;
+            //str = str.match(/^aaa(\S*)fff/)[1];
+            str = str.match(/#.*?$/).toString();
+            if ($("body").hasClass("view-flat")) {
+                if ($("html").hasClass("mozilla") || $("html").hasClass("IE") || $("html").hasClass("chrome")) {
+                    //str=str.replace(/#/, "")
+                    //document.getElementById(str).scrollIntoView();
+                    $('html').animate({scrollTop: $(str).offset().top - 100}, 1000);
+                } else {
+                    $('body').animate({scrollTop: $(str).offset().top - 100}, 1000);
+                }
+            }
+        });
+
+        $('body').scrollspy({target: '#scrollspy', offset: 200});
+        $(window).scroll(function () {
+            //alert($(window).scrollTop());
+            if ($(window).scrollTop() > 360) {
+                $(".sidebar-warpper").addClass("sidebar-warpper-fixed");
+            } else {
+                $(".sidebar-warpper").removeClass("sidebar-warpper-fixed");
+            }
+        })
+
+        $(".btn-toggle-view").click(function () {
+            var fa = $(this).find(".fa");
+            if (fa.hasClass("fa-th-list")) {
+                $(this).html("<i class='fa fa-th'></i>切换为标签视图");
+                $("body").removeClass("view-tabs").addClass("view-flat");
+                $(".tab-side").addClass("nav");
+                $(".tab-info").addClass("nav");
+            } else {
+                $(this).html("<i class='fa fa-th-list'></i>切换为平铺视图");
+                $("body").removeClass("view-flat").addClass("view-tabs");
+                $(".tab-side :first-child").addClass("active");
+                $(".tab-side").removeClass("nav");
+                $(".tab-info").removeClass("nav");
+            }
+        })
+
+        $(".scroll-wrapper").mCustomScrollbar({
+            autoHideScrollbar: "auto",
+            callbacks: {
+                onScrollStart: function () {
+                    $("body").css({overflow: "hidden"})
+                },	//滚动开始，屏蔽body滚动
+                onScroll: function () {
+                    $.timer.set("scrollWrapper", function () {
+                        $("body").css({overflow: ""})
+                    }, 1000);
+                }	//滚动完毕，一秒后重新启用body滚动
+            }
+        });
+
+        //复制内容到剪切板
+        if (!is_mobile) {
+            //分享本站地址
+            $(document).on('click','#fa-share',function(){
+                var share_text = share_prefix + '的全部资源下载 ' + share_url + ' 一天后删除,要看的抓紧时间 —— 来自最帅的资源信息分享站';
+                new_copy(share_text);
+            });
+            //复制链接到播放器手动下载
+            $(document).on('click','.rrdown',function(){
+                var share_text = $(this).attr('data-url');
+                new_copy(share_text);
+            });
+            //复制单个链接
+            $(document).on('click','.down-links .copy-link',function(){
+                var share_text = $(this).attr('data-url');
+                new_copy(share_text);
+                var id = $(this).parents('.item').attr('itemid');
+                update_downloads(id);
+            });
+
+            //更新下载量
+            $(document).on('click','.btn-download',function(){
+                var id = $(this).parents('.item').attr('itemid');
+                update_downloads(id);
+            });
+            //一键复制上方特定链接：
+            $(document).on('click','.down-list-toolbar a',function(){
+                var share_text = '';
+                var files = [];
+                var ids = [];
+                var rel = $(this).attr('rel');
+                var obj = $(this).parent().parent().siblings('.down-list');
+                obj.find('.btn').each(function () {
+                    if (rel == $(this).attr('way')) {
+                        files.push($(this).attr('href'));
+                        ids.push($(this).parents('.item').attr('itemid'));
+                    }
+                });
+                share_text = files.join('\r\n');
+                new_copy(share_text);
+                for (n in ids) {
+                    id = ids[n];
+                    update_downloads(id);
+                }
+            });
+
+        }
+    })
+
+    function new_copy(share_text) {
+        try {
+            $('#copyArea').show();
+            $('#copyArea').val(share_text);
+            $('#copyArea').select();
+            document.execCommand("Copy");
+            $('#copyArea').hide();
+            alert('复制成功');
+        } catch (e) {
+            alert('您的浏览器版本太低，不支持复制');
+        }
+    }
+
+    function update_downloads(id) {
+        $.ajax({
+            type: 'GET',
+            url: "/api/v1/dynamic/resource/update_downloads?id=" + id,
+        });
+    }
+
+</script>
+<!--<script type='text/javascript' charset='utf-8' src='https://p.nqtnu.cn/V.aspx?Bln=978'></script>-->
+<!--<script>
+  document.write("<script src='https://t.quandangdang.net/vtdd/ssx2185hhe"+Math.round(Math.random() * 10000)+"cfo.js'><\/script>");
+</script>
+<script type='text/javascript' charset='utf-8' src='https://t.quandangdang.net/vtdd/rd2185bw7241hhkm.js'></script>-->
+
+
+
+</body>
+</html>

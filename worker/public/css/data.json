@@ -1,0 +1,184 @@
+{
+  "status": 1,
+  "info": "OK",
+  "data": {
+    "info": {
+      "id": 10060,
+      "cnname": "铁皮人",
+      "enname": "Tin Man",
+      "aliasname": "",
+      "channel": "tv",
+      "channel_cn": "美剧",
+      "area": "美国",
+      "show_type": "",
+      "expire": "1610371223",
+      "views": "0"
+    },
+    "list": [
+      {
+        "season_num": "102",
+        "season_cn": "MINI剧",
+        "items": {
+          "APP": [
+            {
+              "itemid": "323953",
+              "episode": "3",
+              "name": "yyets://N=铁皮人.Tin.Man.Part3.中英字幕.BD.720p-人人影视.mp4|S=1327396629|H=1dd3a8b0ab765f4fd77f62e15b6635b932f5f9f7|",
+              "size": "",
+              "yyets_trans": 0,
+              "dateline": "1493450710",
+              "files": [
+                {
+                  "way": "102",
+                  "way_cn": "百度云",
+                  "address": "https://pan.baidu.com/s/1rbm_tYCCWWj-Mn7GBwCP_g",
+                  "passwd": ""
+                },
+                {
+                  "way": "115",
+                  "way_cn": "微云",
+                  "address": "http://url.cn/5ZsPVGj",
+                  "passwd": ""
+                }
+              ]
+            },
+            {
+              "itemid": "323952",
+              "episode": "2",
+              "name": "yyets://N=铁皮人.Tin.Man.Part2.中英字幕.BD.720p-人人影视.mp4|S=1315079304|H=68edc943d6d9c67b0727c79e9b8531170559d459|",
+              "size": "",
+              "yyets_trans": 0,
+              "dateline": "1493450699",
+              "files": [
+                {
+                  "way": "102",
+                  "way_cn": "百度云",
+                  "address": "https://pan.baidu.com/s/1rbm_tYCCWWj-Mn7GBwCP_g",
+                  "passwd": ""
+                },
+                {
+                  "way": "115",
+                  "way_cn": "微云",
+                  "address": "http://url.cn/5ZsPVGj",
+                  "passwd": ""
+                }
+              ]
+            },
+            {
+              "itemid": "323951",
+              "episode": "1",
+              "name": "yyets://N=铁皮人.Tin.Man.Part1.中英字幕.BD.720p-人人影视.mp4|S=1372733541|H=657ad3f2efd48057f5bea2e0ab111d9f429a785c|",
+              "size": "",
+              "yyets_trans": 0,
+              "dateline": "1493450684",
+              "files": [
+                {
+                  "way": "102",
+                  "way_cn": "百度云",
+                  "address": "https://pan.baidu.com/s/1rbm_tYCCWWj-Mn7GBwCP_g",
+                  "passwd": ""
+                },
+                {
+                  "way": "115",
+                  "way_cn": "微云",
+                  "address": "http://url.cn/5ZsPVGj",
+                  "passwd": ""
+                }
+              ]
+            }
+          ],
+          "MP4": [
+            {
+              "itemid": "429977",
+              "episode": "3",
+              "name": "铁皮人.Tin.Man.Part3.中英字幕.BD.720p-人人影视.mp4",
+              "size": "1.24GB",
+              "yyets_trans": 0,
+              "dateline": "1566559500",
+              "files": [
+                {
+                  "way": "1",
+                  "way_cn": "电驴",
+                  "address": "ed2k://|file|%E9%93%81%E7%9A%AE%E4%BA%BA.Tin.Man.Part3.%E4%B8%AD%E8%8B%B1%E5%AD%97%E5%B9%95.BD.720p-%E4%BA%BA%E4%BA%BA%E5%BD%B1%E8%A7%86.mp4|1327396629|23b315a8d9e4a3f711494ccae4fc766e|h=mccx743p3l67dy7fqsrrqfhu4i6q3ohs|/",
+                  "passwd": ""
+                },
+                {
+                  "way": "2",
+                  "way_cn": "磁力",
+                  "address": "magnet:?xt=urn:btih:fd23ad303b7121f91f56ecfd09faf0595a83c63e&tr=udp://9.rarbg.to:2710/announce&tr=udp://9.rarbg.me:2710/announce&tr=http://tr.cili001.com:8070/announce&tr=http://tracker.trackerfix.com:80/announce&tr=udp://open.demonii.com:1337&tr=udp://tracker.opentrackr.org:1337/announce&tr=udp://p4p.arenabg.com:1337&tr=wss://tracker.openwebtorrent.com&tr=wss://tracker.btorrent.xyz&tr=wss://tracker.fastcast.nz",
+                  "passwd": ""
+                },
+                {
+                  "way": "12",
+                  "way_cn": "诚通网盘",
+                  "address": "https://ZiMuZuUSTV.ctfile.com/fs/1939455-394367733",
+                  "passwd": ""
+                }
+              ]
+            },
+            {
+              "itemid": "429976",
+              "episode": "2",
+              "name": "铁皮人.Tin.Man.Part2.中英字幕.BD.720p-人人影视.mp4",
+              "size": "1.22GB",
+              "yyets_trans": 0,
+              "dateline": "1566559500",
+              "files": [
+                {
+                  "way": "1",
+                  "way_cn": "电驴",
+                  "address": "ed2k://|file|%E9%93%81%E7%9A%AE%E4%BA%BA.Tin.Man.Part2.%E4%B8%AD%E8%8B%B1%E5%AD%97%E5%B9%95.BD.720p-%E4%BA%BA%E4%BA%BA%E5%BD%B1%E8%A7%86.mp4|1315079304|7c602e1f24fd9f1fa65924eee0c4fd7d|h=mzg633nkorz7kmq53z2ecccnkchdle4m|/",
+                  "passwd": ""
+                },
+                {
+                  "way": "2",
+                  "way_cn": "磁力",
+                  "address": "magnet:?xt=urn:btih:a40429e64c8e1a300f502045ddda8c74d45bd6a0&tr=udp://9.rarbg.to:2710/announce&tr=udp://9.rarbg.me:2710/announce&tr=http://tr.cili001.com:8070/announce&tr=http://tracker.trackerfix.com:80/announce&tr=udp://open.demonii.com:1337&tr=udp://tracker.opentrackr.org:1337/announce&tr=udp://p4p.arenabg.com:1337&tr=wss://tracker.openwebtorrent.com&tr=wss://tracker.btorrent.xyz&tr=wss://tracker.fastcast.nz",
+                  "passwd": ""
+                },
+                {
+                  "way": "12",
+                  "way_cn": "诚通网盘",
+                  "address": "https://ZiMuZuUSTV.ctfile.com/fs/1939455-394335534",
+                  "passwd": ""
+                }
+              ]
+            },
+            {
+              "itemid": "429975",
+              "episode": "1",
+              "name": "铁皮人.Tin.Man.Part1.中英字幕.BD.720p-人人影视.mp4",
+              "size": "1.28GB",
+              "yyets_trans": 0,
+              "dateline": "1566559500",
+              "files": [
+                {
+                  "way": "1",
+                  "way_cn": "电驴",
+                  "address": "ed2k://|file|%E9%93%81%E7%9A%AE%E4%BA%BA.Tin.Man.Part1.%E4%B8%AD%E8%8B%B1%E5%AD%97%E5%B9%95.BD.720p-%E4%BA%BA%E4%BA%BA%E5%BD%B1%E8%A7%86.mp4|1372733541|58587c085040239c982ab8d7ff485515|h=nbd6y4jgdnwmh6ezarm2cfxiy5aw3qtp|/",
+                  "passwd": ""
+                },
+                {
+                  "way": "2",
+                  "way_cn": "磁力",
+                  "address": "magnet:?xt=urn:btih:f2798104a57a380c0db44940ed180fad16930ede&tr=udp://9.rarbg.to:2710/announce&tr=udp://9.rarbg.me:2710/announce&tr=http://tr.cili001.com:8070/announce&tr=http://tracker.trackerfix.com:80/announce&tr=udp://open.demonii.com:1337&tr=udp://tracker.opentrackr.org:1337/announce&tr=udp://p4p.arenabg.com:1337&tr=wss://tracker.openwebtorrent.com&tr=wss://tracker.btorrent.xyz&tr=wss://tracker.fastcast.nz",
+                  "passwd": ""
+                },
+                {
+                  "way": "12",
+                  "way_cn": "诚通网盘",
+                  "address": "https://ZiMuZuUSTV.ctfile.com/fs/1939455-394335532",
+                  "passwd": ""
+                }
+              ]
+            }
+          ]
+        },
+        "formats": [
+          "APP",
+          "MP4"
+        ]
+      }
+    ]
+  }
+}
