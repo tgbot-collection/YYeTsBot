@@ -291,10 +291,10 @@ class ZimuxiaOffline(BaseFansub):
     label = "zimuxia offline"
 
     def search_preview(self, search_text: str) -> dict:
-        raise NotImplementedError("Give me some time...")
+        pass
 
     def search_result(self, resource_url) -> dict:
-        raise NotImplementedError("Give me some time...")
+        pass
 
 
 class FansubEntrance(BaseFansub):

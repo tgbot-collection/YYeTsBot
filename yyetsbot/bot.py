@@ -124,10 +124,23 @@ for sub_name in dir(fansub):
     if sub_name.endswith("Offline") or sub_name.endswith("Online"):
         @bot.message_handler(commands=[sub_name])
         def varies_fansub(message):
-            # TODO fansub batch command
             bot.send_chat_action(message.chat.id, 'typing')
-            class_ = getattr(fansub, message.text.replace("/", ""))
-            bot.send_message(message.chat.id, f"{class_.label}: under dev")
+            # /YYeTsOffline 逃避可耻 /YYeTsOffline
+            tv_name: str = re.findall(r"/.*line\s*(\S*)", message.text)[0]
+            class_name: str = re.findall(r"/(.*line)", message.text)[0]
+            class_ = getattr(fansub, class_name)
+
+            if class_name not in ("ZimuxiaOnline", "YYeTsOffline"):
+                bot.send_message(message.chat.id, f"{class_.label}: under dev")
+                return
+
+            if not tv_name:
+                bot.send_message(message.chat.id, f"{class_.label}: 请附加你要搜索的剧集名称，如 `/{class_name} 逃避可耻`",
+                                 parse_mode='markdown')
+
+            else:
+                setattr(message, "text", tv_name)
+            base_send_search(message, class_())
 
 
 def download_to_io(photo):
@@ -167,7 +180,15 @@ def send_my_response(message):
 
 @bot.message_handler(content_types=["photo", "text"])
 def send_search(message):
-    fan = fansub.FansubEntrance()
+    # normal ordered search
+    base_send_search(message)
+
+
+def base_send_search(message, instance=None):
+    if instance is None:
+        fan = fansub.FansubEntrance()
+    else:
+        fan = instance
     bot.send_chat_action(message.chat.id, 'typing')
 
     today_request("total")

@@ -9,11 +9,12 @@
 直接发送想要看的剧集名称就可以了，可选分享网页或者链接（ed2k和磁力链接）。
 
 支持字幕侠、人人影视（目前人人影视官网无法打开，暂时无法使用）、人人影视离线资源
-支持多个字幕组、多种资源类型的优先级搜索。
+
+搜索资源时，会按照我预定的优先级（字幕侠、人人影视离线）进行搜索，当然也可以使用命令强制某个字幕组，如 `/YYeTsOffline 逃避可耻`
 
 **由于译名的不同，建议输入部分译名，然后从列表中进行选择。比如说想看权力的游戏第四季，那么直接搜索"权力的游戏"就可以了。**
 
-# commands
+# 命令
 
 ```
 start - 开始使用
@@ -21,17 +22,25 @@ help - 帮助
 credits - 致谢
 ping - 运行状态
 settings - 获取公告
-ZimuxiaOffline - 搜索字幕侠离线数据 还没做好
-ZimuxiaOnline - 搜索字幕侠在线数据  这个也还没做
-YYeTsOffline - 搜索人人影视离线数据  你猜的没错，这个也没做
-YYeTsOnline - 搜索人人影视在线数据  想做也做不了了啊！
+ZimuxiaOffline - 搜索字幕侠离线数据  还没做好
+ZimuxiaOnline - 搜索字幕侠在线数据   这个竟然做了
+YYeTsOffline - 搜索人人影视离线数据  你猜错了 ，这个做完了
+YYeTsOnline - 搜索人人影视在线数据   想做也做不了了啊！
 ```
 
 # 截图
-
+## 常规搜索
 ![](assets/1.png)
 
+## 资源分享站截图
+目前使用的是我的 Cloudflare Worker Site
+
 ![](assets/2.png)
+
+## 指定字幕组搜索
+目前只支持YYeTsOffline和ZimuxiaOnline
+
+![](assets/3.png)
 
 # docker-compose 部署方法
 参见 [这里](https://github.com/tgbot-collection/BotsRunner)
@@ -62,7 +71,7 @@ pip install -r requirements.py
 ### 3. 运行
 
 ```bash
-python /path/to/YYeTsBot/bot.py
+python /path/to/YYeTsBot/yyetsbot/bot.py
 ```
 
 ### 4. systemd 单元文件
@@ -73,7 +82,7 @@ python /path/to/YYeTsBot/bot.py
 - [x] 添加对FIX的支持
 - [x] 文件/函数重命名，类化
 - [x] 优先字幕组顺序设置 - 动态设置
-- [ ] 添加个人喜好搜索
+- [x] 添加个人喜好搜索
 - [ ] 整理fix资源
 - [ ] test case...啊不想写
 
