@@ -114,3 +114,5 @@ venv.bak/
 /.idea/inspectionProfiles/profiles_settings.xml
 yyetsbot/data/
 health_check/client.session
+
+/worker/.idea/
