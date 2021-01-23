@@ -2,3 +2,4 @@ worker/public/css/* linguist-vendored
 worker/public/fonts/* linguist-vendored
 worker/public/img/* linguist-vendored
 worker/public/js/* linguist-vendored
+worker/public/404.html linguist-vendored
