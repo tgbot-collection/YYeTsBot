@@ -118,3 +118,4 @@ health_check/client.session
 /worker/.idea/
 /worker/workers-site/node_modules/*
 /worker/workers-site/worker/script.js
+/health_check/client-hc.session

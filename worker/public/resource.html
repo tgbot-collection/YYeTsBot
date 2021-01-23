@@ -194,10 +194,14 @@
                 <div class="desc">资源分享站 - 归档</div>
             </div>
             <div class="btn-group" role="group" aria-label="...">
+
                 <a id="fa-share" class="btn btn-default btn-copy"><i class="fa fa-share"></i>分享本站地址</a>
                 <a class="btn btn-danger btn-toggle-view" @click="expanedAll"><i class="fa fa-th-list"></i>切换为平铺视图</a>
             </div>
+
             <div class="view-count">
+
+                <span class="desc"><i class="fa fa-home"></i><a href="index.html">返回首页</a> </span> &nbsp;
                 <span class="desc"><i class="fa fa-eye"></i>访问量：</span>
                 <span class="count">{{ info.views }}</span>
             </div>
@@ -295,7 +299,8 @@
                                             <li class="item" :itemid="fileFormatsItem.itemid"
                                                 v-for="fileFormatsItem in item.items[fileFormats]">
                                                 <div class="title">
-                                                    <span class="episode">{{ item.season_cn + ' 第' + fileFormatsItem.episode + '集' }}</span><img
+                                                    <span class="episode">{{ item.season_cn + ' 第' + fileFormatsItem.episode + '集'
+                                                        }}</span><img
                                                         v-if="fileFormatsItem.yyets_trans == 1" src="img/yyetsTrans.png"
                                                         class="yyets-translate" alt="人人影视翻译"/>
                                                     <ul class="down-links">
@@ -364,7 +369,8 @@
                                             <li class="item" :itemid="fileFormatsItem.itemid"
                                                 v-for="fileFormatsItem in item.items[fileFormats]">
                                                 <div class="title">
-                                                    <span class="episode">{{ item.season_cn }} 第{{ fileFormatsItem.episode }}集</span><img
+                                                    <span class="episode">{{ item.season_cn
+                                                        }} 第{{ fileFormatsItem.episode }}集</span><img
                                                         v-if="fileFormatsItem.yyets_trans == 1" src="img/yyetsTrans.png"
                                                         class="yyets-translate" alt="人人影视翻译"/>
                                                     <span class="filename">{{ fileFormatsItem.name }}</span>
@@ -654,8 +660,9 @@
                 getData: function getData() {
                     var me = this;
                     let resource_id = document.URL.split("id=")[1]
-
-                    $.get("/id=" + resource_id, function (json) {
+                    let prod = "/id=" + resource_id;
+                    const dev = "css/data.json"
+                    $.get(prod, function (json) {
                         // json.data.info.expire < (Date.now()/1000)
                         if (json.status != 1 || !json.data) {
                             return location.href = location.origin

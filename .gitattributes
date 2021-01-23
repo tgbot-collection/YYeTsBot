@@ -3,3 +3,5 @@ worker/public/fonts/* linguist-vendored
 worker/public/img/* linguist-vendored
 worker/public/js/* linguist-vendored
 worker/public/404.html linguist-vendored
+worker/public/index.html linguist-vendored
+worker/public/resource.html linguist-vendored

@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>人人影视下载分享</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link href="https://fonts.googleapis.com/css?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
+    <style>
+        h1 {
+            font-family: Pacifico, sans-serif;
+            font-size: 4em;
+            color: #3eb5f1;
+            margin: 0;
+        }
+
+        h2 {
+            font-weight: 300;
+            font-family: sans-serif;
+        }
+
+        .centered {
+            /*position: fixed;*/
+            top: 50%;
+            left: 50%;
+            /*transform: translate(-50%, -50%);*/
+            text-align: center;
+        }
+
+
+    </style>
+</head>
+<body>
+<div class="centered">
+    <br>
+    <h1>人人影视下载分享</h1>
+    <h1>By Benny</h1>
+    <br>
+    <h2>这是我偷过来的，嘿嘿😝</h2>
+    <h2>在 <a style="text-decoration: none;color: deepskyblue" href="https://t.me/yyets_bot">这个 Telegram Bot</a>
+        里去使用，或者使用下方搜索框</h2>
+    <form action="search.html">
+        <input name="kw" id="kw" type="text">
+        <input type="submit" value="搜索">
+    </form>
+
+    <hr>
+    <div id="tv">
+    </div>
+    <hr>
+    <h2>有问题请联系 <a style="text-decoration: none;color: green" href="https://t.me/BennyThink">Benny小可爱</a></h2>
+</div>
+</body>
+<script>
+    function loadJSON(path, success, error) {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    if (success)
+                        success(JSON.parse(xhr.responseText));
+                } else {
+                    if (error)
+                        error(xhr);
+                }
+            }
+        };
+        xhr.open("GET", path, true);
+        xhr.send();
+    }
+
+
+    function doSearch() {
+        let search = document.getElementById("kw");
+        if (kw !== "undefined") {
+            search.value = kw;
+        }
+
+        let data = JSON.parse(localStorage.getItem("index"));
+        let div = document.getElementById("tv");
+        let found = false
+        for (let v in data) {
+            if (v.toLowerCase().indexOf(kw) !== -1) {
+                found = true
+                let name = v.replace(/\n/g, " ")
+                let id = data[v]
+                let html = `<h3><a style="text-decoration: none;color: cornflowerblue" href="${resourceURL}${id}">${name}</a></h3>`;
+                let backup = div.innerHTML;
+                div.innerHTML = backup + html;
+            }
+        }
+        if (found === false) {
+            div.innerHTML = `<h2>没有搜索到结果 (ノへ￣、)</h2>`
+        }
+    }
+
+    const baseURL = "https://yyets.dmesg.app/";
+    const resourceURL = baseURL + "resource.html?id=";
+    const indexURL = baseURL + "?id=index";
+    // const indexURL = "css/index.json"
+
+    let kwe = document.URL.split("kw=")[1];
+    let kw = decodeURI(kwe).toLowerCase().replace(" ", "");
+
+    let firstSearch = localStorage.getItem("firstSearch");
+    let nowTS = Date.parse(Date()).toString();
+    let has_data = localStorage.getItem("index");
+    if (has_data === null || firstSearch === null || parseInt(nowTS) - parseInt(firstSearch) > 3600 * 24 * 1000 * 7) {
+        localStorage.setItem("firstSearch", nowTS);
+
+        loadJSON(indexURL,
+            function (data) {
+                let jsonText = JSON.stringify(data);
+                localStorage.setItem("index", jsonText);
+                doSearch()
+            },
+            function (xhr) {
+                console.error(xhr);
+            });
+    } else {
+        doSearch()
+    }
+
+
+</script>
+</html>
