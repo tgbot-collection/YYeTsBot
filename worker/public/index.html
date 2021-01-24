@@ -42,7 +42,10 @@
     <h2>在 <a style="text-decoration: none;color: deepskyblue" href="https://t.me/yyets_bot">这个 Telegram Bot</a>
         里去使用，或者使用下方搜索框</h2>
     <form action="search.html">
-        <input name="kw" type="text">
+        <label>
+            <input name="kw" type="text">
+        </label>
+        <input type="checkbox" id="clear_cache" onclick="reloadIndex()"> <label for="clear_cache">清除缓存</label>
         <input type="submit" value="搜索">
     </form>
     <h2>有问题联系 <a style="text-decoration: none;color: green" href="https://t.me/BennyThink">Benny小可爱</a></h2>
@@ -50,4 +53,5 @@
          src="img/200-wrangler-ferris.gif">
 </div>
 </body>
+<script src="js/search.js"></script>
 </html>

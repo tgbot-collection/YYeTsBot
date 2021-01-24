@@ -1,7 +1,13 @@
 worker/public/css/* linguist-vendored
 worker/public/fonts/* linguist-vendored
 worker/public/img/* linguist-vendored
-worker/public/js/* linguist-vendored
+
+worker/public/js/aYin.js linguist-vendored
+worker/public/js/bootstrap.min.js linguist-vendored
+worker/public/js/rrshare.js linguist-vendored
+worker/public/js/vue.js linguist-vendored
+worker/public/js/jquery* linguist-vendored
+
 worker/public/404.html linguist-vendored
 worker/public/index.html linguist-vendored
 worker/public/resource.html linguist-vendored
