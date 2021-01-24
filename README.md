@@ -26,10 +26,10 @@ help - 帮助
 credits - 致谢
 ping - 运行状态
 settings - 获取公告
-ZimuxiaOffline - 搜索字幕侠离线数据  还没做好
-ZimuxiaOnline - 搜索字幕侠在线数据   这个竟然做了
-YYeTsOffline - 搜索人人影视离线数据  你猜错了 ，这个做完了
-YYeTsOnline - 搜索人人影视在线数据   想做也做不了了啊！
+zimuxia_offline - 搜索字幕侠离线数据，还没做好
+zimuxia_online - 搜索字幕侠在线数据  
+yyets_online - 搜索人人影视离线数据  
+yyets_offline - 搜索人人影视在线数据，暂时无法使用
 ```
 
 # 截图

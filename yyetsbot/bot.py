@@ -123,7 +123,7 @@ def send_credits(message):
 
 
 for sub_name in dir(fansub):
-    if sub_name.endswith("Offline") or sub_name.endswith("Online"):
+    if sub_name.endswith("_offline") or sub_name.endswith("_online"):
         @bot.message_handler(commands=[sub_name])
         def varies_fansub(message):
             bot.send_chat_action(message.chat.id, 'typing')
@@ -131,8 +131,7 @@ for sub_name in dir(fansub):
             tv_name: str = re.findall(r"/.*line\s*(\S*)", message.text)[0]
             class_name: str = re.findall(r"/(.*line)", message.text)[0]
             class_ = getattr(fansub, class_name)
-
-            if class_name not in ("ZimuxiaOnline", "YYeTsOffline"):
+            if class_name not in ("zimuxia_online", "yyets_offline"):
                 bot.send_message(message.chat.id, f"{class_.label}: under dev")
                 return
 

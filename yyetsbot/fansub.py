@@ -28,6 +28,8 @@ session = requests.Session()
 ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
 session.headers.update({"User-Agent": ua})
 
+this_module = sys.modules[__name__]
+
 
 class BaseFansub:
     """
@@ -329,3 +331,21 @@ class FansubEntrance(BaseFansub):
 for fs in FANSUB_ORDER.split(","):
     if globals().get(fs) is None:
         raise NameError(f"FANSUB_ORDER is incorrect! {fs}")
+
+
+# Commands can use latin letters, numbers and underscores. yyets_offline
+def class_to_tg(sub_class: str):
+    trans = {"Online": "_online", "Offline": "_offline"}
+
+    for upper, lower in trans.items():
+        sub_class = sub_class.replace(upper, lower)
+
+    return sub_class.lower()
+
+
+for sub_name in globals().copy():
+    if sub_name.endswith("Offline") or sub_name.endswith("Online"):
+        cmd_name = class_to_tg(sub_name)
+        m = getattr(this_module, sub_name)
+        logging.info("Mapping %s to %s", cmd_name, m)
+        vars()[cmd_name] = m
