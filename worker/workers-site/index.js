@@ -1,4 +1,4 @@
-import {getAssetFromKV, mapRequestToAsset} from '@cloudflare/kv-asset-handler'
+import {getAssetFromKV} from '@cloudflare/kv-asset-handler'
 
 /**
  * The DEBUG flag will do two things that help during development:
@@ -33,6 +33,11 @@ async function handleEvent(event) {
         const value = await yyets.get(resourceId)
         if (value === null) {
             return new Response("resource not found", {status: 404})
+        }
+
+        if (resourceId !== "index") {
+            // be aware of 1000 put for free tier
+            await update_downloads(value)
         }
 
         return new Response(value, {
@@ -88,23 +93,13 @@ async function handleEvent(event) {
     }
 }
 
-/**
- * Here's one example of how to modify a request to
- * remove a specific prefix, in this case `/docs` from
- * the url. This can be useful if you are deploying to a
- * route on a zone, or if you only want your static content
- * to exist at a specific path.
- */
-function handlePrefix(prefix) {
-    return request => {
-        // compute the default (e.g. / -> index.html)
-        let defaultAssetKey = mapRequestToAsset(request)
-        let url = new URL(defaultAssetKey.url)
+async function update_downloads(value) {
+    // value is string
+    let obj = JSON.parse(value);
+    let targetID = obj.data.info.id.toString();
+    let intView = parseInt(obj.data.info.views)
+    obj.data.info.views = (intView + 1).toString()
 
-        // strip the prefix from the path for lookup
-        url.pathname = url.pathname.replace(prefix, '/')
-
-        // inherit all other props from the default request
-        return new Request(url.toString(), defaultAssetKey)
-    }
+    let increasedData = JSON.stringify(obj)
+    await yyets.put(targetID, increasedData)
 }
