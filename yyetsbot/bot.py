@@ -63,7 +63,6 @@ def send_ping(message):
     redis = get_runtime("botsrunner_redis_1", "Redis")
     mongo = get_runtime("botsrunner_mongo_1", "MongoDB")
 
-
     usage = ""
     if str(message.chat.id) == MAINTAINER:
         usage = show_usage()
@@ -367,4 +366,11 @@ if __name__ == '__main__':
     scheduler = BackgroundScheduler()
     scheduler.add_job(reset_request, 'cron', hour=0, minute=0)
     scheduler.start()
-    bot.polling(none_stop=True)
+    # this might work
+    bot.infinity_polling()
+    # while True:
+    #     try:
+    #         bot.polling(none_stop=True)
+    #     except Exception as e:
+    #         time.sleep(2)
+    #
