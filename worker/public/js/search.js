@@ -3,7 +3,11 @@ const resourceURL = baseURL + "resource.html?id=";
 const indexURL = baseURL + "?id=index";
 
 // const indexURL = "css/index.json"
-
+const cf_url = "yyets.yyetsdb.workers.dev"
+// redirect to baseURL
+if (document.URL.includes(cf_url)) {
+    location.href = baseURL
+}
 
 function loadJSON(path, success, error) {
     let xhr = new XMLHttpRequest();

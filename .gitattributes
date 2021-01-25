@@ -11,3 +11,4 @@ worker/public/js/jquery* linguist-vendored
 worker/public/404.html linguist-vendored
 worker/public/index.html linguist-vendored
 worker/public/resource.html linguist-vendored
+worker/public/search.html linguist-vendored
