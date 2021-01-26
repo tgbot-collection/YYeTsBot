@@ -1,17 +1,21 @@
 language: python
 
+sudo: false
 services:
   - redis
+
 python:
-  - "3.7"
   - "3.8"
 
 install:
   - pip install -r requirements.txt
 
 env:
-  - REDIS=locahost
+  - REDIS=localhost
 
 script:
-  - cd tests && python /build_test.py
-  - python tests/turing_test.py
+  - cd tests
+  - coverage run test_fansub.py
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

@@ -8,6 +8,7 @@ import requests_mock
 from unittest import mock
 
 sys.path.append("../yyetsbot")
+import bot as _
 
 from fansub import BaseFansub, YYeTsOnline
 
@@ -64,7 +65,7 @@ class YYeTsTest(unittest.TestCase):
 
     @requests_mock.mock()
     def test_get_search_html(self, m):
-        with open("yyets_search.html") as f:
+        with open("data/yyets_search.html") as f:
             html = f.read()
         m.get('http://www.rrys2020.com/search?keyword=abc&type=resource', text=html)
         response = self.ins.__get_search_html__("abc")

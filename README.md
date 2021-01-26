@@ -1,5 +1,9 @@
 # YYeTsBot
 
+[![Build Status](https://travis-ci.com/tgbot-collection/YYeTsBot.svg?branch=master)](https://travis-ci.com/tgbot-collection/YYeTsBot)
+
+[![codecov](https://codecov.io/gh/tgbot-collection/YYeTsBot/branch/master/graph/badge.svg?token=ZL1GCIF95D)](https://codecov.io/gh/tgbot-collection/YYeTsBot)
+
 人人影视bot，[戳我使用](https://t.me/yyets_bot)
 
 此机器人长期维护，如果遇到问题可以发送报告给我。
