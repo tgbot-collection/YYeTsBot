@@ -15,6 +15,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from telethon import TelegramClient, events
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
+logging.getLogger('apscheduler.executors.default').propagate = False
 api_id = int(os.environ.get("API_ID") or "")
 api_hash = os.environ.get("API_HASH") or ""
 bot_name = os.environ.get("BOT_NAME") or "yyets_bot"
