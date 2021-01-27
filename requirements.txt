@@ -4,7 +4,4 @@ beautifulsoup4
 tgbot-ping
 redis
 apscheduler
-coverage
-requests-mock
 pymongo
-telethon

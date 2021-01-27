@@ -1,11 +1,15 @@
 language: python
 
 sudo: false
+
 services:
   - redis
 
 python:
   - "3.8"
+
+before_install:
+  - pip install coverage requests-mock
 
 install:
   - pip install -r requirements.txt
