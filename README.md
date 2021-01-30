@@ -114,6 +114,15 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 * [磁力下载站](http://oabt005.com/home.html)
 * [FIX字幕侠](https://www.zimuxia.cn/)
 
+# 支持我？
+觉得本项目对你有帮助？你可以通过以下方式表达你的感受：
+
+* 感谢字幕组
+* 点一个🌟
+* 宣传，使用，提交问题报告
+* 收藏[我的博客](https://dmesg.app/)  
+* 捐助我，[给我买杯咖啡？](https://www.buymeacoffee.com/bennythink)
+
 # License
 
 [MIT](LICENSE)
