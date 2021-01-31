@@ -4,22 +4,26 @@ sudo: false
 
 services:
   - redis
+  - mongodb
 
 python:
   - "3.8"
 
+env:
+  - REDIS=localhost MONGO=localhost
+
 before_install:
-  - pip install coverage requests-mock
+  - pip install requests-mock pytest pytest-cov
 
 install:
   - pip install -r requirements.txt
 
-env:
-  - REDIS=localhost
+before_script:
+  - cd tests
+  - mongoimport --jsonArray --db test --collection resource --file mongo_test_data.json
 
 script:
-  - cd tests
-  - coverage run test_fansub.py
+  - pytest --cov=./
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

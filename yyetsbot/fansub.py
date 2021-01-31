@@ -205,10 +205,10 @@ class YYeTsOnline(YYeTsBase):
 class YYeTsOffline(YYeTsBase):
     label = "yyets offline"
 
-    def __init__(self):
+    def __init__(self, db="yyets", col="resource"):
         super().__init__()
         self.mongo = pymongo.MongoClient(host=MONGO)
-        self.collection = self.mongo["yyets"]["resource"]
+        self.collection = self.mongo[db][col]
 
     def search_preview(self, search_text: str) -> dict:
         logging.info("[%s] Loading offline data from MongoDB...", self.label)
