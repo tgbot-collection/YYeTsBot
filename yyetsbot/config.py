@@ -37,4 +37,4 @@ MONGO = os.environ.get("MONGO") or "mongo"
 MAINTAINER = os.environ.get("MAINTAINER")
 REPORT = os.environ.get("REPORT") or False
 # This name must match class name, other wise this bot won't functional.
-FANSUB_ORDER: str = os.environ.get("ORDER") or 'ZimuxiaOnline,YYeTsOffline'
+FANSUB_ORDER: str = os.environ.get("ORDER") or 'YYeTsOffline,ZimuxiaOnline'
