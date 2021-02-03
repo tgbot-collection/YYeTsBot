@@ -107,6 +107,10 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 ## health check
 有时不知为何遇到了bot卡死，无任何反馈。😂这个时候需要client api了😂
 
+好的，这个原因找到了，是因为有时爬虫会花费比较长的时间，然后pytelegrambotapi默认只有两个线程，那么后续的操作就会被阻塞住。
+
+临时的解决办法是增加线程数量，长期的解决办法是使用celery分发任务。
+
 # Credits
 
 * [人人影视](http://www.zmz2019.com/)

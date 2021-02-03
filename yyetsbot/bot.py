@@ -29,7 +29,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(le
 if PROXY:
     apihelper.proxy = {'http': PROXY}
 
-bot = telebot.TeleBot(TOKEN)
+bot = telebot.TeleBot(TOKEN, num_threads=100)
 angry_count = 0
 
 

@@ -1,5 +1,5 @@
 requests
-pytelegrambotapi
+pytelegrambotapi==3.7.6
 beautifulsoup4
 tgbot-ping
 redis
