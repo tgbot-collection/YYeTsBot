@@ -1,4 +1,5 @@
 # Cloudflare Worker部署方式
+**This worker will be deprecated.**
 
 ## 1. 安装wrangler等工具
 [Cloudflare Docs](https://developers.cloudflare.com/workers/cli-wrangler)

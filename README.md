@@ -84,6 +84,7 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 - [x] 添加个人喜好搜索
 - [x] 整理fix资源：初步完成
 - [ ] test case...啊不想写
+- [ ] 独立网站
 
 
 # 归档资源下载
