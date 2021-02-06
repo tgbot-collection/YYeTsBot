@@ -77,6 +77,27 @@ class ResourceHandler(BaseHandler):
         self.write(resp)
 
 
+class TopHandler(BaseHandler):
+    executor = ThreadPoolExecutor(50)
+
+    @run_on_executor()
+    def get_top_resource(self):
+        top_type = self.get_query_argument("type", "all")
+        projection = {'_id': False,
+                      'data.info': True,
+                      }
+        if top_type == "all":
+            data = db["yyets"].find({}, projection).sort("data.info.views", pymongo.DESCENDING).limit(10)
+        else:
+            data = []
+        return dict(data=list(data))
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_top_resource()
+        self.write(resp)
+
+
 class PingHandler(BaseHandler):
     executor = ThreadPoolExecutor(50)
 
@@ -96,6 +117,7 @@ class RunServer:
     static_path = os.path.join(root_path, '')
     handlers = [
         (r'/api/resource', ResourceHandler),
+        (r'/api/top', TopHandler),
         (r'/', IndexHandler),
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2)', web.StaticFileHandler,
          {'path': static_path}),

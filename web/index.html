@@ -21,16 +21,26 @@
         }
 
         .centered {
-            position: fixed;
+            /*position: fixed;*/
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            /*transform: translate(-50%, -50%);*/
             text-align: center;
         }
 
         #ferris {
             width: 75%;
         }
+
+        a::after {
+            content: attr(title);
+            display: none;
+        }
+
+        a:hover::after {
+            display: block;
+        }
+
     </style>
 </head>
 <body>
@@ -47,9 +57,47 @@
         </label>
         <input type="submit" value="搜索">
     </form>
+    <hr>
+    <div id="tv">
+        <h2>大家都在看……</h2>
+    </div>
     <h2>有问题联系 <a style="text-decoration: none;color: green" href="https://t.me/BennyThink">Benny小可爱</a></h2>
     <img id="ferris" alt="a happy crab is wearing a cowboy hat and holding a lasso. 200 success."
          src="img/200-wrangler-ferris.gif">
 </div>
 </body>
+<script src="js/axios.min.js"></script>
+
+<script>
+    // get top
+    axios.get('/api/top?type=all')
+        .then(function (response) {
+            // handle success
+            showTop(response.data.data)
+            // console.log(response.data);
+        })
+        .catch(function (error) {
+            // handle error
+            console.log(error);
+        })
+        .then(function () {
+            // always executed
+        });
+
+
+    function showTop(data) {
+
+        let div = document.getElementById("tv");
+        for (let i = 0; i < data.length; i++) {
+            let info = data[i].data.info
+            let name = `${info.cnname} ${info.enname} ${info.aliasname}`;
+            let html = `<h4><a title="浏览量 ${info.views}" style="text-decoration: none;color: cornflowerblue" href="/resource.html?id=${info.id}">${name}</a></h4>`;
+            let backup = div.innerHTML;
+            div.innerHTML = backup + html;
+
+        }
+
+    }
+
+</script>
 </html>
