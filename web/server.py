@@ -12,6 +12,7 @@ import socket
 from platform import uname
 import os
 import contextlib
+from http import HTTPStatus
 from concurrent.futures import ThreadPoolExecutor
 from tornado import web, ioloop, httpserver, gen, options
 from tornado.log import enable_pretty_logging
@@ -98,17 +99,31 @@ class TopHandler(BaseHandler):
         self.write(resp)
 
 
-class PingHandler(BaseHandler):
+class MetricsHandler(BaseHandler):
     executor = ThreadPoolExecutor(50)
 
     @run_on_executor()
-    def ping(self):
-        os.system('ping z.cn -n 10')
-        return 'Ping complete'
+    def set_metrics(self):
+        metrics_name = self.get_query_argument("type", "access")
+        db['metrics'].find_one_and_update(
+            {'type': metrics_name}, {'$inc': {'count': 1}}
+        )
+        self.set_status(HTTPStatus.CREATED)
+        return {}
+
+    @run_on_executor()
+    def get_metrics(self):
+        metrics_name = self.get_query_argument("type", "access")
+        return db['metrics'].find_one({'type': metrics_name}, {'_id': False})
 
     @gen.coroutine
     def get(self):
-        resp = yield self.ping()
+        resp = yield self.get_metrics()
+        self.write(resp)
+
+    @gen.coroutine
+    def post(self):
+        resp = yield self.set_metrics()
         self.write(resp)
 
 
@@ -118,6 +133,7 @@ class RunServer:
     handlers = [
         (r'/api/resource', ResourceHandler),
         (r'/api/top', TopHandler),
+        (r'/api/metrics', MetricsHandler),
         (r'/', IndexHandler),
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2)', web.StaticFileHandler,
          {'path': static_path}),

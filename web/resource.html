@@ -660,7 +660,7 @@
                 getData: function getData() {
                     var me = this;
                     let resource_id = document.URL.split("id=")[1]
-                    $.get("/api/resource?id="+resource_id, function (json) {
+                    $.get("/api/resource?id=" + resource_id, function (json) {
                         // json.data.info.expire < (Date.now()/1000)
                         if (json.status != 1 || !json.data) {
                             return location.href = location.origin
@@ -853,6 +853,9 @@
         //     url: "/update_downloads?id=" + id,
         // });
     }
+
+    $.post("/api/metrics", function (data) {
+    });
 
 </script>
 </body>

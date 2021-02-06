@@ -32,14 +32,14 @@
             width: 75%;
         }
 
-        a::after {
-            content: attr(title);
-            display: none;
-        }
+        /*a::after {*/
+        /*    content: attr(title);*/
+        /*    display: none;*/
+        /*}*/
 
-        a:hover::after {
-            display: block;
-        }
+        /*a:hover::after {*/
+        /*    display: block;*/
+        /*}*/
 
     </style>
 </head>
@@ -67,6 +67,7 @@
 </div>
 </body>
 <script src="js/axios.min.js"></script>
+<script src="js/analytics.js"></script>
 
 <script>
     // get top
@@ -98,6 +99,8 @@
         }
 
     }
+
+    accessMetrics();
 
 </script>
 </html>

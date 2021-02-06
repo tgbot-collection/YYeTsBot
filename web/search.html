@@ -6,7 +6,6 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link href="https://fonts.googleapis.com/css?family=Pacifico&display=swap" rel="stylesheet">
     <link href="/css/normalize.min.css" rel="stylesheet">
-    <script src="js/axios.min.js"></script>
     <style>
         h1 {
             font-family: Pacifico, sans-serif;
@@ -54,6 +53,9 @@
     <h2>有问题请联系 <a style="text-decoration: none;color: green" href="https://t.me/BennyThink">Benny小可爱</a></h2>
 </div>
 </body>
+<script src="js/axios.min.js"></script>
+<script src="js/analytics.js"></script>
+
 <script>
     let kwe = document.URL.split("kw=")[1];
     let kw = decodeURI(kwe).toLowerCase().replace(" ", "");
@@ -93,5 +95,7 @@
             div.innerHTML = `<h2>没有搜索到结果 (ノへ￣、)</h2>`
         }
     }
+
+    accessMetrics();
 </script>
 </html>
