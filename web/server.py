@@ -7,9 +7,6 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import json
-import socket
-from platform import uname
 import os
 import contextlib
 from http import HTTPStatus
@@ -20,11 +17,22 @@ import pymongo
 from tornado.concurrent import run_on_executor
 
 enable_pretty_logging()
-client = pymongo.MongoClient()
-db = client["zimuzu"]
+
+mongo_host = os.getenv("mongo") or "localhost"
+
+
+class Mongo:
+    def __init__(self):
+        self.client = pymongo.MongoClient(host=mongo_host, connect=False)
+        self.db = self.client["zimuzu"]
+
+    def __del__(self):
+        self.client.close()
 
 
 class BaseHandler(web.RequestHandler):
+    mongo = Mongo()
+
     def data_received(self, chunk):
         pass
 
@@ -45,7 +53,7 @@ class ResourceHandler(BaseHandler):
         param = self.get_query_argument("id")
         with contextlib.suppress(ValueError):
             param = int(param)
-        data = db["yyets"].find_one_and_update(
+        data = self.mongo.db["yyets"].find_one_and_update(
             {"data.info.id": param},
             {'$inc': {'data.info.views': 1}},
             {'_id': False})
@@ -57,7 +65,7 @@ class ResourceHandler(BaseHandler):
         projection = {'_id': False,
                       'data.info': True,
                       }
-        data = db["yyets"].find({
+        data = self.mongo.db["yyets"].find({
             "$or": [
                 {"data.info.cnname": {'$regex': f'.*{param}.*'}},
                 {"data.info.enname": {'$regex': f'.*{param}.*'}},
@@ -88,7 +96,7 @@ class TopHandler(BaseHandler):
                       'data.info': True,
                       }
         if top_type == "all":
-            data = db["yyets"].find({}, projection).sort("data.info.views", pymongo.DESCENDING).limit(10)
+            data = self.mongo.db["yyets"].find({}, projection).sort("data.info.views", pymongo.DESCENDING).limit(10)
         else:
             data = []
         return dict(data=list(data))
@@ -105,7 +113,7 @@ class MetricsHandler(BaseHandler):
     @run_on_executor()
     def set_metrics(self):
         metrics_name = self.get_query_argument("type", "access")
-        db['metrics'].find_one_and_update(
+        self.mongo.db['metrics'].find_one_and_update(
             {'type': metrics_name}, {'$inc': {'count': 1}}
         )
         self.set_status(HTTPStatus.CREATED)
@@ -114,7 +122,7 @@ class MetricsHandler(BaseHandler):
     @run_on_executor()
     def get_metrics(self):
         metrics_name = self.get_query_argument("type", "access")
-        return db['metrics'].find_one({'type': metrics_name}, {'_id': False})
+        return self.mongo.db['metrics'].find_one({'type': metrics_name}, {'_id': False})
 
     @gen.coroutine
     def get(self):
@@ -138,23 +146,17 @@ class RunServer:
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2)', web.StaticFileHandler,
          {'path': static_path}),
     ]
-    settings = {
-        "cookie_secret": "5Li05DtnQewDZq1mDVB3HAAhFqUu2vD2USnqezkeu+M=",
-        "xsrf_cookies": False,
-        "autoreload": True,
-        # 'template_path': '.',
-    }
 
-    application = web.Application(handlers)
+    application = web.Application(handlers, xheaders=True)
 
     @staticmethod
     def run_server(port, host, **kwargs):
         tornado_server = httpserver.HTTPServer(RunServer.application, **kwargs)
         tornado_server.bind(port, host)
-        tornado_server.start()
+        tornado_server.start(0)
 
         try:
-            print('Server is running on http://{}:{}'.format("127.0.0.1", port))
+            print('Server is running on http://{}:{}'.format(host, port))
             ioloop.IOLoop.instance().current().start()
         except KeyboardInterrupt:
             ioloop.IOLoop.instance().stop()
