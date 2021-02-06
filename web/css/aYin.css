@@ -1,0 +1,9 @@
+@charset "utf-8";
+
+/*webkit核心浏览器滚动条设置*/
+/*
+::-webkit-scrollbar{width: 10px;height:10px;}
+::-webkit-scrollbar-track{border-radius: 0px;background: rgba(0,0,0,0.1);}
+::-webkit-scrollbar-thumb{border-radius: 5px;background: rgba(0,0,0,0.2);}
+::-webkit-scrollbar-thumb:hover{border-radius: 5px;background: rgba(0,0,0,0.4);}
+*/

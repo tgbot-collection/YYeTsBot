@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>人人影视下载分享</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link href="https://fonts.googleapis.com/css?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="/css/normalize.min.css" rel="stylesheet">
+    <script src="js/axios.min.js"></script>
+    <style>
+        h1 {
+            font-family: Pacifico, sans-serif;
+            font-size: 4em;
+            color: #3eb5f1;
+            margin: 0;
+        }
+
+        h2 {
+            font-weight: 300;
+            font-family: sans-serif;
+        }
+
+        .centered {
+            /*position: fixed;*/
+            top: 50%;
+            left: 50%;
+            /*transform: translate(-50%, -50%);*/
+            text-align: center;
+        }
+
+
+    </style>
+</head>
+<body>
+<div class="centered">
+    <br>
+    <h1>人人影视下载分享</h1>
+    <h1>By Benny</h1>
+    <br>
+    <h2>这是我偷过来的，嘿嘿😝</h2>
+    <h2>在 <a style="text-decoration: none;color: deepskyblue" href="https://t.me/yyets_bot">这个 Telegram Bot</a>
+        里去使用，或者使用下方搜索框</h2>
+    <form action="search.html">
+        <label>
+            <input name="kw" id="kw" type="text">
+        </label>
+        <input type="submit" value="搜索">
+    </form>
+
+    <hr>
+    <div id="tv">
+    </div>
+    <hr>
+    <h2>有问题请联系 <a style="text-decoration: none;color: green" href="https://t.me/BennyThink">Benny小可爱</a></h2>
+</div>
+</body>
+<script>
+    let kwe = document.URL.split("kw=")[1];
+    let kw = decodeURI(kwe).toLowerCase().replace(" ", "");
+    // const axios = require('axios');
+
+    // Make a request for a user with a given ID
+    axios.get('/api/resource?kw=' + kw)
+        .then(function (response) {
+            // handle success
+            doSearch(response.data.data)
+            // console.log(response.data);
+        })
+        .catch(function (error) {
+            // handle error
+            console.log(error);
+        })
+        .then(function () {
+            // always executed
+        });
+
+
+    function doSearch(data) {
+        let search = document.getElementById("kw");
+        if (kw !== "undefined") {
+            search.value = kw;
+        }
+        let div = document.getElementById("tv");
+        for (let i = 0; i < data.length; i++) {
+            let info = data[i].data.info
+            let name = `${info.cnname} ${info.enname} ${info.aliasname}`;
+            let html = `<h3><a style="text-decoration: none;color: cornflowerblue" href="/resource.html?id=${info.id}">${name}</a></h3>`;
+            let backup = div.innerHTML;
+            div.innerHTML = backup + html;
+
+        }
+        if (data.length === 0) {
+            div.innerHTML = `<h2>没有搜索到结果 (ノへ￣、)</h2>`
+        }
+    }
+</script>
+</html>
