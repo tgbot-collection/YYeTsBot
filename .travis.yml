@@ -20,7 +20,7 @@ install:
 
 before_script:
   - cd tests
-  - mongoimport --jsonArray --db test --collection resource --file mongo_test_data.json
+  - mongoimport --jsonArray --db test --collection yyets --file mongo_test_data.json
 
 script:
   - pytest --cov=./

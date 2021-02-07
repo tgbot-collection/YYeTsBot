@@ -106,7 +106,7 @@ class TestYYeTsTestOffline(unittest.TestCase):
     def test_search_result(self):
         url = "http://www.rrys2020.com/resource/34812"
         results = self.ins.search_result(url)
-        self.assertEqual(results["all"]["url"], url)
+        self.assertIn(str(results['all']['data']['info']['id']), url)
         self.assertIn("逃避可耻", results["cnname"])
         self.assertIn("34812", results["share"])
 
