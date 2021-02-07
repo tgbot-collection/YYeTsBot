@@ -1,7 +1,10 @@
 # web端
+**注意：源代码中包含Google Analytics分析代码**
 
 # requirements
-
+* tornado
+* mongodb
+* pymongo
 
 # metrics
 * 总榜：直接查询

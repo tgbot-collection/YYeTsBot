@@ -9,12 +9,15 @@ __author__ = "Benny <benny.think@gmail.com>"
 
 import os
 import contextlib
+
+import pymongo
 from http import HTTPStatus
 from concurrent.futures import ThreadPoolExecutor
 from tornado import web, ioloop, httpserver, gen, options
 from tornado.log import enable_pretty_logging
-import pymongo
+
 from tornado.concurrent import run_on_executor
+from apscheduler.schedulers.background import BackgroundScheduler
 
 enable_pretty_logging()
 
@@ -112,17 +115,22 @@ class MetricsHandler(BaseHandler):
 
     @run_on_executor()
     def set_metrics(self):
-        metrics_name = self.get_query_argument("type", "access")
-        self.mongo.db['metrics'].find_one_and_update(
-            {'type': metrics_name}, {'$inc': {'count': 1}}
+        self.mongo.db['metrics'].update(
+            {'type': "access"}, {'$inc': {'count': 1}},
+            upsert=True
+        )
+        # today
+        self.mongo.db['metrics'].update(
+            {'type': "today"}, {'$inc': {'count': 1}},
+            upsert=True
         )
         self.set_status(HTTPStatus.CREATED)
         return {}
 
     @run_on_executor()
     def get_metrics(self):
-        metrics_name = self.get_query_argument("type", "access")
-        return self.mongo.db['metrics'].find_one({'type': metrics_name}, {'_id': False})
+        result = self.mongo.db['metrics'].find({}, {'_id': False})
+        return dict(metrics=list(result))
 
     @gen.coroutine
     def get(self):
@@ -163,7 +171,15 @@ class RunServer:
             print('"Ctrl+C" received, exiting.\n')
 
 
+def reset_day():
+    m = Mongo()
+    m.db["metrics"].delete_one({"type": "today"})
+
+
 if __name__ == "__main__":
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(reset_day, 'cron', hour=0, minute=0)
+    scheduler.start()
     options.define("p", default=8888, help="running port", type=int)
     options.define("h", default='127.0.0.1', help="listen address", type=str)
     options.parse_command_line()
