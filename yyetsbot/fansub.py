@@ -205,22 +205,29 @@ class YYeTsOnline(YYeTsBase):
 class YYeTsOffline(YYeTsBase):
     label = "yyets offline"
 
-    def __init__(self, db="yyets", col="resource"):
+    def __init__(self, db="zimuzu", col="yyets"):
         super().__init__()
         self.mongo = pymongo.MongoClient(host=MONGO)
         self.collection = self.mongo[db][col]
 
     def search_preview(self, search_text: str) -> dict:
         logging.info("[%s] Loading offline data from MongoDB...", self.label)
-        regex = re.compile(search_text, re.IGNORECASE)
-        condition = {"name": {"$regex": regex}}
-        data = self.collection.find(condition)
 
+        projection = {'_id': False, 'data.info': True}
+        data = self.collection.find({
+            "$or": [
+                {"data.info.cnname": {'$regex': f'.*{search_text}.*'}},
+                {"data.info.enname": {'$regex': f'.*{search_text}.*'}},
+                {"data.info.aliasname": {'$regex': f'.*{search_text}.*'}},
+            ]},
+            projection
+        )
         results = {}
         for item in data:
-            fake_url = "http://www.rrys2020.com/resource/{}".format(item["id"])
+            info = item["data"]["info"]
+            fake_url = "http://www.rrys2020.com/resource/{}".format(info["id"])
             url_hash = hashlib.sha1(fake_url.encode('u8')).hexdigest()
-            results[url_hash] = item["name"].replace("\n", " ")
+            results[url_hash] = info["cnname"] + info["enname"] + info["aliasname"]
             self.redis.hset(url_hash, mapping={"class": self.__class__.__name__, "url": fake_url})
 
         logging.info("[%s] Offline search complete", self.label)
@@ -230,11 +237,10 @@ class YYeTsOffline(YYeTsBase):
     def search_result(self, resource_url) -> dict:
         # yyets offline
         self.url = resource_url
-
-        data: dict = self.collection.find_one({"url": self.url})
-        rid = data["id"]
-        name = data["data"]["data"]["info"]["cnname"]
-        data.pop("_id")
+        # http://www.rrys2020.com/resource/10017
+        rid = self.url.split("/resource/")[1]
+        data: dict = self.collection.find_one({"data.info.id": int(rid)}, {'_id': False})
+        name = data["data"]["info"]["cnname"]
         self.data = {"all": data, "share": WORKERS.format(id=rid), "cnname": name}
         return self.data
 
@@ -349,3 +355,8 @@ for sub_name in globals().copy():
         m = getattr(this_module, sub_name)
         logging.info("Mapping %s to %s", cmd_name, m)
         vars()[cmd_name] = m
+
+if __name__ == '__main__':
+    a = YYeTsOffline()
+    v = a.search_preview("逃避")
+    print(v)

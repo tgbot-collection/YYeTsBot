@@ -19,7 +19,7 @@
 
 **由于译名的不同，建议输入部分译名，然后从列表中进行选择。比如说想看权力的游戏第四季，那么直接搜索"权力的游戏"就可以了。**
 
-# Cloudflare Worker
+# 资源分享站
 [点此访问](https://yyets.dmesg.app/)
 
 # 命令
@@ -40,7 +40,7 @@ yyets_offline - 人人影视离线数据
 ![](assets/1.png)
 
 ## 资源分享站截图
-目前使用的是我的 Cloudflare Worker Site
+~~目前使用的是我的 Cloudflare Worker Site~~ 
 
 ![](assets/2.png)
 
@@ -55,7 +55,9 @@ yyets_offline - 人人影视离线数据
 
 ## 常规方式
 ### 1. 环境
-推荐使用Python 3.6+，需要安装redis `apt install redis`，根据个人情况可以使用virtualenv
+推荐使用Python 3.6+，环境要求
+* redis
+* 可选MongoDB
 ```bash
 pip install -r requirements.py
 ```
@@ -69,13 +71,22 @@ pip install -r requirements.py
 * MAINTAINER：维护者的Telegram UserID
 * REDIS：redis的地址，一般为localhost
 * MONGODB: mongodb的地址
+### 3. 导入数据（可选）
+如果使用yyets，那么需要导入数据到MongoDB。可以在将数据导入到MySQL之后使用如下脚本导入数据到MongoDB
+```shell
+python3 web/prepare/convert_db.py
+```
+**不再兼容旧版本数据**
 
-### 3. 运行
+### 4. 运行
 ```bash
 python /path/to/YYeTsBot/yyetsbot/bot.py
 ```
-### 4. systemd 单元文件
+### 5. systemd 单元文件
 参考 `yyets.service`
+
+### 网站部署运行方式
+参考 `worker`和`web`目录下的 `README`
 
 # TODO
 - [x] 添加对FIX的支持
@@ -83,8 +94,8 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 - [x] 优先字幕组顺序设置 - 动态设置
 - [x] 添加个人喜好搜索
 - [x] 整理fix资源：初步完成
+- [x] 独立网站
 - [ ] test case...啊不想写
-- [ ] 独立网站
 
 
 # 归档资源下载
@@ -113,7 +124,7 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 觉得本项目对你有帮助？你可以通过以下方式表达你的感受：
 
 * 感谢字幕组
-* 点一个🌟
+* 点一个🌟和fork🍴
 * 宣传，使用，提交问题报告
 * 收藏[我的博客](https://dmesg.app/)  
 * 捐助我，[给我买杯咖啡？](https://www.buymeacoffee.com/bennythink)
