@@ -9,6 +9,7 @@ __author__ = "Benny <benny.think@gmail.com>"
 
 import os
 import contextlib
+import logging
 
 import pymongo
 from http import HTTPStatus
@@ -18,6 +19,8 @@ from tornado.log import enable_pretty_logging
 
 from tornado.concurrent import run_on_executor
 from apscheduler.schedulers.background import BackgroundScheduler
+
+from crypto import decrypt
 
 enable_pretty_logging()
 
@@ -48,11 +51,37 @@ class IndexHandler(BaseHandler):
         self.write(html)
 
 
+def anti_crawler(self) -> bool:
+    cypertext = self.request.headers.get("ne1", "")
+    referer = self.request.headers.get("Referer")
+    param = self.get_query_argument("id")
+
+    if (referer is None) or (param not in referer):
+        return True
+
+    try:
+        logging.info("Verifying for %s", self.request.uri)
+        passphrase = param
+        result = decrypt(cypertext, passphrase).decode('u8')
+    except Exception:
+        logging.error("Decrypt failed")
+        result = ""
+
+    if result != self.request.uri:
+        return True
+
+
 class ResourceHandler(BaseHandler):
     executor = ThreadPoolExecutor(50)
 
     @run_on_executor()
     def get_resource_data(self):
+        if anti_crawler(self):
+            # X-Real-IP
+            logging.info("%s@%s make you happy:-(", self.request.headers.get("user-agent"),
+                         self.request.headers.get("X-Real-IP")
+                         )
+            return {}
         param = self.get_query_argument("id")
         with contextlib.suppress(ValueError):
             param = int(param)
@@ -115,12 +144,12 @@ class MetricsHandler(BaseHandler):
 
     @run_on_executor()
     def set_metrics(self):
-        self.mongo.db['metrics'].update(
+        self.mongo.db['metrics'].update_one(
             {'type': "access"}, {'$inc': {'count': 1}},
             upsert=True
         )
         # today
-        self.mongo.db['metrics'].update(
+        self.mongo.db['metrics'].update_one(
             {'type': "today"}, {'$inc': {'count': 1}},
             upsert=True
         )
