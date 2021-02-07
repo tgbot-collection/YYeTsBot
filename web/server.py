@@ -55,12 +55,13 @@ def anti_crawler(self) -> bool:
     cypertext = self.request.headers.get("ne1", "")
     referer = self.request.headers.get("Referer")
     param = self.get_query_argument("id")
+    uri = self.request.uri
+    logging.info("Verifying: Referer:[%s] ct:[%s], uri:[%s], id:[%s]", referer, cypertext, uri, param)
 
     if (referer is None) or (param not in referer):
         return True
 
     try:
-        logging.info("Verifying for %s", self.request.uri)
         passphrase = param
         result = decrypt(cypertext, passphrase).decode('u8')
     except Exception:

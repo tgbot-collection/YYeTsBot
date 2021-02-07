@@ -678,7 +678,7 @@
                     $.get("/api/resource?id=" + resource_id, function (json) {
                         // json.data.info.expire < (Date.now()/1000)
                         if (json.status != 1 || !json.data) {
-                            return location.href = location.origin
+                            alert("发生错误！请清除浏览器缓存后重试")
                         }
                         var data = json.data;
                         var list = data.list;
