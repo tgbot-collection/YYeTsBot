@@ -98,11 +98,12 @@ class ResourceHandler(BaseHandler):
         projection = {'_id': False,
                       'data.info': True,
                       }
+        print(111,param)
         data = self.mongo.db["yyets"].find({
             "$or": [
-                {"data.info.cnname": {'$regex': f'.*{param}.*'}},
-                {"data.info.enname": {'$regex': f'.*{param}.*'}},
-                {"data.info.aliasname": {'$regex': f'.*{param}.*'}},
+                {"data.info.cnname": {'$regex': f'.*{param}.*', "$options": "-i"}},
+                {"data.info.enname": {'$regex': f'.*{param}.*', "$options": "-i"}},
+                {"data.info.aliasname": {'$regex': f'.*{param}.*', "$options": "-i"}},
             ]},
             projection
         )
