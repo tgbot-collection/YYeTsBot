@@ -1,0 +1,65 @@
+{
+  "status": 1,
+  "info": "OK",
+  "data": {
+    "info": {
+      "id": 99999,
+      "cnname": "中文名",
+      "enname": "英文名",
+      "aliasname": "别名",
+      "channel": "movie/tv",
+      "channel_cn": "电影/美剧",
+      "area": "法国",
+      "show_type": "",
+      "expire": "1610401225",
+      "views": 0
+    },
+    "list": [
+      {
+        "season_num": "0",
+        "season_cn": "正片",
+        "items": {
+          "MP4": [
+            {
+              "itemid": "428324",
+              "episode": "0",
+              "name": "name",
+              "size": "1.43GB",
+              "yyets_trans": 0,
+              "dateline": "1565351112",
+              "files": [
+                {
+                  "way": "1",
+                  "way_cn": "电驴",
+                  "address": "",
+                  "passwd": ""
+                },
+                {
+                  "way": "2",
+                  "way_cn": "磁力",
+                  "address": "",
+                  "passwd": ""
+                },
+                {
+                  "way": "9",
+                  "way_cn": "网盘",
+                  "address": "",
+                  "passwd": ""
+                },
+                {
+                  "way": "115",
+                  "way_cn": "微云",
+                  "address": "",
+                  "passwd": ""
+                }
+              ]
+            }
+          ]
+        },
+        "formats": [
+          "MP4"
+        ]
+      }
+    ]
+  }
+}
