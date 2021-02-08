@@ -98,7 +98,7 @@ class ResourceHandler(BaseHandler):
         projection = {'_id': False,
                       'data.info': True,
                       }
-        print(111,param)
+
         data = self.mongo.db["yyets"].find({
             "$or": [
                 {"data.info.cnname": {'$regex': f'.*{param}.*', "$options": "-i"}},
@@ -125,15 +125,19 @@ class TopHandler(BaseHandler):
 
     @run_on_executor()
     def get_top_resource(self):
-        top_type = self.get_query_argument("type", "all")
         projection = {'_id': False,
                       'data.info': True,
                       }
-        if top_type == "all":
-            data = self.mongo.db["yyets"].find({}, projection).sort("data.info.views", pymongo.DESCENDING).limit(10)
-        else:
-            data = []
-        return dict(data=list(data))
+
+        us = self.mongo.db["yyets"].find({"data.info.area": "美国"}, projection).sort("data.info.views",
+                                                                                    pymongo.DESCENDING).limit(10)
+
+        jp = self.mongo.db["yyets"].find({"data.info.area": "日本"}, projection).sort("data.info.views",
+                                                                                    pymongo.DESCENDING).limit(10)
+        us_data = list(us)
+        jp_data = list(jp)
+        us_data.extend(jp_data)
+        return dict(data=us_data)
 
     @gen.coroutine
     def get(self):

@@ -53,7 +53,44 @@
         /*a:hover::after {*/
         /*    display: block;*/
         /*}*/
+        /* Style the tab */
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
 
+            /*background-color: #f1f1f1;*/
+        }
+
+        /* Style the buttons inside the tab */
+        .tab button {
+            text-align: center;
+            background-color: inherit;
+            float: inherit;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 17px;
+        }
+
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+            background-color: #ddd;
+        }
+
+        /* Create an active/current tablink class */
+        .tab button.active {
+            background-color: #ccc;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
     </style>
 </head>
 <body>
@@ -71,11 +108,23 @@
         </label>
         <input type="submit" value="搜索">
     </form>
-    <hr>
+    <br>
     <div id="tv">
         <h2>大家都在看……</h2>
+        <div class="tab">
+            <button class="tablinks" onclick="openCity(event, 'US')">美剧</button>
+            <button class="tablinks" onclick="openCity(event, 'JP')">日剧</button>
+        </div>
+
+
+        <div id="US" class="tabcontent">
+        </div>
+
+        <div id="JP" class="tabcontent">
+        </div>
+
     </div>
-    <hr>
+
     <h2>相关资源</h2>
     <h3>
         联系我 <a style="text-decoration: none;color: green" href="https://t.me/BennyThink">Benny 小可爱</a>・
@@ -107,19 +156,43 @@
 
     function showTop(data) {
 
-        let div = document.getElementById("tv");
         for (let i = 0; i < data.length; i++) {
             let info = data[i].data.info
+            console.log(info.area)
+            let div = HTMLElement
+
+            if (info.area === "美国") {
+                div = document.getElementById("US");
+            } else if (info.area === "日本") {
+                div = document.getElementById("JP");
+            }
             let name = `${info.cnname} ${info.enname} ${info.aliasname}`;
             let html = `<h4><a title="浏览量 ${info.views}" style="text-decoration: none;color: cornflowerblue" href="/resource.html?id=${info.id}">${name}</a></h4>`;
             let backup = div.innerHTML;
             div.innerHTML = backup + html;
 
         }
-
+        a = document.getElementById("US");
+        document.getElementsByClassName("tab")[0].firstElementChild.className += " active"
+        a.style.display = "block"
     }
 
     accessMetrics();
+
+    function openCity(evt, cityName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(cityName).style.display = "block";
+        console.log(evt)
+        evt.currentTarget.className += " active";
+    }
 
 </script>
 </html>

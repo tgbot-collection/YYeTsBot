@@ -1,9 +1,9 @@
-requests
+requests==2.24.0
 pytelegrambotapi==3.7.6
-beautifulsoup4
+beautifulsoup4==4.9.1
 tgbot-ping
-redis
-apscheduler
-pymongo
-tornado
-cryptography
+redis==3.5.3
+apscheduler==3.6.3
+pymongo==3.11.2
+tornado==6.0.4
+cryptography==3.4.1
