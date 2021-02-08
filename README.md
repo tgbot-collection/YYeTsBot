@@ -59,7 +59,7 @@ yyets_offline - 人人影视离线数据
 * redis
 * 可选MongoDB
 ```bash
-pip install -r requirements.py
+pip install -r requirements.txt
 ```
 ### 2. 配置TOKEN
 
