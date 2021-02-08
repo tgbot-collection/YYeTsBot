@@ -129,15 +129,16 @@ class TopHandler(BaseHandler):
                       'data.info': True,
                       }
 
-        us = self.mongo.db["yyets"].find({"data.info.area": "美国"}, projection).sort("data.info.views",
-                                                                                    pymongo.DESCENDING).limit(10)
+        area_dict = dict(ALL={"$regex": ".*"}, US="美国", JP="日本", KR="韩国", UK="英国")
+        all_data = {}
+        for abbr, area in area_dict.items():
+            data = self.mongo.db["yyets"].find({"data.info.area": area}, projection).sort("data.info.views",
+                                                                                          pymongo.DESCENDING).limit(10)
+            all_data[abbr] = list(data)
 
-        jp = self.mongo.db["yyets"].find({"data.info.area": "日本"}, projection).sort("data.info.views",
-                                                                                    pymongo.DESCENDING).limit(10)
-        us_data = list(us)
-        jp_data = list(jp)
-        us_data.extend(jp_data)
-        return dict(data=us_data)
+        area_dict["ALL"] = "全部"
+        all_data["class"] = area_dict
+        return all_data
 
     @gen.coroutine
     def get(self):

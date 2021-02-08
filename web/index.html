@@ -109,21 +109,15 @@
         <input type="submit" value="搜索">
     </form>
     <br>
-    <div id="tv">
-        <h2>大家都在看……</h2>
-        <div class="tab">
-            <button class="tablinks" onclick="openCity(event, 'US')">美剧</button>
-            <button class="tablinks" onclick="openCity(event, 'JP')">日剧</button>
-        </div>
-
-
-        <div id="US" class="tabcontent">
-        </div>
-
-        <div id="JP" class="tabcontent">
-        </div>
+    <h2>大家都在看……</h2>
+    <div class="tab">
 
     </div>
+
+    <div id="topContent">
+
+    </div>
+
 
     <h2>相关资源</h2>
     <h3>
@@ -138,11 +132,13 @@
 <script src="js/analytics.js"></script>
 
 <script>
+    accessMetrics();
+
     // get top
-    axios.get('/api/top?type=all')
+    axios.get('/api/top')
         .then(function (response) {
             // handle success
-            showTop(response.data.data)
+            showTop(response.data)
             // console.log(response.data);
         })
         .catch(function (error) {
@@ -155,29 +151,44 @@
 
 
     function showTop(data) {
+        const code2Name = data["class"];
+        let buttonParent = document.getElementsByClassName("tab")[0]
+        let topParent = document.getElementById("topContent")
+        delete data["class"];
+        for (let code in data) {
+            let button = `<button class="tablinks" onclick="openCity(event, '${code}')">${code2Name[code]}</button>`;
+            let div = `<div id="${code}" class="tabcontent"></div>`;
 
-        for (let i = 0; i < data.length; i++) {
-            let info = data[i].data.info
-            console.log(info.area)
-            let div = HTMLElement
+            let buttonChild = document.createElement('button');
+            buttonChild.innerHTML = button;
+            buttonChild = buttonChild.firstChild;
+            buttonParent.appendChild(buttonChild);
 
-            if (info.area === "美国") {
-                div = document.getElementById("US");
-            } else if (info.area === "日本") {
-                div = document.getElementById("JP");
+            let divChild = document.createElement('div');
+            divChild.innerHTML = div;
+            divChild = divChild.firstChild;
+            topParent.appendChild(divChild);
+
+            // render data
+            let countryInfo = data[code]
+            // let div = HTMLElement
+            for (let each in countryInfo) {
+                let info = countryInfo[each]["data"]["info"];
+                let divParent = document.getElementById(code);
+                let name = `${info.cnname} ${info.enname} ${info.aliasname}`;
+                let html = `<h4><a title="浏览量 ${info.views}" style="text-decoration: none;color: cornflowerblue" href="/resource.html?id=${info.id}">${name}</a></h4>`;
+
+                let divChild = document.createElement('h4');
+                divChild.innerHTML = html;
+                divChild = divChild.firstChild;
+                divParent.appendChild(divChild);
             }
-            let name = `${info.cnname} ${info.enname} ${info.aliasname}`;
-            let html = `<h4><a title="浏览量 ${info.views}" style="text-decoration: none;color: cornflowerblue" href="/resource.html?id=${info.id}">${name}</a></h4>`;
-            let backup = div.innerHTML;
-            div.innerHTML = backup + html;
 
         }
-        a = document.getElementById("US");
         document.getElementsByClassName("tab")[0].firstElementChild.className += " active"
-        a.style.display = "block"
+        document.getElementById("ALL").style.display = "block"
     }
 
-    accessMetrics();
 
     function openCity(evt, cityName) {
         var i, tabcontent, tablinks;
