@@ -90,6 +90,8 @@ class ResourceHandler(BaseHandler):
             {"data.info.id": param},
             {'$inc': {'data.info.views': 1}},
             {'_id': False})
+
+        MetricsHandler.add("resource")
         return data
 
     @run_on_executor()
@@ -107,6 +109,7 @@ class ResourceHandler(BaseHandler):
             ]},
             projection
         )
+        MetricsHandler.add("search")
         return dict(data=list(data))
 
     @gen.coroutine
@@ -149,17 +152,17 @@ class TopHandler(BaseHandler):
 class MetricsHandler(BaseHandler):
     executor = ThreadPoolExecutor(50)
 
+    @classmethod
+    def add(cls, type_name):
+        cls.mongo.db['metrics'].update_one(
+            {'type': type_name}, {'$inc': {'count': 1}},
+            upsert=True
+        )
+
     @run_on_executor()
     def set_metrics(self):
-        self.mongo.db['metrics'].update_one(
-            {'type': "access"}, {'$inc': {'count': 1}},
-            upsert=True
-        )
-        # today
-        self.mongo.db['metrics'].update_one(
-            {'type': "today"}, {'$inc': {'count': 1}},
-            upsert=True
-        )
+        self.add("access")
+        self.add("today")
         self.set_status(HTTPStatus.CREATED)
         return {}
 
@@ -209,7 +212,8 @@ class RunServer:
 
 def reset_day():
     m = Mongo()
-    m.db["metrics"].delete_one({"type": "today"})
+    query = {"$or": [{"type": "today"}, {"type": "resource"}, {"type": "search"}]}
+    m.db["metrics"].delete_many(query)
 
 
 if __name__ == "__main__":
