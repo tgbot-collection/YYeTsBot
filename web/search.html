@@ -68,6 +68,7 @@
         联系我 <a style="text-decoration: none;color: green" href="https://t.me/BennyThink">Benny 小可爱</a>・
         YYeTs 机器人<a style="text-decoration: none;color: green" href="https://t.me/yyets_bot">Telegram Bot</a>・
         开源 <a style="text-decoration: none;color: green" href="https://github.com/tgbot-collection/YYeTsBot">GitHub</a>・
+        Telegram <a style="text-decoration: none;color: green" href="https://t.me/mikuri520">Channel</a>・
         我的博客 <a style="text-decoration: none;color: green" href="https://dmesg.app/">土豆不好吃</a>
     </h3>
 </div>
@@ -111,7 +112,8 @@
 
         }
         if (data.length === 0) {
-            div.innerHTML = `<h2>没有搜索到结果 (ノへ￣、)</h2>`
+            let issueLink = `https://github.com/tgbot-collection/YYeTsBot/issues/new?assignees=BennyThink&labels=new&title=增加新资源【xxx】&body=请准确填写新资源的下载地址和大小，最好能够上传类似[如下格式的json文件](https://github.com/tgbot-collection/YYeTsBot/blob/master/management/format.json)。若不遵守此规则，issue将被关闭。谢谢。`;
+            div.innerHTML = `<h2>没有搜索到结果 (ノへ￣、)</h2><a style="text-decoration: none;color: cornflowerblue" target="_blank" href="${issueLink}">点我去补充信息</a>`
         }
     }
 
