@@ -56,13 +56,13 @@ dl = {
         },
         {
             "way": "9",
-            "way_cn": "网盘",
+            "way_cn": "百度网盘",
             "address": "",
             "passwd": ""
         },
         {
             "way": "115",
-            "way_cn": "微云",
+            "way_cn": "115网盘",
             "address": "",
             "passwd": ""
         }
@@ -78,7 +78,7 @@ def get_value():
     for i in range(1, int(episode_input[1].get()) + 1):
         d = dl.copy()
         d["episode"] = str(i)
-        d["name"] = "{}{}".format(cn_input[1].get(), i)
+        d["name"] = "{}第{}集".format(cn_input[1].get(), i)
         item_structure["MP4"].append(d)
 
     info_structure = {
@@ -95,7 +95,7 @@ def get_value():
     }
 
     complete["data"]["info"] = info_structure
-    complete["data"]["list"] = [item_structure]
+    complete["data"]["list"][0]["items"] = {"MP4":[item_structure]}
 
     with open("sample.json", "w") as f:
         json.dump(complete, f, indent=4, ensure_ascii=False)
