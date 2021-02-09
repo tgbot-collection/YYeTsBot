@@ -11,6 +11,7 @@ import os
 import contextlib
 import logging
 
+import redis
 import pymongo
 from http import HTTPStatus
 from concurrent.futures import ThreadPoolExecutor
@@ -36,6 +37,14 @@ class Mongo:
         self.client.close()
 
 
+class Redis:
+    def __init__(self):
+        self.r = redis.StrictRedis(host="redis", decode_responses=True, db=2)
+
+    def __del__(self):
+        self.r.close()
+
+
 class BaseHandler(web.RequestHandler):
     mongo = Mongo()
 
@@ -51,25 +60,67 @@ class IndexHandler(BaseHandler):
         self.write(html)
 
 
-def anti_crawler(self) -> bool:
-    cypertext = self.request.headers.get("ne1", "")
-    referer = self.request.headers.get("Referer")
-    param = self.get_query_argument("id")
-    uri = self.request.uri
-    logging.info("Verifying: Referer:[%s] ct:[%s], uri:[%s], id:[%s]", referer, cypertext, uri, param)
+class AntiCrawler:
 
-    if (referer is None) or (param not in referer):
-        return True
+    def __init__(self, instance):
+        self.tornado = instance
+        self.redis = Redis()
 
-    try:
-        passphrase = param
-        result = decrypt(cypertext, passphrase).decode('u8')
-    except Exception:
-        logging.error("Decrypt failed")
-        result = ""
+    def execute(self) -> bool:
 
-    if result != self.request.uri:
-        return True
+        header_result = self.header_check()
+        ban_check = self.ban_check()
+        if header_result or ban_check:
+            return True
+
+    def header_check(self):
+        cypher_text = self.tornado.request.headers.get("ne1", "")
+        referer = self.tornado.request.headers.get("Referer")
+        param = self.tornado.get_query_argument("id")
+        uri = self.tornado.request.uri
+        logging.info("Verifying: Referer:[%s] ct:[%s], uri:[%s], id:[%s]", referer, cypher_text, uri, param)
+
+        if (referer is None) or (param not in referer):
+            return True
+
+        try:
+            passphrase = param
+            result = decrypt(cypher_text, passphrase).decode('u8')
+        except Exception:
+            logging.error("Decrypt failed")
+            result = ""
+
+        if result != self.tornado.request.uri:
+            return True
+
+    def ban_check(self):
+        con = self.redis
+        ip = self.get_real_ip()
+        str_count = con.r.get(ip)
+        if str_count and int(str_count) > 10:
+            return True
+
+    def imprisonment(self, ip):
+        con = self.redis
+        # don't use incr - we need to set expire time
+        if con.r.exists(ip):
+            count_str = con.r.get(ip)
+            count = int(count_str)
+            count += 1
+        else:
+            count = 1
+        # ban rule: (count-10)*600
+        if count > 10:
+            ex = (count - 10) * 3600
+        else:
+            ex = None
+        con.r.set(ip, count, ex)
+
+    def get_real_ip(self):
+        x_real = self.tornado.request.headers.get("X-Real-IP")
+        remote_ip = self.tornado.request.remote_ip
+        logging.warning("X-Real-IP:%s, Remote-IP:%s", x_real, remote_ip)
+        return x_real or remote_ip
 
 
 class ResourceHandler(BaseHandler):
@@ -77,21 +128,36 @@ class ResourceHandler(BaseHandler):
 
     @run_on_executor()
     def get_resource_data(self):
-        if anti_crawler(self):
-            # X-Real-IP
+        forbidden = False
+        banner = AntiCrawler(self)
+        if banner.execute():
             logging.info("%s@%s make you happy:-(", self.request.headers.get("user-agent"),
                          self.request.headers.get("X-Real-IP")
                          )
-            return {}
-        param = self.get_query_argument("id")
-        with contextlib.suppress(ValueError):
-            param = int(param)
-        data = self.mongo.db["yyets"].find_one_and_update(
-            {"data.info.id": param},
-            {'$inc': {'data.info.views': 1}},
-            {'_id': False})
+            data = {}
+            forbidden = True
+        else:
+            param = self.get_query_argument("id")
+            with contextlib.suppress(ValueError):
+                param = int(param)
+            data = self.mongo.db["yyets"].find_one_and_update(
+                {"data.info.id": param},
+                {'$inc': {'data.info.views': 1}},
+                {'_id': False})
 
-        MetricsHandler.add("resource")
+        if data:
+            MetricsHandler.add("resource")
+            forbidden = False
+        else:
+            # not found, dangerous
+            ip = banner.get_real_ip()
+            banner.imprisonment(ip)
+            self.set_status(404)
+            data = {}
+
+        if forbidden:
+            self.set_status(HTTPStatus.FORBIDDEN)
+
         return data
 
     @run_on_executor()
