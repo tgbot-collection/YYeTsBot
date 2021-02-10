@@ -10,6 +10,7 @@ __author__ = "Benny <benny.think@gmail.com>"
 import os
 import contextlib
 import logging
+import json
 
 import redis
 import pymongo
@@ -17,7 +18,7 @@ from http import HTTPStatus
 from concurrent.futures import ThreadPoolExecutor
 from tornado import web, ioloop, httpserver, gen, options
 from tornado.log import enable_pretty_logging
-
+from tornado import escape
 from tornado.concurrent import run_on_executor
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -220,8 +221,14 @@ class TopHandler(BaseHandler):
 class NameHandler(BaseHandler):
     executor = ThreadPoolExecutor(50)
 
+    @staticmethod
+    def json_encode(value):
+        return json.dumps(value, ensure_ascii=False)
+
     @run_on_executor()
-    def get_top_resource(self):
+    def get_names(self):
+        escape.json_encode = self.json_encode
+
         if self.get_query_argument("human", None):
             aggregation = [
                 {
@@ -260,7 +267,7 @@ class NameHandler(BaseHandler):
 
     @gen.coroutine
     def get(self):
-        resp = yield self.get_top_resource()
+        resp = yield self.get_names()
         self.write(resp)
 
 
