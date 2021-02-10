@@ -10,7 +10,6 @@
 
 机器人和网站由我长期维护，如果遇到问题可以提issue。
 
-
 - [使用说明](#使用说明)
 - [命令](#命令)
 - [截图](#截图)
@@ -35,7 +34,6 @@
 - [支持我](#支持我)
 - [License](#license)
 
-
 # 使用说明
 
 直接发送想要看的剧集名称就可以了，可选分享网页或者链接（ed2k和磁力链接）。
@@ -45,7 +43,6 @@
 搜索资源时，会按照我预定的优先级（字幕侠、人人影视离线）进行搜索，当然也可以使用命令强制某个字幕组，如 `/yyets_offline 逃避可耻`
 
 **由于译名的不同，建议输入部分译名，然后从列表中进行选择。比如说想看权力的游戏第四季，那么直接搜索"权力的游戏"就可以了。**
-
 
 # 命令
 
@@ -83,7 +80,24 @@ yyets_offline - 人人影视离线数据
 
 ## docker-compose
 
-参见 [这里](https://github.com/tgbot-collection/BotsRunner)
+* 参见 [这里](https://github.com/tgbot-collection/BotsRunner)
+* 本目录下的 `docker-compose.yml` 也可以作为参考
+* nginx reverse proxy可以[参考这里](https://github.com/BennyThink/WebsiteRunner)
+* [参考这里获取数据库](web/README.md)
+
+```shell
+# 启动数据库
+docker-compose up -d mongo
+# 导入数据库
+docker cp db.tgz 1234da:/tmp
+# 进入容器
+docker-compose exec mongo bash
+tar xf db.tgz
+mongorestore
+exit
+# 开启服务
+docker-compose up -d
+```
 
 ## 常规方式
 
@@ -152,17 +166,7 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 
 # 开发
 
-## 添加新的资源网站
-
-欢迎各位开发提交新的资源网站！方法非常简单，重写 `BaseFansub`，按照约定的格式返回数据。 然后把类名字添加到 `FANSUB_ORDER` 就可以了！是不是很简单！
-
-## health check
-
-有时不知为何遇到了bot卡死，无任何反馈。😂~~这个时候需要client api了~~😂
-
-好的，这个原因找到了，是因为有时爬虫会花费比较长的时间，然后pytelegrambotapi默认只有两个线程，那么后续的操作就会被阻塞住。
-
-临时的解决办法是增加线程数量，长期的解决办法是使用celery分发任务。
+如何参与开发、具体API接口，可以 [参考这个文档](DEVELOPMENT.md)
 
 # Credits
 

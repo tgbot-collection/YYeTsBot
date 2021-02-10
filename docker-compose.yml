@@ -1,0 +1,43 @@
+version: '3.1'
+
+services:
+  redis:
+    image: redis:alpine
+    restart: always
+    logging:
+      driver: none
+
+  mongo:
+    image: mongo
+    restart: always
+    volumes:
+      - ./data/mongodb:/data/db
+    logging:
+      driver: none
+
+  socat:
+    image: alpine/socat
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint: [ "socat", "tcp-listen:2375,fork,reuseaddr","unix-connect:/var/run/docker.sock" ]
+
+  yyets-web:
+    image: bennythink/yyetsbot
+    restart: unless-stopped
+    environment:
+      - mongo=mongo
+    working_dir: /YYeTsBot/web/
+    command: [ "python3","server.py","-h=0.0.0.0" ]
+    ports:
+      - 0.0.0.0:8888:8888
+
+  yyets:
+    image: bennythink/yyetsbot
+    depends_on:
+      - redis
+      - socat
+      - mongo
+    restart: on-failure
+    env_file:
+      - env/yyets.env
