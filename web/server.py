@@ -217,6 +217,53 @@ class TopHandler(BaseHandler):
         self.write(resp)
 
 
+class NameHandler(BaseHandler):
+    executor = ThreadPoolExecutor(50)
+
+    @run_on_executor()
+    def get_top_resource(self):
+        if self.get_query_argument("human", None):
+            aggregation = [
+                {
+                    "$project": {
+                        "name": {
+                            "$concat": [
+                                "$data.info.area",
+                                "$data.info.channel_cn",
+                                ": ",
+                                "$data.info.cnname",
+                                " ",
+                                "$data.info.enname",
+                                " ",
+                                "$data.info.aliasname"
+                            ]
+                        },
+                        "_id": False
+                    }
+                }
+            ]
+            query_cursor = self.mongo.db["yyets"].aggregate(aggregation)
+        else:
+            projection = {'_id': False,
+                          'data.info.cnname': True,
+                          'data.info.enname': True,
+                          'data.info.aliasname': True,
+                          'data.info.channel_cn': True,
+
+                          }
+            query_cursor = self.mongo.db["yyets"].find({}, projection)
+
+        data = []
+        for i in query_cursor:
+            data.extend(i.values())
+        return dict(data=data)
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_top_resource()
+        self.write(resp)
+
+
 class MetricsHandler(BaseHandler):
     executor = ThreadPoolExecutor(50)
 
@@ -256,6 +303,7 @@ class RunServer:
     handlers = [
         (r'/api/resource', ResourceHandler),
         (r'/api/top', TopHandler),
+        (r'/api/name', NameHandler),
         (r'/api/metrics', MetricsHandler),
         (r'/', IndexHandler),
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2)', web.StaticFileHandler,
