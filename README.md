@@ -142,6 +142,8 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 - [x] 整理fix资源：初步完成
 - [x] 独立网站
 - [ ] test case...啊不想写
+- [ ] 独立网站网页优化
+- [ ] 爬取并同步[追新番](web/追新番爬取策略.md)
 
 # 归档资源下载
 

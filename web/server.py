@@ -26,6 +26,8 @@ from crypto import decrypt
 enable_pretty_logging()
 
 mongo_host = os.getenv("mongo") or "localhost"
+if os.getenv("debug"):
+    logging.basicConfig(level=logging.DEBUG)
 
 
 class Mongo:
@@ -119,7 +121,7 @@ class AntiCrawler:
     def get_real_ip(self):
         x_real = self.tornado.request.headers.get("X-Real-IP")
         remote_ip = self.tornado.request.remote_ip
-        logging.warning("X-Real-IP:%s, Remote-IP:%s", x_real, remote_ip)
+        logging.debug("X-Real-IP:%s, Remote-IP:%s", x_real, remote_ip)
         return x_real or remote_ip
 
 
@@ -131,9 +133,9 @@ class ResourceHandler(BaseHandler):
         forbidden = False
         banner = AntiCrawler(self)
         if banner.execute():
-            logging.info("%s@%s make you happy:-(", self.request.headers.get("user-agent"),
-                         self.request.headers.get("X-Real-IP")
-                         )
+            logging.warning("%s@%s make you happy:-(", self.request.headers.get("user-agent"),
+                            self.request.headers.get("X-Real-IP")
+                            )
             data = {}
             forbidden = True
         else:
