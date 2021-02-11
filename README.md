@@ -186,6 +186,13 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 * [Telegram Channel](https://t.me/mikuri520)
 * 捐助我，[给我买杯咖啡？](https://www.buymeacoffee.com/bennythink)
 
+# 持续部署
+
+使用[Docker Hub Webhook](https://docs.docker.com/docker-hub/webhooks/)
+(顺便吐槽一句，这是个什么垃圾文档……自己实现validation吧)
+
+参考listener [Webhook listener](https://github.com/tgbot-collection/Webhook)
+
 # License
 
 [MIT](LICENSE)
