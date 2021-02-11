@@ -55,14 +55,6 @@ class BaseHandler(web.RequestHandler):
         pass
 
 
-class IndexHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
-        with open("index.html") as f:
-            html = f.read()
-        self.write(html)
-
-
 class AntiCrawler:
 
     def __init__(self, instance):
@@ -126,8 +118,23 @@ class AntiCrawler:
         return x_real or remote_ip
 
 
+class IndexHandler(BaseHandler):
+    executor = ThreadPoolExecutor(100)
+
+    @run_on_executor()
+    def send_index(self):
+        with open("index.html") as f:
+            html = f.read()
+        return html
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.send_index()
+        self.write(resp)
+
+
 class ResourceHandler(BaseHandler):
-    executor = ThreadPoolExecutor(50)
+    executor = ThreadPoolExecutor(100)
 
     @run_on_executor()
     def get_resource_data(self):
@@ -193,7 +200,7 @@ class ResourceHandler(BaseHandler):
 
 
 class TopHandler(BaseHandler):
-    executor = ThreadPoolExecutor(50)
+    executor = ThreadPoolExecutor(100)
 
     @run_on_executor()
     def get_top_resource(self):
@@ -219,7 +226,7 @@ class TopHandler(BaseHandler):
 
 
 class NameHandler(BaseHandler):
-    executor = ThreadPoolExecutor(50)
+    executor = ThreadPoolExecutor(100)
 
     @staticmethod
     def json_encode(value):
@@ -272,7 +279,7 @@ class NameHandler(BaseHandler):
 
 
 class MetricsHandler(BaseHandler):
-    executor = ThreadPoolExecutor(50)
+    executor = ThreadPoolExecutor(100)
 
     @classmethod
     def add(cls, type_name):
@@ -304,6 +311,29 @@ class MetricsHandler(BaseHandler):
         self.write(resp)
 
 
+class BlacklistHandler(BaseHandler):
+    executor = ThreadPoolExecutor(100)
+
+    @run_on_executor()
+    def get_black_list(self):
+        r = Redis().r
+
+        keys = r.keys("*")
+        result = {}
+
+        for key in keys:
+            count = r.get(key)
+            ttl = r.ttl(key)
+            result["key"] = dict(count=count, ttl=ttl)
+
+        return result
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_black_list()
+        self.write(resp)
+
+
 class RunServer:
     root_path = os.path.dirname(__file__)
     static_path = os.path.join(root_path, '')
@@ -312,6 +342,7 @@ class RunServer:
         (r'/api/top', TopHandler),
         (r'/api/name', NameHandler),
         (r'/api/metrics', MetricsHandler),
+        (r'/api/blacklist', BlacklistHandler),
         (r'/', IndexHandler),
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2)', web.StaticFileHandler,
          {'path': static_path}),

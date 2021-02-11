@@ -60,8 +60,6 @@ def send_ping(message):
     bot.send_chat_action(message.chat.id, 'typing')
 
     info = get_runtime("botsrunner_yyets_1")
-    redis = get_runtime("botsrunner_redis_1", "Redis")
-    mongo = get_runtime("botsrunner_mongo_1", "MongoDB")
 
     usage = ""
     if str(message.chat.id) == MAINTAINER:
@@ -69,7 +67,7 @@ def send_ping(message):
     announcement = redis_announcement() or ""
     if announcement:
         announcement = f"\n\n*公告：{announcement}*\n\n"
-    bot.send_message(message.chat.id, f"{info}\n{redis}\n{mongo}\n{usage}\n{announcement}",
+    bot.send_message(message.chat.id, f"{info}\n\n{usage}\n{announcement}",
                      parse_mode='markdown')
 
 
