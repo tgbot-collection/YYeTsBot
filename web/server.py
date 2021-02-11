@@ -324,8 +324,7 @@ class BlacklistHandler(BaseHandler):
         for key in keys:
             count = r.get(key)
             ttl = r.ttl(key)
-            result["key"] = dict(count=count, ttl=ttl)
-
+            result[key] = dict(count=count, ttl=ttl)
         return result
 
     @gen.coroutine
