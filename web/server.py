@@ -31,6 +31,43 @@ if os.getenv("debug"):
     logging.basicConfig(level=logging.DEBUG)
 
 
+def cache(verified=False):
+    def cache_layer(func):
+        def wrapper(self):
+            ban = AntiCrawler(self)
+            banned = False
+            if verified and ban.execute():
+                logging.warning("%s@%s make you happy:-(", self.request.headers.get("user-agent"),
+                                self.request.headers.get("X-Real-IP")
+                                )
+
+                self.set_status(HTTPStatus.FORBIDDEN)
+                banned = True
+
+            red = Redis()
+            uri_key = self.request.uri
+            value: str = red.r.get(uri_key)
+            if value:
+                self.set_header("X-Redis-Cache", "hit")
+                value = json.loads(value)
+            else:
+                logging.info("😱 Cache miss for %s", uri_key)
+                self.set_header("X-Redis-Cache", "miss")
+                value: dict = func(self)
+                if value:
+                    red.r.set(uri_key, json.dumps(value, ensure_ascii=False), 60 * 30)
+                else:
+                    self.set_status(HTTPStatus.NOT_FOUND)
+                    ban.imprisonment(ban.get_real_ip())
+                    banned = True
+
+            return {} if banned else value
+
+        return wrapper
+
+    return cache_layer
+
+
 class Mongo:
     def __init__(self):
         self.client = pymongo.MongoClient(host=mongo_host, connect=False)
@@ -137,40 +174,23 @@ class ResourceHandler(BaseHandler):
     executor = ThreadPoolExecutor(100)
 
     @run_on_executor()
+    @cache(True)
     def get_resource_data(self):
-        forbidden = False
-        banner = AntiCrawler(self)
-        if banner.execute():
-            logging.warning("%s@%s make you happy:-(", self.request.headers.get("user-agent"),
-                            self.request.headers.get("X-Real-IP")
-                            )
-            data = {}
-            forbidden = True
-        else:
-            param = self.get_query_argument("id")
-            with contextlib.suppress(ValueError):
-                param = int(param)
-            data = self.mongo.db["yyets"].find_one_and_update(
-                {"data.info.id": param},
-                {'$inc': {'data.info.views': 1}},
-                {'_id': False})
+        param = self.get_query_argument("id")
+        with contextlib.suppress(ValueError):
+            param = int(param)
+        data = self.mongo.db["yyets"].find_one_and_update(
+            {"data.info.id": param},
+            {'$inc': {'data.info.views': 1}},
+            {'_id': False})
 
         if data:
             MetricsHandler.add("resource")
-            forbidden = False
-        else:
-            # not found, dangerous
-            ip = banner.get_real_ip()
-            banner.imprisonment(ip)
-            self.set_status(404)
-            data = {}
-
-        if forbidden:
-            self.set_status(HTTPStatus.FORBIDDEN)
 
         return data
 
     @run_on_executor()
+    @cache()
     def search_resource(self):
         param = self.get_query_argument("kw").lower()
         projection = {'_id': False,
@@ -203,6 +223,7 @@ class TopHandler(BaseHandler):
     executor = ThreadPoolExecutor(100)
 
     @run_on_executor()
+    @cache()
     def get_top_resource(self):
         projection = {'_id': False,
                       'data.info': True,
