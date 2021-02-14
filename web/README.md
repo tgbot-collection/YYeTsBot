@@ -11,12 +11,15 @@
 
 # 导入数据
 
-**注意：不兼容channel中分享的MongoDB数据**
-暂时没有开箱即用的数据，一个workaround如下：
+## 方法1: 自己迁移数据
 
 1. 下载[MySQL的数据](https://t.me/mikuri520/668)
 1. 导入数据到MySQL
 2. 运行 `python prepare/convert_db.py`
+
+## 方法2:使用我的导出
+
+[看这里](https://t.me/c/1375651700/2448)
 
 # 运行
 
