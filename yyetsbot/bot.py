@@ -180,6 +180,9 @@ def send_my_response(message):
 @bot.message_handler(content_types=["photo", "text"])
 def send_search(message):
     # normal ordered search
+    if message.text in ("Voice Chat started", "Voice Chat ended"):
+        logging.warning("This is really funny %s",message.text)
+        return
     base_send_search(message)
 
 
