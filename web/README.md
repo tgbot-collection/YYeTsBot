@@ -1,6 +1,6 @@
 # web端
 
-**注意：源代码中包含Google Analytics分析代码，`index.html`, `search.html`和`resource.html`**
+**注意：源代码中包含Google Analytics分析代码，`index.html`, `search.html`和`resource.html`。如果自己不熟要记得去除哦**
 
 # requirements
 
@@ -19,7 +19,7 @@
 
 ## 方法2:使用我的导出
 
-[看这里](https://t.me/c/1375651700/2448)
+[看这里](https://t.me/c/1375651700/2448)，然后导入到MongoDB
 
 # 运行
 

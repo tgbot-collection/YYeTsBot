@@ -32,6 +32,7 @@
     * [health check](#health-check)
 - [Credits](#credits)
 - [支持我](#支持我)
+- [感谢](#感谢)
 - [License](#license)
 
 # 使用说明
@@ -65,9 +66,7 @@ yyets_offline - 人人影视离线数据
 ![](assets/1.png)
 
 ## 资源分享站截图
-
-~~目前使用的是我的 Cloudflare Worker Site~~
-
+本网站永久免费，并且没有任何限制。
 ![](assets/2.png)
 
 ## 指定字幕组搜索
@@ -145,7 +144,7 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 
 ### 6. 网站部署运行方式
 
-参考 `worker`和`web`目录下的 `README`
+参考 `worker`和`web`目录下的 `README`。需要注意，cf worker已经停止开发。
 
 # TODO
 
@@ -155,9 +154,9 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 - [x] 添加个人喜好搜索
 - [x] 整理fix资源：初步完成
 - [x] 独立网站
+- [x] 独立网站网页优化
 - [ ] test case...啊不想写
-- [ ] 独立网站网页优化
-- [ ] 爬取并同步[追新番](web/追新番爬取策略.md)
+
 
 # 归档资源下载
 
@@ -185,6 +184,11 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 * 收藏[我的博客](https://dmesg.app/)
 * [Telegram Channel](https://t.me/mikuri520)
 * 捐助我，[给我买杯咖啡？](https://www.buymeacoffee.com/bennythink)
+* 捐助我，[爱发电？](https://afdian.net/@BennyThink)
+
+# 感谢
+
+* yaofei yang
 
 # 持续部署
 
