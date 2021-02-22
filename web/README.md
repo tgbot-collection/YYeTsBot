@@ -19,7 +19,7 @@
 
 ## 方法2:使用我的导出
 * [冷数据看这里](https://t.me/c/1375651700/2448)，然后导入到MongoDB
-* [实时数据看这里](https://yyets.dmesg.app/dump.gz)，每天凌晨2点更新
+* [实时数据看这里](https://yyets.dmesg.app/data/dump.gz)，每天凌晨2点更新
 
 # 运行
 
