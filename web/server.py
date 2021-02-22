@@ -344,7 +344,7 @@ class RunServer:
         (r'/api/metrics', MetricsHandler),
         (r'/api/blacklist', BlacklistHandler),
         (r'/', IndexHandler),
-        (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2)', web.StaticFileHandler,
+        (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz)', web.StaticFileHandler,
          {'path': static_path}),
     ]
 

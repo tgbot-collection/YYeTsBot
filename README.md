@@ -160,7 +160,7 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 
 # 归档资源下载
 
-* 包含了2021年1月11日为止的人人影视最新资源，有兴趣的盆友可以用这个数据进行二次开发[戳我查看详情](https://t.me/mikuri520/668)
+* 包含了2021年1月11日为止的人人影视最新资源，MySQL为主。有兴趣的盆友可以用这个数据进行二次开发[戳我查看详情](https://t.me/mikuri520/668)
 * 字幕侠离线数据库 [从这里下载](https://t.me/mikuri520/715)，这个数据比较粗糙，并且字幕侠网站还在，因此不建议使用这个
 
 # 开发
@@ -187,8 +187,7 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 * 捐助我，[爱发电？](https://afdian.net/@BennyThink)
 
 # 感谢
-
-* yaofei yang
+[Thanks](THANKS.md)
 
 # 持续部署
 

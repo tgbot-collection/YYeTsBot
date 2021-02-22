@@ -1,6 +1,6 @@
 # web端
 
-**注意：源代码中包含Google Analytics分析代码，`index.html`, `search.html`和`resource.html`。如果自己不熟要记得去除哦**
+**注意：源代码中包含Google Analytics分析代码，`index.html`, `search.html`和`resource.html`。如果自己使用，要记得去除哦**
 
 # requirements
 
@@ -18,8 +18,8 @@
 2. 运行 `python prepare/convert_db.py`
 
 ## 方法2:使用我的导出
-
-[看这里](https://t.me/c/1375651700/2448)，然后导入到MongoDB
+* [冷数据看这里](https://t.me/c/1375651700/2448)，然后导入到MongoDB
+* [实时数据看这里](https://yyets.dmesg.app/dump.gz)，每天凌晨2点更新
 
 # 运行
 
