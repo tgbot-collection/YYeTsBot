@@ -159,10 +159,15 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 
 
 # 归档资源下载
-
+## Telegram 频道分享
 * 包含了2021年1月11日为止的人人影视最新资源，MySQL为主。有兴趣的盆友可以用这个数据进行二次开发[戳我查看详情](https://t.me/mikuri520/668)
 * 字幕侠离线数据库 [从这里下载](https://t.me/mikuri520/715)，这个数据比较粗糙，并且字幕侠网站还在，因此不建议使用这个
-* [网站实时数据看这里](https://yyets.dmesg.app/data/dump.gz)，每天凌晨2点更新
+
+## 本地下载
+如果无法访问Telegram，可以使用如下网址下载数据
+* [网站实时数据，MongoDB](https://yyets.dmesg.app/data/yyets_mongo.gz)
+* [MySQL](https://yyets.dmesg.app/data/yyets_mysql.zip)
+* [SQLite](https://yyets.dmesg.app/data/yyets_sqlite.zip)
 
 # 开发
 
