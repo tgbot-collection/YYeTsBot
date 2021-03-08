@@ -212,7 +212,7 @@ class TopHandler(BaseHandler):
         all_data = {}
         for abbr, area in area_dict.items():
             data = self.mongo.db["yyets"].find({"data.info.area": area}, projection).sort("data.info.views",
-                                                                                          pymongo.DESCENDING).limit(10)
+                                                                                          pymongo.DESCENDING).limit(15)
             all_data[abbr] = list(data)
 
         area_dict["ALL"] = "全部"
@@ -370,9 +370,16 @@ def reset_day():
     m.db["metrics"].delete_many(query)
 
 
+def reset_top():
+    logging.info("resetting top...")
+    m = Mongo()
+    m.db["yyets"].update_many({}, {"$set": {"data.info.views": 0}})
+
+
 if __name__ == "__main__":
     scheduler = BackgroundScheduler()
     scheduler.add_job(reset_day, 'cron', hour=0, minute=0)
+    scheduler.add_job(reset_top, 'cron', hour=0, minute=0, day=1)
     scheduler.start()
     options.define("p", default=8888, help="running port", type=int)
     options.define("h", default='127.0.0.1', help="listen address", type=str)
