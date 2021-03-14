@@ -309,6 +309,61 @@ class MetricsHandler(BaseHandler):
         self.write(resp)
 
 
+class GrafanaIndexHandler(BaseHandler):
+    def get(self):
+        self.write({})
+
+
+class GrafanaSearchHandler(BaseHandler):
+    def post(self):
+        data = ["access", "search", "resource"]
+        self.write(json.dumps(data))
+
+
+class GrafanaQueryHandler(BaseHandler):
+    @staticmethod
+    def generate_date_series(start: str, end: str) -> list:
+        from datetime import date, timedelta
+
+        start_int = [int(i) for i in start.split("-")]
+        end_int = [int(i) for i in end.split("-")]
+        sdate = date(*start_int)  # start date
+        edate = date(*end_int)  # end date
+
+        delta = edate - sdate  # as timedelta
+        days = []
+        for i in range(delta.days + 1):
+            day = sdate + timedelta(days=i)
+            days.append(day.strftime("%Y-%m-%d"))
+        return days
+
+    @staticmethod
+    def time_str_int(text):
+        return time.mktime(time.strptime(text, "%Y-%m-%d"))
+
+    def post(self):
+        payload = json.loads(self.request.body)
+        start = payload["range"]["from"].split("T")[0]
+        end = payload["range"]["to"].split("T")[0]
+        date_series = self.generate_date_series(start, end)
+        targets = [i["target"] for i in payload["targets"] if i["target"]]
+        grafana_data = []
+        for target in targets:
+            data_points = []
+            condition = {"date": {"$in": date_series}}
+            projection = {"_id": False}
+            result = self.mongo.db["metrics"].find(condition, projection)
+            for i in result:
+                datum = [i[target], self.time_str_int(i["date"]) * 1000]
+                data_points.append(datum)
+            temp = {
+                "target": target,
+                "datapoints": data_points
+            }
+            grafana_data.append(temp)
+        self.write(json.dumps(grafana_data))
+
+
 class BlacklistHandler(BaseHandler):
     executor = ThreadPoolExecutor(100)
 
@@ -340,6 +395,9 @@ class RunServer:
         (r'/api/top', TopHandler),
         (r'/api/name', NameHandler),
         (r'/api/metrics', MetricsHandler),
+        (r'/api/grafana/', GrafanaIndexHandler),
+        (r'/api/grafana/search', GrafanaSearchHandler),
+        (r'/api/grafana/query', GrafanaQueryHandler),
         (r'/api/blacklist', BlacklistHandler),
         (r'/', IndexHandler),
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip)', web.StaticFileHandler,
