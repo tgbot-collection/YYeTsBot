@@ -11,6 +11,7 @@ import os
 import contextlib
 import logging
 import json
+import time
 
 import redis
 import pymongo
@@ -156,7 +157,6 @@ class ResourceHandler(BaseHandler):
                 {'_id': False})
 
         if data:
-            MetricsHandler.add("resource")
             forbidden = False
         else:
             # not found, dangerous
@@ -185,7 +185,6 @@ class ResourceHandler(BaseHandler):
             ]},
             projection
         )
-        MetricsHandler.add("search")
         return dict(data=list(data))
 
     @gen.coroutine
@@ -280,24 +279,23 @@ class NameHandler(BaseHandler):
 
 class MetricsHandler(BaseHandler):
     executor = ThreadPoolExecutor(100)
-
-    @classmethod
-    def add(cls, type_name):
-        cls.mongo.db['metrics'].update_one(
-            {'type': type_name}, {'$inc': {'count': 1}},
-            upsert=True
-        )
+    today = time.strftime("%Y-%m-%d", time.localtime())
 
     @run_on_executor()
     def set_metrics(self):
-        self.add("access")
-        self.add("today")
+        metrics_type = self.get_query_argument("type")
+        self.mongo.db['metrics'].update_one(
+            {'date': self.today}, {'$inc': {metrics_type: 1}},
+            upsert=True
+        )
         self.set_status(HTTPStatus.CREATED)
         return {}
 
     @run_on_executor()
     def get_metrics(self):
-        result = self.mongo.db['metrics'].find({}, {'_id': False})
+        date = self.get_query_argument("date", None)
+        condition = dict(date=date) if date else dict()
+        result = self.mongo.db['metrics'].find(condition, {'_id': False})
         return dict(metrics=list(result))
 
     @gen.coroutine
@@ -364,12 +362,6 @@ class RunServer:
             print('"Ctrl+C" received, exiting.\n')
 
 
-def reset_day():
-    m = Mongo()
-    query = {"$or": [{"type": "today"}, {"type": "resource"}, {"type": "search"}]}
-    m.db["metrics"].delete_many(query)
-
-
 def reset_top():
     logging.info("resetting top...")
     m = Mongo()
@@ -378,7 +370,6 @@ def reset_top():
 
 if __name__ == "__main__":
     scheduler = BackgroundScheduler()
-    scheduler.add_job(reset_day, 'cron', hour=0, minute=0)
     scheduler.add_job(reset_top, 'cron', hour=0, minute=0, day=1)
     scheduler.start()
     options.define("p", default=8888, help="running port", type=int)

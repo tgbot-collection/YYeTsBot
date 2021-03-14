@@ -1,5 +1,5 @@
-function accessMetrics() {
-    axios.post('/api/metrics')
+function accessMetrics(type) {
+    axios.post('/api/metrics?type=' + type)
         .then(function (response) {
             // console.log(response);
         })
