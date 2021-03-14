@@ -2,6 +2,16 @@
 
 Special thanks to these following supporters!
 
+
+* 企鹅仔
+* Charlie
+* wabaman
+* zhangjichi007
+* 爱发电用户_vRYW
+* 爱发电用户_R8jG
+* 爱发电用户_yMxm
+* 西二切
+* 360Tencent
 * 慕星
 * Saul
 * 除了感谢还能说啥
@@ -36,9 +46,11 @@ Special thanks to these following supporters!
 * 阮
 * 谢谢
 * 快播学长
+* ケーヤン パン
 * Someone
 * 人人影视ban'wo'cheng'zhang
 * yaofei yang
+
 以及所有点赞、赞助和分享的可爱的你们！
 
 # afdian
@@ -50,6 +62,7 @@ let nameList = document.getElementsByClassName("avatar-name black-8 gl-hover-tex
 for (let i = 1; i < nameList.length; i++) {
     md += "* " + nameList[i].textContent.trim() + "\n"
 }
+copy(md)
 ```
 # buy me a coffee
 ```javascript
@@ -58,4 +71,6 @@ let nameList = document.getElementsByClassName("supp-name limit-text-line limit-
 for (let i = 1; i < nameList.length; i++) {
     md += "* " + nameList[i].textContent.trim() + "\n"
 }
+copy(md)
+
 ```
