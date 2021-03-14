@@ -12,6 +12,7 @@ import contextlib
 import logging
 import json
 import time
+from datetime import date, timedelta
 
 import redis
 import pymongo
@@ -323,8 +324,6 @@ class GrafanaSearchHandler(BaseHandler):
 class GrafanaQueryHandler(BaseHandler):
     @staticmethod
     def generate_date_series(start: str, end: str) -> list:
-        from datetime import date, timedelta
-
         start_int = [int(i) for i in start.split("-")]
         end_int = [int(i) for i in end.split("-")]
         sdate = date(*start_int)  # start date
