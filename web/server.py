@@ -280,13 +280,13 @@ class NameHandler(BaseHandler):
 
 class MetricsHandler(BaseHandler):
     executor = ThreadPoolExecutor(100)
-    today = time.strftime("%Y-%m-%d", time.localtime())
 
     @run_on_executor()
     def set_metrics(self):
         metrics_type = self.get_query_argument("type")
+        today = time.strftime("%Y-%m-%d", time.localtime())
         self.mongo.db['metrics'].update_one(
-            {'date': self.today}, {'$inc': {metrics_type: 1}},
+            {'date': today}, {'$inc': {metrics_type: 1}},
             upsert=True
         )
         self.set_status(HTTPStatus.CREATED)
@@ -294,8 +294,8 @@ class MetricsHandler(BaseHandler):
 
     @run_on_executor()
     def get_metrics(self):
-        date = self.get_query_argument("date", None)
-        condition = dict(date=date) if date else dict()
+        day = self.get_query_argument("date", None)
+        condition = dict(date=day) if day else dict()
         result = self.mongo.db['metrics'].find(condition, {'_id': False})
         return dict(metrics=list(result))
 
