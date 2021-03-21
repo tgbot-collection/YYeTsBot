@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link href="https://fonts.googleapis.com/css?family=Pacifico&display=swap" rel="stylesheet">
@@ -29,13 +29,20 @@
             width: 75%;
         }
     </style>
+    <meta charset="utf-8">
+    <title>人人影视下载分享 404</title>
 </head>
 <body>
 <div class="centered">
     <h1>404 Not Found</h1>
-    <h2>Oh dang! We couldn't find that page.</h2>
+    <h2>你访问的页面不存在，将会在三秒钟内跳转回首页哦！</h2>
     <img id="ferris" alt="a sad crab is unable to unable to lasso a paper airplane. 404 not found."
          src="img/404-wrangler-ferris.gif">
 </div>
 </body>
+<script>
+    setTimeout(function () {
+        window.location.href = '/';
+    }, 3000);
+</script>
 </html>
