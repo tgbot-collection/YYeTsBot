@@ -386,6 +386,11 @@ class BlacklistHandler(BaseHandler):
         self.write(resp)
 
 
+class NotFoundHandler(BaseHandler):
+    def prepare(self):  # for all methods
+        self.render("404.html")
+
+
 class RunServer:
     root_path = os.path.dirname(__file__)
     static_path = os.path.join(root_path, '')
@@ -403,7 +408,7 @@ class RunServer:
          {'path': static_path}),
     ]
 
-    application = web.Application(handlers, xheaders=True)
+    application = web.Application(handlers, xheaders=True, default_handler_class=NotFoundHandler)
 
     @staticmethod
     def run_server(port, host, **kwargs):
