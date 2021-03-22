@@ -15,7 +15,7 @@
         gtag('config', 'G-K76PSKSSGX');
     </script>
     <meta charset="utf-8">
-    <title>最帅的资源信息限时分享站</title>
+    <title>YYeTs分享站</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
@@ -683,6 +683,7 @@
                             alert("发生错误！请清除浏览器缓存后重试")
                         }
                         var data = json.data;
+                        document.title = data.info.cnname + " " + data.info.enname;
                         var list = data.list;
                         //me.addSupprtTip(data.ad_rate)
                         if (Array.isArray(list)) {
