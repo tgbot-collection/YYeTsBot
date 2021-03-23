@@ -4,6 +4,9 @@
 
 [![codecov](https://codecov.io/gh/tgbot-collection/YYeTsBot/branch/master/graph/badge.svg?token=ZL1GCIF95D)](https://codecov.io/gh/tgbot-collection/YYeTsBot)
 
+**⚠️⚠️无法访问？自2021年3月22日起，本站已经被墙啦！至于怎么办，你懂的啦！看到右上角的搜索框了吗？**
+哦对了，家暴打你是不需要理由的，对不对？
+
 * 人人影视bot，[戳我使用](https://t.me/yyets_bot)
 
 * 人人影视分享站，[戳我使用](https://yyets.dmesg.app/)

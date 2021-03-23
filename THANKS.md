@@ -2,7 +2,17 @@
 
 Special thanks to these following supporters!
 
-
+* 爱发电用户_cm5C
+* gin
+* aska
+* TC
+* sanarry
+* alan444
+* Mount
+* 爱发电用户_3Mku
+* toupucai
+* Ztachi
+* 爱发电用户_mhRY
 * 企鹅仔
 * Charlie
 * wabaman
@@ -42,14 +52,6 @@ Special thanks to these following supporters!
 * lase_mary
 * Mia
 * 爱发电用户_Suq4
-* alyzq
-* 阮
-* 谢谢
-* 快播学长
-* ケーヤン パン
-* Someone
-* 人人影视ban'wo'cheng'zhang
-* yaofei yang
 
 以及所有点赞、赞助和分享的可爱的你们！
 
