@@ -4,8 +4,10 @@
 
 [![codecov](https://codecov.io/gh/tgbot-collection/YYeTsBot/branch/master/graph/badge.svg?token=ZL1GCIF95D)](https://codecov.io/gh/tgbot-collection/YYeTsBot)
 
-**⚠️⚠️无法访问？自2021年3月22日起，本站已经被墙啦！至于怎么办，你懂的啦！看到右上角的搜索框了吗？**
-哦对了，家暴打你是不需要理由的，对不对？
+**⚠️⚠️无法访问？自2021年3月22日起，本站间歇性地被墙啦！⬇️**
+
+🧱 <img src="https://gfw.dmesg.app/get?url=https://yyets.dmesg.app" width = "16" height = "16" alt="gfw status"/>
+
 
 * 人人影视bot，[戳我使用](https://t.me/yyets_bot)
 
