@@ -10,8 +10,9 @@ web/css/** linguist-vendored
 web/fonts/* linguist-vendored
 web/img/* linguist-vendored
 web/js/* linguist-vendored
-web/js/analytics.js -linguist-vendored
 web/404.html linguist-vendored
 web/resource.html linguist-vendored
+
+web/js/common.js -linguist-vendored
 
 tests/data/* linguist-vendored

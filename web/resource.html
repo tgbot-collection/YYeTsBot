@@ -204,7 +204,8 @@
         <div class="ui-limit">
             <div class="logo-wrapper">
                 <div class="logo"></div>
-                <div class="desc">资源分享站</div>
+                <div class="desc"><a href="/">资源分享站</a>
+                </div>
             </div>
             <div class="btn-group" role="group" aria-label="...">
 
@@ -214,7 +215,7 @@
 
             <div class="view-count">
 
-                <span class="desc"><i class="fa fa-home"></i><a href="index.html">返回首页</a> </span> &nbsp;
+                <span class="desc"><i class="fa fa-heart"></i><a id="fav" onclick="addFav()">添加收藏</a> </span> &nbsp;
                 <span class="desc"><i class="fa fa-eye"></i>访问量：</span>
                 <span class="count">{{ info.views }}</span>
             </div>
@@ -683,6 +684,10 @@
                             alert("发生错误！请清除浏览器缓存后重试")
                         }
                         var data = json.data;
+                        // like button
+                        let fav = document.getElementById("fav");
+                        fav.innerHTML = json.is_like ? "取消收藏" : "添加收藏"
+
                         document.title = data.info.cnname + " " + data.info.enname;
                         var list = data.list;
                         //me.addSupprtTip(data.ad_rate)
@@ -874,8 +879,41 @@
 
 </script>
 <script src="js/axios.min.js"></script>
-<script src="js/analytics.js"></script>
-<script>    accessMetrics("resource");
+<link href="css/noty.css" rel="stylesheet">
+<script src="js/noty.min.js"></script>
+<script src="js/common.js"></script>
+
+<script>
+    accessMetrics("resource");
+
+    function addFav() {
+        let resource_id = document.URL.split("id=")[1];
+
+        axios.patch('/api/user', {
+            resource_id: resource_id,
+        }).then(function (response) {
+            new Noty({
+                type: 'success',
+                layout: 'topRight',
+                theme: 'relax',
+                text: response.data,
+                timeout: 1500
+            }).show();
+            // change text to un fav
+            let fav = document.getElementById("fav")
+            fav.innerHTML = fav.innerHTML === "取消收藏" ? "添加收藏" : "取消收藏"
+
+
+        }).catch(function (error) {
+            new Noty({
+                type: 'error',
+                layout: 'topRight',
+                theme: 'relax',
+                text: "发生错误 " + error.response.data,
+                timeout: 1500
+            }).show();
+        });
+    }
 </script>
 </body>
 </html>

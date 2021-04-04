@@ -101,6 +101,8 @@
             color: green;
         }
     </style>
+
+
 </head>
 <body>
 <div class="centered">
@@ -142,9 +144,21 @@
         我的博客 <a class="footer" href="https://dmesg.app/">土豆不好吃</a>
     </h3>
 </div>
+<form method="post" style="display: none" id="login-form">
+    <label>
+        <input type="text" required="required" placeholder="用户名" name="username"/>
+    </label>
+    <label>
+        <input type="password" required="required" placeholder="密码" name="password"/>
+    </label>
+    <button class="but" type="submit" onclick="login()">登录</button>
+</form>
+
 </body>
 <script src="js/axios.min.js"></script>
-<script src="js/analytics.js"></script>
+<script src="js/common.js"></script>
+<link href="css/noty.css" rel="stylesheet">
+<script src="js/noty.min.js"></script>
 
 <script>
     accessMetrics("access");
@@ -152,9 +166,7 @@
     // get top
     axios.get('/api/top')
         .then(function (response) {
-            // handle success
             showTop(response.data)
-            // console.log(response.data);
         })
         .catch(function (error) {
             // handle error
@@ -197,11 +209,52 @@
                 divChild.innerHTML = html;
                 divChild = divChild.firstChild;
                 divParent.appendChild(divChild);
+
             }
 
         }
         document.getElementsByClassName("tab")[0].firstElementChild.className += " active"
         document.getElementById("ALL").style.display = "block"
+
+        let like = document.getElementById("LIKE");
+        let user_cookie = getCookie("username");
+        let login_form = document.getElementById("login-form");
+        if (user_cookie === "") {
+            like.innerHTML = "请登录，未注册用户将会自动注册<br><br>" + login_form.innerHTML + "<br>"
+        }
+
+    }
+
+    function login() {
+        let username = document.getElementsByName("username")[0].value
+        let password = document.getElementsByName("password")[0].value
+        axios.post('/api/user', {
+            username: username,
+            password: password
+        })
+            .then(function (response) {
+                let message = response.status === 201 ? "注册成功" : "登录成功"
+                new Noty({
+                    type: 'success',
+                    layout: 'topRight',
+                    theme: 'relax',
+                    text: message,
+                    timeout: 1500
+                }).show();
+                setTimeout(function () {
+                    location.reload();
+                }, 3000);
+            })
+            .catch(function (error) {
+                new Noty({
+                    type: 'error',
+                    layout: 'topRight',
+                    theme: 'relax',
+                    text: error.response.data,
+                    timeout: 1500
+                }).show();
+
+            });
     }
 
 
@@ -216,7 +269,6 @@
             tablinks[i].className = tablinks[i].className.replace(" active", "");
         }
         document.getElementById(cityName).style.display = "block";
-        console.log(evt)
         evt.currentTarget.className += " active";
     }
 

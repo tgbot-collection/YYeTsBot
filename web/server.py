@@ -14,6 +14,8 @@ import json
 import time
 from datetime import date, timedelta
 
+from passlib.hash import pbkdf2_sha256
+
 import redis
 import pymongo
 from http import HTTPStatus
@@ -135,6 +137,80 @@ class IndexHandler(BaseHandler):
         self.write(resp)
 
 
+class UserHandler(BaseHandler):
+    executor = ThreadPoolExecutor(10)
+
+    def set_login(self, username):
+        self.set_secure_cookie("username", username)
+
+    @run_on_executor()
+    def login_user(self):
+        data = json.loads(self.request.body)
+        username = data["username"]
+        password = data["password"]
+        data = self.mongo.db["users"].find_one({"username": username})
+        returned_value = ""
+        if data:
+            # try to login
+            stored_password = data["password"]
+            if pbkdf2_sha256.verify(password, stored_password):
+                self.set_status(HTTPStatus.OK)
+                self.set_login(username)
+            else:
+                self.set_status(HTTPStatus.FORBIDDEN)
+                returned_value = "用户名或密码错误"
+        else:
+            hash_value = pbkdf2_sha256.hash(password)
+            try:
+                self.mongo.db["users"].insert_one(dict(username=username, password=hash_value,
+                                                       date=time.asctime(),
+                                                       ip=self.request.remote_ip,
+                                                       browser=self.request.headers['user-agent']
+                                                       )
+                                                  )
+                self.set_login(username)
+                self.set_status(HTTPStatus.CREATED)
+            except Exception as e:
+                self.set_status(HTTPStatus.INTERNAL_SERVER_ERROR)
+                returned_value = str(e)
+
+        return returned_value
+
+    @run_on_executor()
+    def add_remove_fav(self):
+        data = json.loads(self.request.body)
+        resource_id = int(data["resource_id"])
+        username = self.get_secure_cookie("username")
+        if username:
+            username = username.decode('u8')
+            like_list: list = self.mongo.db["users"].find_one({"username": username}).get("like", [])
+            if resource_id in like_list:
+                returned_value = "已取消收藏"
+                like_list.remove(resource_id)
+            else:
+                self.set_status(HTTPStatus.CREATED)
+                like_list.append(resource_id)
+                returned_value = "已添加收藏"
+
+            value = dict(like=like_list)
+            self.mongo.db["users"].update_one({"username": username}, {'$set': value})
+        else:
+            returned_value = "请先登录"
+            self.set_status(HTTPStatus.UNAUTHORIZED)
+
+        return returned_value
+
+    @gen.coroutine
+    def post(self):
+        resp = yield self.login_user()
+        self.write(resp)
+
+    @gen.coroutine
+    def patch(self):
+        resp = yield self.add_remove_fav()
+        self.write(resp)
+
+
 class ResourceHandler(BaseHandler):
     executor = ThreadPoolExecutor(100)
 
@@ -168,7 +244,15 @@ class ResourceHandler(BaseHandler):
 
         if forbidden:
             self.set_status(HTTPStatus.FORBIDDEN)
-
+        # is fav?
+        username = self.get_secure_cookie("username")
+        if username:
+            username = username.decode('u8')
+            user_like_data = self.mongo.db["users"].find_one({"username": username})
+            if user_like_data and param in user_like_data.get("like", []):
+                data["is_like"] = True
+            else:
+                data["is_like"] = False
         return data
 
     @run_on_executor()
@@ -201,21 +285,32 @@ class ResourceHandler(BaseHandler):
 
 class TopHandler(BaseHandler):
     executor = ThreadPoolExecutor(100)
+    projection = {'_id': False, 'data.info': True}
+
+    def get_user_like(self) -> list:
+        username = self.get_secure_cookie("username")
+        if username:
+            like_list = self.mongo.db["users"].find_one({"username": username.decode('u8')}).get("like", [])
+
+            data = self.mongo.db["yyets"].find({"data.info.id": {"$in": like_list}}, self.projection) \
+                .sort("data.info.views", pymongo.DESCENDING)
+            return list(data)
+        return []
 
     @run_on_executor()
     def get_top_resource(self):
-        projection = {'_id': False,
-                      'data.info': True,
-                      }
 
         area_dict = dict(ALL={"$regex": ".*"}, US="美国", JP="日本", KR="韩国", UK="英国")
         all_data = {}
         for abbr, area in area_dict.items():
-            data = self.mongo.db["yyets"].find({"data.info.area": area}, projection).sort("data.info.views",
-                                                                                          pymongo.DESCENDING).limit(15)
+            data = self.mongo.db["yyets"].find({"data.info.area": area}, self.projection). \
+                sort("data.info.views", pymongo.DESCENDING).limit(15)
             all_data[abbr] = list(data)
 
         area_dict["ALL"] = "全部"
+        area_dict["LIKE"] = "收藏"
+        all_data["LIKE"] = self.get_user_like()
+
         all_data["class"] = area_dict
         return all_data
 
@@ -397,6 +492,7 @@ class RunServer:
     handlers = [
         (r'/api/resource', ResourceHandler),
         (r'/api/top', TopHandler),
+        (r'/api/user', UserHandler),
         (r'/api/name', NameHandler),
         (r'/api/metrics', MetricsHandler),
         (r'/api/grafana/', GrafanaIndexHandler),
@@ -407,8 +503,12 @@ class RunServer:
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip)', web.StaticFileHandler,
          {'path': static_path}),
     ]
+    settings = {
+        "cookie_secret": "eo2kcgpKwXj8Q3PKYj6nIL1J4j3b58DX"
+    }
 
-    application = web.Application(handlers, xheaders=True, default_handler_class=NotFoundHandler)
+    application = web.Application(handlers, xheaders=True, default_handler_class=NotFoundHandler,
+                                  **settings)
 
     @staticmethod
     def run_server(port, host, **kwargs):

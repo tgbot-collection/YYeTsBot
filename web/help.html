@@ -83,12 +83,18 @@
     1. 你的IP地址会被记录在Nginx的日志中。在面临攻击、爬虫等恶意行为时，我会找到这个IP然后加到防火墙中。我不会公开或与第三方分享访问日志；<br>
     2. 我使用了Google Analytics，请参考Google Analytics的隐私政策；<br>
     3. 我使用了Cloudflare，请参考Cloudflare的隐私政策。<br>
-    3. 我记录了metrics信息，用于优化日后访问量，此信息不包含个人信息，无法用于追踪你。可以<a href="/api/metrics">点击这里查看</a>。
+    4. 我记录了metrics信息，用于优化日后访问量，此信息不包含个人信息，无法用于追踪你。可以<a href="/api/metrics">点击这里查看</a>。
+    5. 如果你选择注册，我会保存你的用户名、加密后的密码、注册时间、UA等信息。此类信息不会被公开或与第三方分享。
      <h2>16. 数据库下载不了呀！</h2>
     那你试试这几个呢？
     <a href="/data/yyets_mongo.gz">MongoDB</a> 实时更新，无checksum<br>
     <a href="/data/yyets_mysql.zip">MySQL 5.7</a> aeee83e54e5de37df9392ab4f01eb9c43437f47d<br>
     <a href="/data/yyets_sqlite.zip">SQLite</a> 13a4635c6bd41b605a92d33a496bc563f5772652<br>
+
+    <h2>17. 注册需要提供什么？</h2>
+    呃，其实随便写个用户名密码就可以了，没有限制的哦。我使用了 pbkdf2_sha256 安全保存你的密码。
+    我知道这个功能太简陋了，比如说无法找回密码，很多很多。凑合用吧😂
+    哦对了，你的用户信息不会被包含在上述数据库之中。
     <br>
     <br>
     <button><a href="/">返回主页</a></button>

@@ -50,6 +50,9 @@ yyets_offline - 人人影视离线数据
 本网站永久免费，并且没有任何限制。
 ![](assets/2.png)
 
+支持收藏功能，会跨设备同步
+![](assets/like.png)
+
 ## 指定字幕组搜索
 
 目前只支持YYeTsOffline和ZimuxiaOnline
