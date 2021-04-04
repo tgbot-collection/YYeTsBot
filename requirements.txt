@@ -8,3 +8,4 @@ pymongo==3.11.2
 tornado==6.0.4
 cryptography==3.4.1
 redis==3.5.3
+passlib==1.7.4
