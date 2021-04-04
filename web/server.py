@@ -164,7 +164,7 @@ class UserHandler(BaseHandler):
             try:
                 self.mongo.db["users"].insert_one(dict(username=username, password=hash_value,
                                                        date=time.asctime(),
-                                                       ip=self.request.remote_ip,
+                                                       ip=self.request.headers.get("X-Real-IP"),
                                                        browser=self.request.headers['user-agent']
                                                        )
                                                   )
