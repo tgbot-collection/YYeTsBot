@@ -141,7 +141,7 @@ class UserHandler(BaseHandler):
     executor = ThreadPoolExecutor(10)
 
     def set_login(self, username):
-        self.set_secure_cookie("username", username)
+        self.set_secure_cookie("username", username, 365)
 
     @run_on_executor()
     def login_user(self):
@@ -504,7 +504,7 @@ class RunServer:
          {'path': static_path}),
     ]
     settings = {
-        "cookie_secret": "eo2kcgpKwXj8Q3PKYj6nIL1J4j3b58DX"
+        "cookie_secret": os.getenv("cookie_secret", "eo2kcgpKwXj8Q3PKYj6nIL1J4j3b58DX")
     }
 
     application = web.Application(handlers, xheaders=True, default_handler_class=NotFoundHandler,
