@@ -12,6 +12,8 @@ import contextlib
 import logging
 import json
 import time
+from urllib import request
+
 from datetime import date, timedelta
 
 from passlib.hash import pbkdf2_sha256
@@ -33,6 +35,8 @@ enable_pretty_logging()
 mongo_host = os.getenv("mongo") or "localhost"
 if os.getenv("debug"):
     logging.basicConfig(level=logging.DEBUG)
+
+escape.json_encode = lambda value: json.dumps(value, ensure_ascii=False)
 
 
 class Mongo:
@@ -217,6 +221,7 @@ class ResourceHandler(BaseHandler):
     @run_on_executor()
     def get_resource_data(self):
         forbidden = False
+        param = 0
         banner = AntiCrawler(self)
         if banner.execute():
             logging.warning("%s@%s make you happy:-(", self.request.headers.get("user-agent"),
@@ -246,7 +251,7 @@ class ResourceHandler(BaseHandler):
             self.set_status(HTTPStatus.FORBIDDEN)
         # is fav?
         username = self.get_secure_cookie("username")
-        if username:
+        if not forbidden and username:
             username = username.decode('u8')
             user_like_data = self.mongo.db["users"].find_one({"username": username})
             if user_like_data and param in user_like_data.get("like", []):
@@ -323,13 +328,8 @@ class TopHandler(BaseHandler):
 class NameHandler(BaseHandler):
     executor = ThreadPoolExecutor(100)
 
-    @staticmethod
-    def json_encode(value):
-        return json.dumps(value, ensure_ascii=False)
-
     @run_on_executor()
     def get_names(self):
-        escape.json_encode = self.json_encode
 
         if self.get_query_argument("human", None):
             aggregation = [
@@ -527,6 +527,24 @@ class RunServer:
 def reset_top():
     logging.info("resetting top...")
     m = Mongo()
+    # before resetting, save top data to history
+    r = request.urlopen("http://127.0.0.1:8888/api/top").read()
+    json_data = json.loads(r.decode('utf-8'))
+    # json_data = requests.get("http://127.0.0.1:8888/api/top").json()
+    last_month = time.strftime("%Y-%m", time.localtime(time.time() - 3600 * 24))
+    json_data["date"] = last_month
+    json_data["type"] = "top"
+    m.db["history"].insert_one(json_data)
+    # save all the views data to history
+    projection = {'_id': False, 'data.info.views': True, 'data.info.id': True}
+    data = m.db['yyets'].find({}, projection).sort("data.info.views", pymongo.DESCENDING)
+    result = {"date": last_month, "type": "detail"}
+    for datum in data:
+        rid = str(datum["data"]["info"]["id"])
+        views = datum["data"]["info"]["views"]
+        result[rid] = views
+    m.db["history"].insert_one(result)
+    # reset
     m.db["yyets"].update_many({}, {"$set": {"data.info.views": 0}})
 
 
