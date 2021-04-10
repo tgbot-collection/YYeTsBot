@@ -7,6 +7,8 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
+import time
+
 import PySimpleGUI as sg
 import json
 
@@ -40,7 +42,7 @@ dl = {
     "name": "",
     "size": "",
     "yyets_trans": 0,
-    "dateline": "1565351112",
+    "dateline": str(int(time.time())),
     "files": [
         {
             "way": "1",
@@ -95,7 +97,7 @@ def get_value():
     }
 
     complete["data"]["info"] = info_structure
-    complete["data"]["list"][0]["items"] = {"MP4":[item_structure]}
+    complete["data"]["list"][0]["items"] = item_structure
 
     with open("sample.json", "w") as f:
         json.dump(complete, f, indent=4, ensure_ascii=False)
