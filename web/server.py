@@ -504,15 +504,14 @@ class RunServer:
          {'path': static_path}),
     ]
     settings = {
-        "cookie_secret": os.getenv("cookie_secret", "eo2kcgpKwXj8Q3PKYj6nIL1J4j3b58DX")
+        "cookie_secret": os.getenv("cookie_secret", "eo2kcgpKwXj8Q3PKYj6nIL1J4j3b58DX"),
+        "default_handler_class": NotFoundHandler
     }
-
-    application = web.Application(handlers, xheaders=True, default_handler_class=NotFoundHandler,
-                                  **settings)
+    application = web.Application(handlers, **settings)
 
     @staticmethod
-    def run_server(port, host, **kwargs):
-        tornado_server = httpserver.HTTPServer(RunServer.application, **kwargs)
+    def run_server(port, host):
+        tornado_server = httpserver.HTTPServer(RunServer.application, xheaders=True)
         tornado_server.bind(port, host)
         tornado_server.start(0)
 
