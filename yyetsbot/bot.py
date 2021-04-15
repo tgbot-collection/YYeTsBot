@@ -10,16 +10,14 @@ import re
 import logging
 import json
 import tempfile
-
 from urllib.parse import quote_plus
 
 import telebot
+from apscheduler.schedulers.background import BackgroundScheduler
 from telebot import types, apihelper
 from tgbot_ping import get_runtime
-from apscheduler.schedulers.background import BackgroundScheduler
 
 import fansub
-
 from utils import (save_error_dump, get_error_dump, reset_request,
                    today_request, show_usage, redis_announcement
                    )
@@ -181,7 +179,7 @@ def send_my_response(message):
 def send_search(message):
     # normal ordered search
     if message.text in ("Voice Chat started", "Voice Chat ended"):
-        logging.warning("This is really funny %s",message.text)
+        logging.warning("This is really funny %s", message.text)
         return
     base_send_search(message)
 
