@@ -324,9 +324,9 @@ class TopHandler(BaseHandler):
 
         area_dict["ALL"] = "全部"
         area_dict["LIKE"] = "收藏"
-        area_dict["MOST"] = "最爱"
+        # area_dict["MOST"] = "最爱"
         all_data["LIKE"] = self.get_user_like()
-        all_data["MOST"] = self.get_most()
+        # all_data["MOST"] = self.get_most()
 
         all_data["class"] = area_dict
         return all_data
