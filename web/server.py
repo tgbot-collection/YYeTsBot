@@ -16,6 +16,7 @@ from urllib import request
 from datetime import date, timedelta
 from http import HTTPStatus
 from concurrent.futures import ThreadPoolExecutor
+from hashlib import sha1
 
 import redis
 import pymongo
@@ -498,6 +499,42 @@ class NotFoundHandler(BaseHandler):
         self.render("404.html")
 
 
+class HelpHandler(BaseHandler):
+    def file_info(self, file_path) -> dict:
+        result = {}
+        if iter(file_path):
+            for fp in file_path:
+                try:
+                    checksum = self.checksum(fp)
+                    date = self.ts_date(os.stat(fp).st_ctime)
+                    result[fp] = [checksum, date]
+                except Exception as e:
+                    result[fp] = str(e), ""
+        return result
+
+    @staticmethod
+    def ts_date(ts):
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts))
+
+    @staticmethod
+    def checksum(file_path) -> str:
+        sha = sha1()
+        try:
+            with open(file_path, "rb") as f:
+                sha.update(f.read())
+                checksum = sha.hexdigest()
+        except Exception as e:
+            checksum = str(e)
+
+        return checksum
+
+    def get(self):
+        live = "data/yyets_mongo.gz"
+        mysql = "data/yyets_mysql.zip"
+        sqlite = "data/yyets_sqlite.zip"
+        self.render("help.html", data=self.file_info((live, mysql, sqlite)))
+
+
 class RunServer:
     root_path = os.path.dirname(__file__)
     static_path = os.path.join(root_path, '')
@@ -511,6 +548,7 @@ class RunServer:
         (r'/api/grafana/search', GrafanaSearchHandler),
         (r'/api/grafana/query', GrafanaQueryHandler),
         (r'/api/blacklist', BlacklistHandler),
+        (r'/help.html', HelpHandler),
         (r'/', IndexHandler),
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip)', web.StaticFileHandler,
          {'path': static_path}),

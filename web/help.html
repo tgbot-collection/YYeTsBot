@@ -31,6 +31,7 @@
         a {
             text-decoration: none;
         }
+
         .footer {
             text-decoration: none;
             color: green;
@@ -86,11 +87,17 @@
     4. 我记录了metrics信息，用于优化日后访问量，此信息不包含个人信息，无法用于追踪你。可以<a href="/api/metrics">点击这里查看</a>。
     5. 如果你选择注册，我会保存你的用户名、加密后的密码、注册时间、UA等信息。此类信息不会被公开或与第三方分享。
     6. 如果你选择收藏某些资源，那么日后可能用于统计排行榜，这项信息不会包含你的个人信息。毕竟，大家都喜欢，那才是最棒的嘛！
-     <h2>16. 数据库下载不了呀！</h2>
-    那你试试这几个呢？
-    <a href="/data/yyets_mongo.gz">MongoDB</a> 实时更新，无checksum<br>
-    <a href="/data/yyets_mysql.zip">MySQL 5.7</a> aeee83e54e5de37df9392ab4f01eb9c43437f47d<br>
-    <a href="/data/yyets_sqlite.zip">SQLite</a> 13a4635c6bd41b605a92d33a496bc563f5772652<br>
+    <h2>16. 数据库下载不了呀！</h2>
+    那你试试这几个呢？sha1 checksum供参考<br>
+    <a href="/data/yyets_mongo.gz">MongoDB</a>
+    <abbr title='最后更新于{{ data["data/yyets_mongo.gz"][1] }}'>{{ data["data/yyets_mongo.gz"][0] }}</abbr>
+    <br>
+    <a href="/data/yyets_mysql.zip">MySQL 5.7</a>
+    <abbr title='最后更新于{{ data["data/yyets_mysql.zip"][1] }}'>{{ data["data/yyets_mongo.gz"][0] }}</abbr>
+    <br>
+    <a href="/data/yyets_sqlite.zip">SQLite</a>
+    <abbr title='最后更新于{{ data["data/yyets_sqlite.zip"][1] }}'>{{ data["data/yyets_mongo.gz"][0] }}</abbr>
+    <br>
 
     <h2>17. 注册需要提供什么？</h2>
     呃，其实随便写个用户名密码就可以了，没有限制的哦。我使用了 pbkdf2_sha256 安全保存你的密码。
@@ -104,7 +111,7 @@
     <hr>
     <h2>相关资源⬇️</h2>
     <h3>
-        联系我 <a class="footer"  href="https://t.me/BennyThink">Benny 小可爱</a>・
+        联系我 <a class="footer" href="https://t.me/BennyThink">Benny 小可爱</a>・
         YYeTs 机器人<a class="footer" href="https://t.me/yyets_bot">Telegram Bot</a>・
         Telegram <a class="footer" href="https://t.me/mikuri520">Channel</a>・
         开源 <a class="footer" href="https://github.com/tgbot-collection/YYeTsBot">GitHub</a>・
