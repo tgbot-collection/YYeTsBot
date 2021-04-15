@@ -300,6 +300,18 @@ class TopHandler(BaseHandler):
             return list(data)
         return []
 
+    def get_most(self):
+        projection = {"_id": False, "like": True}
+        data = self.mongo.db['users'].find({}, projection)
+        most_like = {}
+        for item in data:
+            for _id in item.get("like", []):
+                most_like[_id] = most_like.get(_id, 0) + 1
+        most = sorted(most_like, key=most_like.get)
+        most.reverse()
+        most_like_data = self.mongo.db["yyets"].find({"data.info.id": {"$in": most}}, self.projection).limit(15)
+        return list(most_like_data)
+
     @run_on_executor()
     def get_top_resource(self):
 
@@ -312,7 +324,9 @@ class TopHandler(BaseHandler):
 
         area_dict["ALL"] = "全部"
         area_dict["LIKE"] = "收藏"
+        area_dict["MOST"] = "最爱"
         all_data["LIKE"] = self.get_user_like()
+        all_data["MOST"] = self.get_most()
 
         all_data["class"] = area_dict
         return all_data
