@@ -733,7 +733,10 @@
                             //console.timeEnd('test')
                         });
                         SHARE.TimeOut($('.timeout'), Date.parse(new Date()) / 1000 + 723964);
-                    });
+                    }).fail(function (err) {
+                            alert("请求失败 " + err.responseText)
+                        }
+                    );
 
                 }
             }

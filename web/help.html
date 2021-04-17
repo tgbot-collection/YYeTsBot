@@ -75,7 +75,7 @@
     <h2>12. 其他的使用方式</h2>
     还有一个Telegram Bot，数据和这个网站是同步的。参考页脚
     <h2>13. 可以商业化这个项目吗</h2>
-    有一点需要先声明，我不会进行如加入会员制度等商业化行为。所有用户等捐赠是自发性的，不具有强制性的特征。<br>
+    有一点需要先声明，我不会进行如加入会员制度等商业化行为。所有用户等捐赠是自发性并且不具有强制性。<br>
     本项目使用MIT协议授权，因此你可以进行商业化，以任意形式进行分发、修改以及私有使用。你只要保持保持版权声明就可以了。
     <h2>14. 网站打不开，无法搜索</h2>
     呃这个应该不太可能啊。可能你网络连接到cloudflare不太稳？换个网络，再刷新试试看呢？还不行去GitHub报错给我吧。
@@ -84,24 +84,24 @@
     1. 你的IP地址会被记录在Nginx的日志中。在面临攻击、爬虫等恶意行为时，我会找到这个IP然后加到防火墙中。我不会公开或与第三方分享访问日志；<br>
     2. 我使用了Google Analytics，请参考Google Analytics的隐私政策；<br>
     3. 我使用了Cloudflare，请参考Cloudflare的隐私政策。<br>
-    4. 我记录了metrics信息，用于优化日后访问量，此信息不包含个人信息，无法用于追踪你。可以<a href="/api/metrics">点击这里查看</a>。
-    5. 如果你选择注册，我会保存你的用户名、加密后的密码、注册时间、UA等信息。此类信息不会被公开或与第三方分享。
+    4. 我记录了metrics信息，用于优化日后访问量，此信息不包含个人信息，无法用于追踪你。可以<a href="/api/metrics">点击这里查看</a>。<br>
+    5. 如果你选择注册，我会保存你的用户名、加密后的密码、注册时间、UA等信息。此类信息不会被公开或与第三方分享。<br>
     6. 如果你选择收藏某些资源，那么日后可能用于统计排行榜，这项信息不会包含你的个人信息。毕竟，大家都喜欢，那才是最棒的嘛！
     <h2>16. 数据库下载不了呀！</h2>
     那你试试这几个呢？sha1 checksum供参考<br>
     <a href="/data/yyets_mongo.gz">MongoDB</a>
-    <abbr title='最后更新于{{ data["data/yyets_mongo.gz"][1] }}'>{{ data["data/yyets_mongo.gz"][0] }}</abbr>
+    {{ data["data/yyets_mongo.gz"][0] }} 更新时间{{ data["data/yyets_mongo.gz"][1] }}
     <br>
     <a href="/data/yyets_mysql.zip">MySQL 5.7</a>
-    <abbr title='最后更新于{{ data["data/yyets_mysql.zip"][1] }}'>{{ data["data/yyets_mongo.gz"][0] }}</abbr>
+    {{ data["data/yyets_mongo.gz"][0] }} 更新时间{{ data["data/yyets_mysql.zip"][1] }}
     <br>
     <a href="/data/yyets_sqlite.zip">SQLite</a>
-    <abbr title='最后更新于{{ data["data/yyets_sqlite.zip"][1] }}'>{{ data["data/yyets_mongo.gz"][0] }}</abbr>
+    {{ data["data/yyets_mongo.gz"][0] }} 更新时间{{ data["data/yyets_sqlite.zip"][1] }}
     <br>
 
     <h2>17. 注册需要提供什么？</h2>
-    呃，其实随便写个用户名密码就可以了，没有限制的哦。我使用了 pbkdf2_sha256 安全保存你的密码。
-    我知道这个功能太简陋了，比如说无法找回密码，很多很多。凑合用吧😂
+    呃，其实随便写个用户名密码就可以了，没有限制的哦。我使用了 pbkdf2_sha256 安全保存你的密码。<br>
+    我知道这个功能太简陋了，比如说无法找回密码，很多很多。凑合用吧😂<br>
     哦对了，你的用户信息不会被包含在上述数据库之中。
     <br>
     <br>

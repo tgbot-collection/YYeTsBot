@@ -40,7 +40,8 @@ escape.json_encode = lambda value: json.dumps(value, ensure_ascii=False)
 
 class Mongo:
     def __init__(self):
-        self.client = pymongo.MongoClient(host=mongo_host, connect=False)
+        self.client = pymongo.MongoClient(host=mongo_host, connect=False,
+                                          connectTimeoutMS=5000, serverSelectionTimeoutMS=5000)
         self.db = self.client["zimuzu"]
 
     def __del__(self):
@@ -57,6 +58,13 @@ class Redis:
 
 class BaseHandler(web.RequestHandler):
     mongo = Mongo()
+
+    def write_error(self, status_code, **kwargs):
+        if status_code in [HTTPStatus.FORBIDDEN,
+                           HTTPStatus.INTERNAL_SERVER_ERROR,
+                           HTTPStatus.UNAUTHORIZED,
+                           HTTPStatus.NOT_FOUND]:
+            self.write(str(kwargs.get('exc_info')))
 
     def data_received(self, chunk):
         pass
@@ -243,7 +251,7 @@ class ResourceHandler(BaseHandler):
             # not found, dangerous
             ip = banner.get_real_ip()
             banner.imprisonment(ip)
-            self.set_status(404)
+            self.set_status(HTTPStatus.NOT_FOUND)
             data = {}
 
         if forbidden:
@@ -324,8 +332,8 @@ class TopHandler(BaseHandler):
             all_data[abbr] = list(data)
 
         area_dict["ALL"] = "全部"
-        area_dict["LIKE"] = "收藏"
-        # area_dict["MOST"] = "最爱"
+        area_dict["LIKE"] = "我的"
+        # area_dict["MOST"] = "最多收藏"
         all_data["LIKE"] = self.get_user_like()
         # all_data["MOST"] = self.get_most()
 
