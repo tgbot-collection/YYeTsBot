@@ -17,13 +17,15 @@
 # 网站开发手册
 
 ## 接口列表
-
 * `/api/resource?id=3` GET 获取id=3的资源
 * `/api/resource?kw=逃避` GET 搜索关键词
 * `/api/top` GET 获取大家都在看
 * `/api/name` GET 所有剧集名字
 * `/api/name?human=1` GET 人类可读的方式获取所有剧集名字
 * `/api/metrics` GET 获取网站访问量
+* `/api/user` POST登录，PATCH添加/取消收藏
+* `/api/grafana` grafana相关接口
+* `/api/blacklist` 黑名单信息
 
 ## 防爬
 
