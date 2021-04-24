@@ -18,7 +18,7 @@
 2. 运行 `python prepare/convert_db.py`
 
 ## 方法2:使用我的导出
-参考 README.md
+参考 [这里](https://yyets.dmesg.app/help.html)
 # 运行
 
 `python server.py`
