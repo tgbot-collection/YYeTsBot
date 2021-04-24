@@ -216,9 +216,9 @@ class YYeTsOffline(YYeTsBase):
         projection = {'_id': False, 'data.info': True}
         data = self.collection.find({
             "$or": [
-                {"data.info.cnname": {'$regex': f'.*{search_text}.*'}},
-                {"data.info.enname": {'$regex': f'.*{search_text}.*'}},
-                {"data.info.aliasname": {'$regex': f'.*{search_text}.*'}},
+                {"data.info.cnname": {"$regex": f".*{search_text}.*", "$options": "-i"}},
+                {"data.info.enname": {"$regex": f".*{search_text}.*", "$options": "-i"}},
+                {"data.info.aliasname": {"$regex": f".*{search_text}.*", "$options": "-i"}},
             ]},
             projection
         )
