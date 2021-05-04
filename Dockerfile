@@ -19,4 +19,4 @@ RUN apk update && apk add --no-cache libressl
 
 ENV TZ=Asia/Shanghai
 WORKDIR /YYeTsBot/yyetsbot
-CMD ["python", "bot.py"]
+CMD ["python", "yyetsbot.py"]

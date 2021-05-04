@@ -14,7 +14,7 @@ from unittest import mock
 from telebot.types import Message
 
 sys.path.append("../yyetsbot")
-import bot as mybot
+import yyetsbot as mybot
 
 
 @mock.patch("bot.bot")
