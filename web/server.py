@@ -11,7 +11,12 @@ import os
 import contextlib
 import logging
 import json
+import re
 import time
+import string
+import random
+import base64
+
 from urllib import request
 from datetime import date, timedelta
 from http import HTTPStatus
@@ -26,6 +31,7 @@ from tornado import web, ioloop, httpserver, gen, options, escape
 from tornado.log import enable_pretty_logging
 from tornado.concurrent import run_on_executor
 from passlib.hash import pbkdf2_sha256
+from captcha.image import ImageCaptcha
 
 from crypto import decrypt
 
@@ -36,6 +42,7 @@ if os.getenv("debug"):
     logging.basicConfig(level=logging.DEBUG)
 
 escape.json_encode = lambda value: json.dumps(value, ensure_ascii=False)
+predefined_str = re.sub(r"[1l0oOI]", "", string.ascii_letters + string.digits)
 
 
 class Mongo:
@@ -58,6 +65,7 @@ class Redis:
 
 class BaseHandler(web.RequestHandler):
     mongo = Mongo()
+    redis = Redis()
 
     def write_error(self, status_code, **kwargs):
         if status_code in [HTTPStatus.FORBIDDEN,
@@ -175,7 +183,7 @@ class UserHandler(BaseHandler):
             try:
                 self.mongo.db["users"].insert_one(dict(username=username, password=hash_value,
                                                        date=time.asctime(),
-                                                       ip=self.request.headers.get("X-Real-IP"),
+                                                       ip=(AntiCrawler(self).get_real_ip()),
                                                        browser=self.request.headers['user-agent']
                                                        )
                                                   )
@@ -394,6 +402,118 @@ class NameHandler(BaseHandler):
         self.write(resp)
 
 
+class CommentHandler(BaseHandler):
+    executor = ThreadPoolExecutor(100)
+
+    @run_on_executor()
+    def get_comment(self):
+        resource_id = int(self.get_argument("resource_id", "0"))
+        size = int(self.get_argument("size", "5"))
+        page = int(self.get_argument("page", "1"))
+        if not resource_id:
+            self.set_status(HTTPStatus.BAD_REQUEST)
+            return {"status": False, "message": "请提供resource id"}
+        # page 1 size 5 - latest, latest-page*size+1
+        count = self.mongo.db["comment"].count_documents({"resource_id": resource_id})
+        if page == 1:
+            start = count
+        else:
+            start = count - (page - 1) * size
+        filter_range = list(range(start, count - page * size, -1))
+        data = self.mongo.db["comment"].find(
+            {"resource_id": resource_id, "id": {"$in": filter_range}},
+            projection={"_id": False, "ip": False, "browser": False}
+        ).sort("id", pymongo.DESCENDING)
+
+        return {
+            "data": list(data),
+            "count": count,
+            "resource_id": resource_id
+        }
+
+    @run_on_executor()
+    def add_comment(self):
+        payload = json.loads(self.request.body)
+        captcha = payload["captcha"]
+        captcha_id = payload["id"]
+        content = payload["content"]
+        resource_id = payload["resource_id"]
+
+        result = CaptchaHandler.verify_code(captcha_id, captcha)
+        real_ip = AntiCrawler(self).get_real_ip()
+        username = self.get_secure_cookie("username")
+        exists = self.mongo.db["yyets"].find_one({"data.info.id": resource_id})
+
+        if not result["status"]:
+            self.set_status(HTTPStatus.BAD_REQUEST)
+            return result
+        if not exists:
+            self.set_status(HTTPStatus.NOT_FOUND)
+            return {"status": False, "message": "资源不存在"}
+        if not username:
+            self.set_status(HTTPStatus.UNAUTHORIZED)
+            return {"status": False, "message": "请先登录再评论"}
+
+        # one comment one document
+        newest = self.mongo.db["comment"].find({"resource_id": resource_id}).sort("id", pymongo.DESCENDING)
+        newest = list(newest)
+        new_id = newest[0]["id"] + 1 if newest else 1
+
+        construct = {
+            "username": username.decode("u8"),
+            "ip": real_ip,
+            "date": time.asctime(),
+            "browser": self.request.headers['user-agent'],
+            "content": content,
+            "id": new_id,
+            "resource_id": resource_id
+        }
+        self.mongo.db["comment"].insert_one(construct)
+        self.set_status(HTTPStatus.CREATED)
+        return {"message": "评论成功"}
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_comment()
+        self.write(resp)
+
+    @gen.coroutine
+    def post(self):
+        resp = yield self.add_comment()
+        self.write(resp)
+
+
+class CaptchaHandler(BaseHandler):
+    executor = ThreadPoolExecutor(10)
+
+    @run_on_executor()
+    def get_captcha(self):
+        request_id = self.get_argument("id", None)
+        if request_id is None:
+            self.set_status(HTTPStatus.BAD_REQUEST)
+            return "Please supply id parameter."
+        chars = "".join([random.choice(predefined_str) for _ in range(4)])
+        image = ImageCaptcha()
+        data = image.generate(chars)
+        self.redis.r.set(request_id, chars, ex=60 * 10)
+        return f"data:image/png;base64,{base64.b64encode(data.getvalue()).decode('ascii')}"
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_captcha()
+        self.write(resp)
+
+    @classmethod
+    def verify_code(cls, request_id, user_input):
+        correct_code = cls.redis.r.get(request_id)
+        if not correct_code:
+            return {"status": False, "message": "验证码已过期"}
+        if user_input == correct_code:
+            return {"status": True, "message": "验证通过"}
+        else:
+            return {"status": False, "message": "验证码错误"}
+
+
 class MetricsHandler(BaseHandler):
     executor = ThreadPoolExecutor(100)
 
@@ -551,6 +671,8 @@ class RunServer:
         (r'/api/top', TopHandler),
         (r'/api/user', UserHandler),
         (r'/api/name', NameHandler),
+        (r'/api/comment', CommentHandler),
+        (r'/api/captcha', CaptchaHandler),
         (r'/api/metrics', MetricsHandler),
         (r'/api/grafana/', GrafanaIndexHandler),
         (r'/api/grafana/search', GrafanaSearchHandler),

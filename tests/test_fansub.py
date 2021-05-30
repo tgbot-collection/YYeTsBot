@@ -8,7 +8,7 @@ import requests_mock
 from unittest import mock
 
 sys.path.append("../yyetsbot")
-import bot as _
+import yyetsbot as _
 
 from fansub import BaseFansub, YYeTsOnline, YYeTsOffline
 

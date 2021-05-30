@@ -14,10 +14,10 @@ from unittest import mock
 from telebot.types import Message
 
 sys.path.append("../yyetsbot")
-import yyetsbot as mybot
+import yyetsbot
 
 
-@mock.patch("bot.bot")
+@mock.patch("yyetsbot.bot")
 class TestStartHandler(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -29,7 +29,7 @@ class TestStartHandler(unittest.TestCase):
         pass
 
     def test_start(self, b):
-        mybot.send_welcome(self.message)
+        yyetsbot.send_welcome(self.message)
         self.assertEqual(1, b.send_message.call_count)
         self.assertEqual(1, b.send_chat_action.call_count)
         self.assertEqual(self.message.chat.id, b.send_message.call_args.args[0])

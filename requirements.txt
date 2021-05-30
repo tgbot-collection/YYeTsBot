@@ -7,6 +7,7 @@ apscheduler==3.6.3
 pymongo==3.11.2
 tornado==6.0.4
 redis==3.5.3
+captcha==0.3
 
 passlib==1.7.4
 cryptography==3.4.7

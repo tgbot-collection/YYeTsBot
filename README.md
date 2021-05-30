@@ -4,17 +4,11 @@
 
 [![codecov](https://codecov.io/gh/tgbot-collection/YYeTsBot/branch/master/graph/badge.svg?token=ZL1GCIF95D)](https://codecov.io/gh/tgbot-collection/YYeTsBot)
 
-**⚠️⚠️无法访问？自2021年3月22日起，本站间歇性地被墙啦！⬇️**
-
-🧱 <img src="https://gfw.dmesg.app/get?url=https://yyets.dmesg.app" width = "16" height = "16" alt="gfw status"/>
-
-
 * 人人影视bot，[戳我使用](https://t.me/yyets_bot)
 
 * 人人影视分享站，[戳我使用](https://yyets.dmesg.app/)
 
 机器人和网站由我长期维护，如果遇到问题可以提issue。
-
 
 # 使用说明
 
@@ -94,7 +88,7 @@ yyets_offline - 人人影视离线数据
 * 捐助我，[爱发电？](https://afdian.net/@BennyThink)
 
 # 感谢
-[Thanks](THANKS.md)
+感谢所有支持本项目的人！
 
 # License
 [MIT](LICENSE)
