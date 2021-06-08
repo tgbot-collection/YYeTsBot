@@ -10,4 +10,3 @@ redis==3.5.3
 captcha==0.3
 
 passlib==1.7.4
-cryptography==3.4.7

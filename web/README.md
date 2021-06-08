@@ -7,7 +7,6 @@
 * tornado
 * mongodb
 * pymongo
-* cryptography
 
 # 导入数据
 

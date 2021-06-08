@@ -33,7 +33,6 @@ from tornado.concurrent import run_on_executor
 from passlib.hash import pbkdf2_sha256
 from captcha.image import ImageCaptcha
 
-from crypto import decrypt
 
 enable_pretty_logging()
 
@@ -85,30 +84,21 @@ class AntiCrawler:
         self.redis = Redis()
 
     def execute(self) -> bool:
-
         header_result = self.header_check()
         ban_check = self.ban_check()
         if header_result or ban_check:
             return True
 
     def header_check(self):
-        cypher_text = self.tornado.request.headers.get("ne1", "")
         referer = self.tornado.request.headers.get("Referer")
-        param = self.tornado.get_query_argument("id")
+        resource_id = self.tornado.get_query_argument("id")
         uri = self.tornado.request.uri
-        logging.info("Verifying: Referer:[%s] ct:[%s], uri:[%s], id:[%s]", referer, cypher_text, uri, param)
-
-        if (referer is None) or (param not in referer):
+        logging.info("Verifying: Referer:[%s] uri:[%s]", referer, uri)
+        if referer is None:
             return True
-
-        try:
-            passphrase = param
-            result = decrypt(cypher_text, passphrase).decode('u8')
-        except Exception:
-            logging.error("Decrypt failed")
-            result = ""
-
-        if result != self.tornado.request.uri:
+        if resource_id not in uri:
+            return True
+        if resource_id not in referer:
             return True
 
     def ban_check(self):
