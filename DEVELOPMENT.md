@@ -13,11 +13,10 @@
 # 启动数据库
 docker-compose up -d mongo
 # 导入数据库
-docker cp db.tgz 1234da:/tmp
+docker yyets_mongo.gz 1234da:/tmp
 # 进入容器
 docker-compose exec mongo bash
-tar xf db.tgz
-mongorestore
+mongorestore --gzip --archive=/tmp/yyets_mongo.gz
 exit
 # 开启服务
 docker-compose up -d
