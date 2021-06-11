@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
     environment:
       - mongo=mongo
-    working_dir: /YYeTsBot/web/
+    working_dir: /YYeTsBot/yyetsweb/
     command: [ "python3","server.py","-h=0.0.0.0" ]
     ports:
       - 0.0.0.0:8888:8888

@@ -115,7 +115,7 @@ venv.bak/
 yyetsbot/data/
 health_check/client.session
 
-/worker/.idea/
-/worker/workers-site/node_modules/*
-/worker/workers-site/worker/script.js
+/tools/worker/.idea/
+/tools/worker/workers-site/node_modules/*
+/tools/worker/workers-site/worker/script.js
 /health_check/client-hc.session

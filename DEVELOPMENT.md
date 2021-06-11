@@ -7,7 +7,7 @@
 * 参见 [这里](https://github.com/tgbot-collection/BotsRunner)
 * 本目录下的 `docker-compose.yml` 也可以作为参考
 * nginx reverse proxy可以[参考这里](https://github.com/BennyThink/WebsiteRunner)
-* [参考这里获取数据库](web/README.md)
+* [参考这里获取数据库](yyetsweb/README.md)
 
 ```shell
 # 启动数据库
@@ -93,11 +93,7 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 
 网站使用referer验证请求
 
-### 2. 加密headers
-
-使用headers `ne1` 进行加密验证，详细信息可以[参考这里](https://t.me/mikuri520/726)
-
-### 3. rate limit
+### 2. rate limit
 
 404的访问会被计数，超过10次会被拉入黑名单，持续3600秒，再次访问会持续叠加。
 
@@ -162,7 +158,7 @@ API 返回字符串，形如 `data:image/png;base64,iVBORw0KGgoAAA....`
 POST `/api/comments`
 只有登录用户才可以发表评论，检查cookie `username` 是否为空来判断是否为登录用户；未登录用户提示“请登录后发表评论”
 
-body `resource_id` 从URL中获取，id是上一步验证码的那个id， `captcha` 是用户输入的验证码
+body `resource_id` 从URL中获取，id是上一步验证码的那个随机字符串id， `captcha` 是用户输入的验证码
 ```json
 {
     "resource_id": 39301,
@@ -178,4 +174,24 @@ body `resource_id` 从URL中获取，id是上一步验证码的那个id， `capt
 {
     "message": "评论成功/评论失败/etc"
 }
+```
+
+# 获取备份数据库信息
+GET `http://127.0.0.1:8888/api/db_dump`
+```json
+{
+    "yyets_mongo.gz": {
+        "checksum": "b32e9d8e24c607a9f29889a926c15179d9179791",
+        "date": "2021-04-15 22:11:08"
+    },
+    "yyets_mysql.zip": {
+        "checksum": "6b24ae7cb7cef42951f7e2df183f0825512029e0",
+        "date": "2021-04-15 22:11:08"
+    },
+    "yyets_sqlite.zip": {
+        "checksum": "7e1659ab5cbc98b21155c3debce3015c39f1ec05",
+        "date": "2021-04-15 22:11:08"
+    }
+}
+
 ```

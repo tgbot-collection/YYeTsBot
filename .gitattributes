@@ -1,18 +1,18 @@
-worker/public/css/** linguist-vendored
-worker/public/fonts/* linguist-vendored
-worker/public/img/* linguist-vendored
-worker/public/js/* linguist-vendored
-worker/public/js/search.js -linguist-vendored
-worker/public/404.html linguist-vendored
-worker/public/resource.html linguist-vendored
+tools/worker/public/css/** linguist-vendored
+tools/worker/public/fonts/* linguist-vendored
+tools/worker/public/img/* linguist-vendored
+tools/worker/public/js/* linguist-vendored
+tools/worker/public/js/search.js -linguist-vendored
+tools/worker/public/404.html linguist-vendored
+tools/worker/public/resource.html linguist-vendored
 
-web/css/** linguist-vendored
-web/fonts/* linguist-vendored
-web/img/* linguist-vendored
-web/js/* linguist-vendored
-web/404.html linguist-vendored
-web/resource.html linguist-vendored
+yyetsweb/css/** linguist-vendored
+yyetsweb/fonts/* linguist-vendored
+yyetsweb/img/* linguist-vendored
+yyetsweb/js/* linguist-vendored
+yyetsweb/404.html linguist-vendored
+yyetsweb/resource.html linguist-vendored
 
-web/js/common.js -linguist-vendored
+yyetsweb/js/common.js -linguist-vendored
 
 tests/data/* linguist-vendored

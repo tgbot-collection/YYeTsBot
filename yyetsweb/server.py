@@ -33,7 +33,6 @@ from tornado.concurrent import run_on_executor
 from passlib.hash import pbkdf2_sha256
 from captcha.image import ImageCaptcha
 
-
 enable_pretty_logging()
 
 mongo_host = os.getenv("mongo") or "localhost"
@@ -653,6 +652,29 @@ class HelpHandler(BaseHandler):
         self.render("help.html", data=self.file_info((live, mysql, sqlite)))
 
 
+class DBDumpHandler(HelpHandler):
+    executor = ThreadPoolExecutor(10)
+
+    @run_on_executor()
+    def get_hash(self):
+        file_list = ["data/yyets_mongo.gz", "data/yyets_mysql.zip", "data/yyets_sqlite.zip"]
+        result = {}
+        data = self.file_info(file_list)
+        for file, value in data.items():
+            filename = os.path.basename(file)
+            result[filename] = {
+                "checksum": value[0],
+                "date": value[1]
+            }
+
+        return result
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_hash()
+        self.write(resp)
+
+
 class RunServer:
     root_path = os.path.dirname(__file__)
     static_path = os.path.join(root_path, '')
@@ -669,6 +691,7 @@ class RunServer:
         (r'/api/grafana/query', GrafanaQueryHandler),
         (r'/api/blacklist', BlacklistHandler),
         (r'/help.html', HelpHandler),
+        (r'/api/db_dump', DBDumpHandler),
         (r'/', IndexHandler),
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip)', web.StaticFileHandler,
          {'path': static_path}),
