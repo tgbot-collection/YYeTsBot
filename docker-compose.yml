@@ -11,7 +11,7 @@ services:
     image: mongo
     restart: always
     volumes:
-      - ./data/mongodb:/data/db
+      - ./mongo_data/mongodb:/data/db
     logging:
       driver: none
 
@@ -32,7 +32,7 @@ services:
     ports:
       - 0.0.0.0:8888:8888
 
-  yyets:
+  yyets-bot:
     image: bennythink/yyetsbot
     depends_on:
       - redis
@@ -41,3 +41,17 @@ services:
     restart: on-failure
     env_file:
       - env/yyets.env
+
+  nginx:
+    restart: always
+    image: nginx:alpine
+    volumes:
+      - ./conf:/etc/nginx/conf.d
+      - /home/photos:/usr/share/nginx/html/photos
+      - ./certs/:/etc/nginx/certs/
+      - ./logs:/var/log/nginx/
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      TZ: Asia/Shanghai

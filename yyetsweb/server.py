@@ -343,6 +343,18 @@ class TopHandler(BaseHandler):
         self.write(resp)
 
 
+class UserLikeHandler(TopHandler):
+
+    @run_on_executor()
+    def get_top_resource(self):
+        return {"LIKE": self.get_user_like()}
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_top_resource()
+        self.write(resp)
+
+
 class NameHandler(BaseHandler):
     executor = ThreadPoolExecutor(100)
 
@@ -681,6 +693,7 @@ class RunServer:
     handlers = [
         (r'/api/resource', ResourceHandler),
         (r'/api/top', TopHandler),
+        (r'/api/like', UserLikeHandler),
         (r'/api/user', UserHandler),
         (r'/api/name', NameHandler),
         (r'/api/comment', CommentHandler),
