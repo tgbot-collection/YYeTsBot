@@ -717,7 +717,7 @@ class RunServer:
         (r'/help.html', HelpHandler),
         (r'/api/db_dump', DBDumpHandler),
         (r'/', IndexHandler),
-        (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|.*\.zip)',
+        (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|.*\.svg)',
          web.StaticFileHandler,
          {'path': static_path}),
     ]
