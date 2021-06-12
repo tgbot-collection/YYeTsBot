@@ -8,6 +8,9 @@ COPY requirements.txt /requirements.txt
 RUN pip3 install  --user -r /requirements.txt && rm /requirements.txt
 
 
+FROM python:3.9-alpine as runner
+RUN apk update && apk add --no-cache libressl jpeg-dev openjpeg-dev libimagequant-dev tiff-dev freetype-dev libxcb-dev
+
 
 FROM node:alpine as nodebuilder
 WORKDIR /YYeTsBot/YYeTsFE/
@@ -18,15 +21,14 @@ RUN yarn
 COPY YYeTsFE /YYeTsBot/YYeTsFE/
 RUN yarn build
 
-FROM python:3.9-alpine
 
+FROM runner
 COPY . /YYeTsBot
 COPY --from=pybuilder /root/.local /usr/local
 COPY --from=pybuilder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=pybuilder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=nodebuilder /YYeTsBot/YYeTsFE/build /YYeTsBot/yyetsweb
 
-RUN apk update && apk add --no-cache libressl jpeg-dev openjpeg-dev libimagequant-dev tiff-dev freetype-dev libxcb-dev
 
 ENV TZ=Asia/Shanghai
 WORKDIR /YYeTsBot/yyetsbot
