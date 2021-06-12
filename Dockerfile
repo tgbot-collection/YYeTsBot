@@ -10,9 +10,13 @@ RUN pip3 install  --user -r /requirements.txt && rm /requirements.txt
 
 
 FROM node:alpine as nodebuilder
-COPY . /YYeTsBot
-WORKDIR /YYeTsBot/YYeTsFE
-RUN yarn && yarn build
+WORKDIR /YYeTsBot/YYeTsFE/
+
+COPY YYeTsFE/package.json /YYeTsBot/YYeTsFE/
+COPY YYeTsFE/yarn.lock /YYeTsBot/YYeTsFE/
+RUN yarn
+COPY YYeTsFE /YYeTsBot/YYeTsFE/
+RUN yarn build
 
 FROM python:3.9-alpine
 
