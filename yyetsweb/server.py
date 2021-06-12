@@ -509,7 +509,7 @@ class CaptchaHandler(BaseHandler):
         correct_code = cls.redis.r.get(request_id)
         if not correct_code:
             return {"status": False, "message": "验证码已过期"}
-        if user_input == correct_code:
+        if user_input.lower() == correct_code.lower():
             return {"status": True, "message": "验证通过"}
         else:
             return {"status": False, "message": "验证码错误"}
@@ -624,8 +624,8 @@ class BlacklistHandler(BaseHandler):
 
 
 class NotFoundHandler(BaseHandler):
-    def prepare(self):  # for all methods
-        self.render("404.html")
+    def get(self):  # for react app
+        self.render("index.html")
 
 
 class HelpHandler(BaseHandler):
