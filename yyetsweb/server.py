@@ -423,7 +423,7 @@ class CommentHandler(BaseHandler):
         filter_range = list(range(start, count - page * size, -1))
         data = self.mongo.db["comment"].find(
             {"resource_id": resource_id, "id": {"$in": filter_range}},
-            projection={"_id": False, "ip": False, "browser": False}
+            projection={"_id": False, "ip": False}
         ).sort("id", pymongo.DESCENDING)
 
         return {
