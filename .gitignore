@@ -123,3 +123,4 @@ mongo_data/*
 certs/*
 data/*
 logs/*
+**/.DS_Store
