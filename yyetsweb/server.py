@@ -521,7 +521,7 @@ class MetricsHandler(BaseHandler):
 
     @run_on_executor()
     def set_metrics(self):
-        metrics_type = self.get_query_argument("type")
+        metrics_type = self.get_argument("type")
         today = time.strftime("%Y-%m-%d", time.localtime())
         self.mongo.db['metrics'].update_one(
             {'date': today}, {'$inc': {metrics_type: 1}},
