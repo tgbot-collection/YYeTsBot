@@ -16,6 +16,7 @@ FROM node:alpine as nodebuilder
 WORKDIR /YYeTsBot/YYeTsFE/
 
 COPY YYeTsFE/package.json /YYeTsBot/YYeTsFE/
+RUN true
 COPY YYeTsFE/yarn.lock /YYeTsBot/YYeTsFE/
 RUN yarn
 COPY YYeTsFE /YYeTsBot/YYeTsFE/
