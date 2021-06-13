@@ -1,0 +1,4 @@
+mongo_data/*
+certs/*
+data/*
+logs/*

@@ -423,7 +423,7 @@ class CommentHandler(BaseHandler):
         filter_range = list(range(start, count - page * size, -1))
         data = self.mongo.db["comment"].find(
             {"resource_id": resource_id, "id": {"$in": filter_range}},
-            projection={"_id": False, "ip": False, "browser": False}
+            projection={"_id": False, "ip": False}
         ).sort("id", pymongo.DESCENDING)
 
         return {
@@ -509,7 +509,8 @@ class CaptchaHandler(BaseHandler):
         correct_code = cls.redis.r.get(request_id)
         if not correct_code:
             return {"status": False, "message": "验证码已过期"}
-        if user_input == correct_code:
+        if user_input.lower() == correct_code.lower():
+            cls.redis.r.delete(correct_code)
             return {"status": True, "message": "验证通过"}
         else:
             return {"status": False, "message": "验证码错误"}
@@ -520,7 +521,8 @@ class MetricsHandler(BaseHandler):
 
     @run_on_executor()
     def set_metrics(self):
-        metrics_type = self.get_query_argument("type")
+        payload = json.loads(self.request.body)
+        metrics_type = payload["type"]
         today = time.strftime("%Y-%m-%d", time.localtime())
         self.mongo.db['metrics'].update_one(
             {'date': today}, {'$inc': {metrics_type: 1}},
@@ -624,19 +626,28 @@ class BlacklistHandler(BaseHandler):
 
 
 class NotFoundHandler(BaseHandler):
-    def prepare(self):  # for all methods
-        self.render("404.html")
+    def get(self):  # for react app
+        self.render("index.html")
 
 
 class HelpHandler(BaseHandler):
+    @staticmethod
+    def sizeof_fmt(num: int, suffix='B'):
+        for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+            if abs(num) < 1024.0:
+                return "%3.1f%s%s" % (num, unit, suffix)
+            num /= 1024.0
+        return "%.1f%s%s" % (num, 'Yi', suffix)
+
     def file_info(self, file_path) -> dict:
         result = {}
         if iter(file_path):
             for fp in file_path:
                 try:
                     checksum = self.checksum(fp)
-                    date = self.ts_date(os.stat(fp).st_ctime)
-                    result[fp] = [checksum, date]
+                    creation = self.ts_date(os.stat(fp).st_ctime)
+                    size = self.sizeof_fmt(os.stat(fp).st_size)
+                    result[fp] = [checksum, creation, size]
                 except Exception as e:
                     result[fp] = str(e), ""
         return result
@@ -676,7 +687,8 @@ class DBDumpHandler(HelpHandler):
             filename = os.path.basename(file)
             result[filename] = {
                 "checksum": value[0],
-                "date": value[1]
+                "date": value[1],
+                "size": value[2],
             }
 
         return result
@@ -706,7 +718,8 @@ class RunServer:
         (r'/help.html', HelpHandler),
         (r'/api/db_dump', DBDumpHandler),
         (r'/', IndexHandler),
-        (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip)', web.StaticFileHandler,
+        (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|.*\.svg)',
+         web.StaticFileHandler,
          {'path': static_path}),
     ]
     settings = {

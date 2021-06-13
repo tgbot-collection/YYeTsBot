@@ -119,3 +119,8 @@ health_check/client.session
 /tools/worker/workers-site/node_modules/*
 /tools/worker/workers-site/worker/script.js
 /health_check/client-hc.session
+mongo_data/*
+certs/*
+data/*
+logs/*
+**/.DS_Store
