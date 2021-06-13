@@ -16,7 +16,6 @@ FROM node:alpine as nodebuilder
 WORKDIR /YYeTsBot/YYeTsFE/
 
 COPY YYeTsFE/package.json /YYeTsBot/YYeTsFE/
-RUN true
 COPY YYeTsFE/yarn.lock /YYeTsBot/YYeTsFE/
 RUN yarn
 COPY YYeTsFE /YYeTsBot/YYeTsFE/
@@ -28,6 +27,7 @@ COPY . /YYeTsBot
 COPY --from=pybuilder /root/.local /usr/local
 COPY --from=pybuilder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=pybuilder /usr/share/zoneinfo /usr/share/zoneinfo
+RUN true
 COPY --from=nodebuilder /YYeTsBot/YYeTsFE/build /YYeTsBot/yyetsweb
 
 
