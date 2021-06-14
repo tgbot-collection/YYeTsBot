@@ -283,7 +283,7 @@ class ResourceHandler(BaseHandler):
 
     @run_on_executor()
     def search_resource(self):
-        param = self.get_query_argument("kw").lower()
+        param = self.get_query_argument("keyword").lower()
         projection = {'_id': False,
                       'data.info': True,
                       }
@@ -302,7 +302,7 @@ class ResourceHandler(BaseHandler):
     def get(self):
         if self.get_query_argument("id", None):
             resp = yield self.get_resource_data()
-        elif self.get_query_argument("kw", None):
+        elif self.get_query_argument("keyword", None):
             resp = yield self.search_resource()
         else:
             resp = "error"
