@@ -60,10 +60,30 @@ class Redis:
     def __del__(self):
         self.r.close()
 
+    @classmethod
+    def cache(cls, timeout: int):
+        def func(fun):
+            def inner(*args, **kwargs):
+                func_name = fun.__name__
+                cache_value = cls().r.get(func_name)
+                if cache_value:
+                    logging.info('Retrieving %s data from redis', func_name)
+                    return json.loads(cache_value)
+                else:
+                    logging.info('Cache expired. Executing %s', func_name)
+                    res = fun(*args, **kwargs)
+                    cls().r.set(func_name, json.dumps(res), ex=timeout)
+                    return res
+
+            return inner
+
+        return func
+
 
 class BaseHandler(web.RequestHandler):
     mongo = Mongo()
     redis = Redis()
+    executor = ThreadPoolExecutor(200)
 
     def write_error(self, status_code, **kwargs):
         if status_code in [HTTPStatus.FORBIDDEN,
@@ -131,7 +151,6 @@ class AntiCrawler:
 
 
 class IndexHandler(BaseHandler):
-    executor = ThreadPoolExecutor(100)
 
     @run_on_executor()
     def send_index(self):
@@ -146,7 +165,6 @@ class IndexHandler(BaseHandler):
 
 
 class UserHandler(BaseHandler):
-    executor = ThreadPoolExecutor(10)
 
     def set_login(self, username):
         self.set_secure_cookie("username", username, 365)
@@ -220,7 +238,6 @@ class UserHandler(BaseHandler):
 
 
 class ResourceHandler(BaseHandler):
-    executor = ThreadPoolExecutor(100)
 
     @run_on_executor()
     def get_resource_data(self):
@@ -293,7 +310,6 @@ class ResourceHandler(BaseHandler):
 
 
 class TopHandler(BaseHandler):
-    executor = ThreadPoolExecutor(100)
     projection = {'_id': False, 'data.info': True}
 
     def get_user_like(self) -> list:
@@ -329,10 +345,6 @@ class TopHandler(BaseHandler):
             all_data[abbr] = list(data)
 
         area_dict["ALL"] = "全部"
-        area_dict["LIKE"] = "我的"
-        # area_dict["MOST"] = "最多收藏"
-        all_data["LIKE"] = self.get_user_like()
-        # all_data["MOST"] = self.get_most()
 
         all_data["class"] = area_dict
         return all_data
@@ -356,7 +368,6 @@ class UserLikeHandler(TopHandler):
 
 
 class NameHandler(BaseHandler):
-    executor = ThreadPoolExecutor(100)
 
     @run_on_executor()
     def get_names(self):
@@ -404,7 +415,6 @@ class NameHandler(BaseHandler):
 
 
 class CommentHandler(BaseHandler):
-    executor = ThreadPoolExecutor(100)
 
     @run_on_executor()
     def get_comment(self):
@@ -485,7 +495,6 @@ class CommentHandler(BaseHandler):
 
 
 class CaptchaHandler(BaseHandler):
-    executor = ThreadPoolExecutor(10)
 
     @run_on_executor()
     def get_captcha(self):
@@ -517,7 +526,6 @@ class CaptchaHandler(BaseHandler):
 
 
 class MetricsHandler(BaseHandler):
-    executor = ThreadPoolExecutor(100)
 
     @run_on_executor()
     def set_metrics(self):
@@ -533,9 +541,22 @@ class MetricsHandler(BaseHandler):
 
     @run_on_executor()
     def get_metrics(self):
-        day = self.get_query_argument("date", None)
-        condition = dict(date=day) if day else dict()
-        result = self.mongo.db['metrics'].find(condition, {'_id': False})
+        # only return latest 7 days. with days parameter to generate different range
+        from_date = self.get_query_argument("from", None)
+        to_date = self.get_query_argument("to", None)
+        if to_date is None:
+            to_date = time.strftime("%Y-%m-%d", time.localtime())
+        if from_date is None:
+            from_date = time.strftime("%Y-%m-%d", time.localtime(time.time() - 3600 * 24 * 7))
+
+        start_int = [int(i) for i in from_date.split("-")]
+        end_int = [int(i) for i in to_date.split("-")]
+        sdate = date(*start_int)  # start date
+        edate = date(*end_int)  # end date
+        date_range = [str(sdate + timedelta(days=x)) for x in range((edate - sdate).days + 1)]
+        condition = {"date": {"$in": date_range}}
+        result = self.mongo.db['metrics'].find(condition, {'_id': False}).sort("date", pymongo.DESCENDING)
+
         return dict(metrics=list(result))
 
     @gen.coroutine
@@ -550,11 +571,13 @@ class MetricsHandler(BaseHandler):
 
 
 class GrafanaIndexHandler(BaseHandler):
+
     def get(self):
         self.write({})
 
 
 class GrafanaSearchHandler(BaseHandler):
+
     def post(self):
         data = ["access", "search", "resource"]
         self.write(json.dumps(data))
@@ -603,7 +626,6 @@ class GrafanaQueryHandler(BaseHandler):
 
 
 class BlacklistHandler(BaseHandler):
-    executor = ThreadPoolExecutor(100)
 
     @run_on_executor()
     def get_black_list(self):
@@ -630,7 +652,8 @@ class NotFoundHandler(BaseHandler):
         self.render("index.html")
 
 
-class HelpHandler(BaseHandler):
+class DBDumpHandler(BaseHandler):
+
     @staticmethod
     def sizeof_fmt(num: int, suffix='B'):
         for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
@@ -638,6 +661,10 @@ class HelpHandler(BaseHandler):
                 return "%3.1f%s%s" % (num, unit, suffix)
             num /= 1024.0
         return "%.1f%s%s" % (num, 'Yi', suffix)
+
+    @staticmethod
+    def ts_date(ts):
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts))
 
     def file_info(self, file_path) -> dict:
         result = {}
@@ -649,12 +676,8 @@ class HelpHandler(BaseHandler):
                     size = self.sizeof_fmt(os.stat(fp).st_size)
                     result[fp] = [checksum, creation, size]
                 except Exception as e:
-                    result[fp] = str(e), ""
+                    result[fp] = str(e), "", ""
         return result
-
-    @staticmethod
-    def ts_date(ts):
-        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts))
 
     @staticmethod
     def checksum(file_path) -> str:
@@ -668,17 +691,8 @@ class HelpHandler(BaseHandler):
 
         return checksum
 
-    def get(self):
-        live = "data/yyets_mongo.gz"
-        mysql = "data/yyets_mysql.zip"
-        sqlite = "data/yyets_sqlite.zip"
-        self.render("help.html", data=self.file_info((live, mysql, sqlite)))
-
-
-class DBDumpHandler(HelpHandler):
-    executor = ThreadPoolExecutor(10)
-
     @run_on_executor()
+    @Redis.cache(3600)
     def get_hash(self):
         file_list = ["data/yyets_mongo.gz", "data/yyets_mysql.zip", "data/yyets_sqlite.zip"]
         result = {}
@@ -715,10 +729,9 @@ class RunServer:
         (r'/api/grafana/search', GrafanaSearchHandler),
         (r'/api/grafana/query', GrafanaQueryHandler),
         (r'/api/blacklist', BlacklistHandler),
-        (r'/help.html', HelpHandler),
         (r'/api/db_dump', DBDumpHandler),
         (r'/', IndexHandler),
-        (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|.*\.svg)',
+        (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|.*\.svg|.*\.json)',
          web.StaticFileHandler,
          {'path': static_path}),
     ]
