@@ -560,6 +560,56 @@ class CommentHandler(BaseHandler):
         self.write(resp)
 
 
+class AnnouncementHandler(CommentHandler):
+
+    @run_on_executor()
+    def get_announcement(self):
+        size = int(self.get_argument("size", "5"))
+        page = int(self.get_argument("page", "1"))
+
+        condition = {}
+        count = self.mongo.db["announcement"].count_documents(condition)
+        data = self.mongo.db["announcement"].find(condition, projection={"_id": False, "ip": False}) \
+            .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
+
+        return {
+            "data": list(data),
+            "count": count,
+        }
+
+    @run_on_executor()
+    def add_announcement(self):
+        if not self.is_admin():
+            self.set_status(HTTPStatus.FORBIDDEN)
+            return {"message": "只有管理员可以设置公告"}
+
+        payload = json.loads(self.request.body)
+        content = payload["content"]
+        username = self.get_current_user()
+        real_ip = AntiCrawler(self).get_real_ip()
+
+        construct = {
+            "username": username.decode("u8"),
+            "ip": real_ip,
+            "date": DBDumpHandler.ts_date(None),
+            "browser": self.request.headers['user-agent'],
+            "content": content,
+        }
+        self.mongo.db["announcement"].insert_one(construct)
+        self.set_status(HTTPStatus.CREATED)
+        return {"message": "添加成功"}
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_announcement()
+        self.write(resp)
+
+    @gen.coroutine
+    def post(self):
+        resp = yield self.add_announcement()
+        self.write(resp)
+
+
 class CaptchaHandler(BaseHandler):
 
     @run_on_executor()
@@ -796,6 +846,7 @@ class RunServer:
         (r'/api/grafana/query', GrafanaQueryHandler),
         (r'/api/blacklist', BlacklistHandler),
         (r'/api/db_dump', DBDumpHandler),
+        (r'/api/announcement', AnnouncementHandler),
         (r'/', IndexHandler),
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|.*\.svg|.*\.json)',
          web.StaticFileHandler,

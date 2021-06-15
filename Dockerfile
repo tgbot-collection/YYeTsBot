@@ -14,12 +14,13 @@ RUN apk update && apk add --no-cache libressl jpeg-dev openjpeg-dev libimagequan
 
 FROM node:alpine as nodebuilder
 WORKDIR /YYeTsBot/YYeTsFE/
-
+RUN apk add git
 COPY YYeTsFE/package.json /YYeTsBot/YYeTsFE/
 COPY YYeTsFE/yarn.lock /YYeTsBot/YYeTsFE/
 RUN yarn
 COPY YYeTsFE /YYeTsBot/YYeTsFE/
-RUN yarn build
+COPY .git /YYeTsBot/.git
+RUN yarn run release
 
 
 FROM runner
@@ -29,7 +30,6 @@ COPY --from=pybuilder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=pybuilder /usr/share/zoneinfo /usr/share/zoneinfo
 RUN true
 COPY --from=nodebuilder /YYeTsBot/YYeTsFE/build /YYeTsBot/yyetsweb
-
 
 ENV TZ=Asia/Shanghai
 WORKDIR /YYeTsBot/yyetsbot
