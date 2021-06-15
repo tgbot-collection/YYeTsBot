@@ -315,3 +315,27 @@
   }
 }
 ```
+
+# 公告
+
+## 添加公告
+
+* POST `/api/announcement`, json 字段 content
+
+## 获取公告
+
+* GET `/api/announcmement`，接受URL参数 size、page
+
+```json
+{
+  "data": [
+    {
+      "username": "Benny",
+      "date": "2021-06-15 16:28:16",
+      "browser": "PostmanRuntime/7.28.0",
+      "content": "hello"
+    }
+  ],
+  "count": 1
+}
+```
