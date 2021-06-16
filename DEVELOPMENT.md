@@ -66,7 +66,7 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 
 # 网站部署运行方式
 
-参考 `worker`和`web`目录下的 `README`。需要注意，cf worker已经停止开发。
+参考 `yyetsweb`目录下的 `README`
 
 # 添加新的资源网站
 
@@ -74,26 +74,14 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 
 然后把类名字添加到 `FANSUB_ORDER` 就可以了！是不是很简单！
 
-# 网站开发手册
 
-## 接口列表
-* `/api/resource?id=3` GET 获取id=3的资源
-* `/api/resource?kw=逃避` GET 搜索关键词
-* `/api/top` GET 获取大家都在看
-* `/api/name` GET 所有剧集名字
-* `/api/name?human=1` GET 人类可读的方式获取所有剧集名字
-* `/api/metrics` GET 获取网站访问量
-* `/api/user` POST登录，PATCH添加/取消收藏
-* `/api/grafana` grafana相关接口
-* `/api/blacklist` 黑名单信息
+# 防爬
 
-## 防爬
-
-### 1. referer
+## 1. referer
 
 网站使用referer验证请求
 
-### 2. rate limit
+## 2. rate limit
 
 404的访问会被计数，超过10次会被拉入黑名单，持续3600秒，再次访问会持续叠加。
 
@@ -116,82 +104,5 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 * [MySQL](https://yyets.dmesg.app/data/yyets_mysql.zip)
 * [SQLite](https://yyets.dmesg.app/data/yyets_sqlite.zip)
 
-
-# 评论API
-
-## 1. 获取评论
-GET `/api/comments`
-
-分页，支持URL参数：
-* resource_id: 资源id
-* size: 每页评论数量，默认5（或者其他数值）
-* page: 当前页
-
-返回
-```json
-{
-    "data": [
-        {
-            "date": "2018-09-18 11:12:15",
-            "username": "uuua2",
-            "content": "tdaadd",
-            "id": 2
-        },
-        {
-            "date": "2018-09-01 11:12:15",
-            "username": "abcd",
-            "content": "tdaadd",
-            "id": 1
-        }
-    ],
-    "count": 2,
-    "resource_id": 39301
-}
-
-```
-
-## 2. 获取验证码
-GET `/api/captcha?id=1234abc`，id是随机生成的字符串
-API 返回字符串，形如 `data:image/png;base64,iVBORw0KGgoAAA....`
-
-## 3. 提交评论
-POST `/api/comments`
-只有登录用户才可以发表评论，检查cookie `username` 是否为空来判断是否为登录用户；未登录用户提示“请登录后发表评论”
-
-body `resource_id` 从URL中获取，id是上一步验证码的那个随机字符串id， `captcha` 是用户输入的验证码
-```json
-{
-    "resource_id": 39301,
-    "content": "评论内容",
-    "id": "1234abc",
-    "captcha": "38op"
-}
-```
-
-返回 HTTP 201添加评论成功，403/401遵循HTTP语义
-
-```json
-{
-    "message": "评论成功/评论失败/etc"
-}
-```
-
-# 获取备份数据库信息
-GET `http://127.0.0.1:8888/api/db_dump`
-```json
-{
-    "yyets_mongo.gz": {
-        "checksum": "b32e9d8e24c607a9f29889a926c15179d9179791",
-        "date": "2021-04-15 22:11:08"
-    },
-    "yyets_mysql.zip": {
-        "checksum": "6b24ae7cb7cef42951f7e2df183f0825512029e0",
-        "date": "2021-04-15 22:11:08"
-    },
-    "yyets_sqlite.zip": {
-        "checksum": "7e1659ab5cbc98b21155c3debce3015c39f1ec05",
-        "date": "2021-04-15 22:11:08"
-    }
-}
-
-```
+# API 文档
+参考 [API.md](API.md)

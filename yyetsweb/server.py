@@ -95,6 +95,9 @@ class BaseHandler(web.RequestHandler):
     def data_received(self, chunk):
         pass
 
+    def get_current_user(self):
+        return self.get_secure_cookie("username")
+
 
 class AntiCrawler:
 
@@ -226,6 +229,18 @@ class UserHandler(BaseHandler):
 
         return returned_value
 
+    @run_on_executor()
+    def get_user_info(self) -> dict:
+        username = self.get_current_user()
+        projection = {"_id": False, "password": False}
+        if username:
+            username = username.decode("u8")
+            data = self.mongo.db["users"].find_one({"username": username}, projection)
+        else:
+            self.set_status(HTTPStatus.UNAUTHORIZED)
+            data = {}
+        return data
+
     @gen.coroutine
     def post(self):
         resp = yield self.login_user()
@@ -235,6 +250,23 @@ class UserHandler(BaseHandler):
     def patch(self):
         resp = yield self.add_remove_fav()
         self.write(resp)
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_user_info()
+        # everytime we receive a GET request to this api, we'll update last_date and last_ip
+        self.write(resp)
+        self.update_user_last()
+
+    def update_user_last(self):
+        username = self.get_current_user()
+        if username:
+            now_time = DBDumpHandler.ts_date(None)
+            now_ip = AntiCrawler(self).get_real_ip()
+            username = username.decode("u8")
+            self.mongo.db["users"].update_one({"username": username},
+                                              {"$set": {"last_date": now_time, "last_ip": now_ip}}
+                                              )
 
 
 class ResourceHandler(BaseHandler):
@@ -416,6 +448,13 @@ class NameHandler(BaseHandler):
 
 class CommentHandler(BaseHandler):
 
+    @staticmethod
+    def hide_phone(data: list):
+        for item in data:
+            if item["username"].isdigit() and len(item["username"]) == 11:
+                item["username"] = re.sub(r"(\d{3})\d{4}(\d{4})", r"\g<1>****\g<2>", item["username"])
+        return data
+
     @run_on_executor()
     def get_comment(self):
         resource_id = int(self.get_argument("resource_id", "0"))
@@ -424,20 +463,16 @@ class CommentHandler(BaseHandler):
         if not resource_id:
             self.set_status(HTTPStatus.BAD_REQUEST)
             return {"status": False, "message": "请提供resource id"}
-        # page 1 size 5 - latest, latest-page*size+1
-        count = self.mongo.db["comment"].count_documents({"resource_id": resource_id})
-        if page == 1:
-            start = count
-        else:
-            start = count - (page - 1) * size
-        filter_range = list(range(start, count - page * size, -1))
-        data = self.mongo.db["comment"].find(
-            {"resource_id": resource_id, "id": {"$in": filter_range}},
-            projection={"_id": False, "ip": False}
-        ).sort("id", pymongo.DESCENDING)
 
+        condition = {"resource_id": resource_id, "deleted_at": {"$exists": False}}
+        if resource_id == -1:
+            condition.pop("resource_id")
+
+        count = self.mongo.db["comment"].count_documents(condition)
+        data = self.mongo.db["comment"].find(condition, projection={"_id": False, "ip": False}) \
+            .sort("id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
         return {
-            "data": list(data),
+            "data": self.hide_phone(list(data)),
             "count": count,
             "resource_id": resource_id
         }
@@ -483,6 +518,32 @@ class CommentHandler(BaseHandler):
         self.set_status(HTTPStatus.CREATED)
         return {"message": "评论成功"}
 
+    def is_admin(self):
+        username = self.get_current_user()
+        if username:
+            username = username.decode("u8")
+            data = self.mongo.db["users"].find_one({"username": username, "group": {"$in": ["admin"]}})
+            if data:
+                return True
+
+    @run_on_executor()
+    def delete_comment(self):
+        # need resource_id & id
+        # payload = {"resource_id": 10004, "id": 2}
+        payload = json.loads(self.request.body)
+        keys = ["resource_id", "id"]
+        for k in keys:
+            if not payload.get(k):
+                raise Exception(f"Need parameter {k}")
+
+        if self.is_admin():
+            current_time = DBDumpHandler.ts_date(None)
+            count = self.mongo.db["comment"].update_one(payload, {"$set": {"deleted_at": current_time}}).modified_count
+            return {"count": count, "message": "success"}
+        else:
+            self.set_status(HTTPStatus.UNAUTHORIZED)
+            return {"count": 0, "message": "You're unauthorized to delete comment."}
+
     @gen.coroutine
     def get(self):
         resp = yield self.get_comment()
@@ -491,6 +552,61 @@ class CommentHandler(BaseHandler):
     @gen.coroutine
     def post(self):
         resp = yield self.add_comment()
+        self.write(resp)
+
+    @gen.coroutine
+    def delete(self):
+        resp = yield self.delete_comment()
+        self.write(resp)
+
+
+class AnnouncementHandler(CommentHandler):
+
+    @run_on_executor()
+    def get_announcement(self):
+        size = int(self.get_argument("size", "5"))
+        page = int(self.get_argument("page", "1"))
+
+        condition = {}
+        count = self.mongo.db["announcement"].count_documents(condition)
+        data = self.mongo.db["announcement"].find(condition, projection={"_id": False, "ip": False}) \
+            .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
+
+        return {
+            "data": list(data),
+            "count": count,
+        }
+
+    @run_on_executor()
+    def add_announcement(self):
+        if not self.is_admin():
+            self.set_status(HTTPStatus.FORBIDDEN)
+            return {"message": "只有管理员可以设置公告"}
+
+        payload = json.loads(self.request.body)
+        content = payload["content"]
+        username = self.get_current_user()
+        real_ip = AntiCrawler(self).get_real_ip()
+
+        construct = {
+            "username": username.decode("u8"),
+            "ip": real_ip,
+            "date": DBDumpHandler.ts_date(None),
+            "browser": self.request.headers['user-agent'],
+            "content": content,
+        }
+        self.mongo.db["announcement"].insert_one(construct)
+        self.set_status(HTTPStatus.CREATED)
+        return {"message": "添加成功"}
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_announcement()
+        self.write(resp)
+
+    @gen.coroutine
+    def post(self):
+        resp = yield self.add_announcement()
         self.write(resp)
 
 
@@ -730,6 +846,7 @@ class RunServer:
         (r'/api/grafana/query', GrafanaQueryHandler),
         (r'/api/blacklist', BlacklistHandler),
         (r'/api/db_dump', DBDumpHandler),
+        (r'/api/announcement', AnnouncementHandler),
         (r'/', IndexHandler),
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|.*\.svg|.*\.json)',
          web.StaticFileHandler,
@@ -737,7 +854,8 @@ class RunServer:
     ]
     settings = {
         "cookie_secret": os.getenv("cookie_secret", "eo2kcgpKwXj8Q3PKYj6nIL1J4j3b58DX"),
-        "default_handler_class": NotFoundHandler
+        "default_handler_class": NotFoundHandler,
+        "login_url": "/login",
     }
     application = web.Application(handlers, **settings)
 
