@@ -10,3 +10,4 @@ redis==3.5.3
 captcha==0.3
 passlib==1.7.4
 fakeredis==1.5.0
+pytz==2021.1

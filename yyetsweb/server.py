@@ -9,6 +9,9 @@ __author__ = "Benny <benny.think@gmail.com>"
 
 import os
 import logging
+import platform
+
+import pytz
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from tornado.log import enable_pretty_logging
@@ -59,7 +62,10 @@ class RunServer:
     def run_server(port, host):
         tornado_server = httpserver.HTTPServer(RunServer.application, xheaders=True)
         tornado_server.bind(port, host)
-        tornado_server.start(0)
+        if platform.uname().system == "Windows":
+            tornado_server.start(1)
+        else:
+            tornado_server.start(0)
 
         try:
             print('Server is running on http://{}:{}'.format(host, port))
@@ -70,7 +76,8 @@ class RunServer:
 
 
 if __name__ == "__main__":
-    scheduler = BackgroundScheduler()
+    timez = pytz.timezone('Asia/Shanghai')
+    scheduler = BackgroundScheduler(timezone=timez)
     scheduler.add_job(OtherResource().reset_top, 'cron', hour=0, minute=0, day=1)
     scheduler.start()
     options.define("p", default=8888, help="running port", type=int)

@@ -83,7 +83,9 @@ class IndexHandler(BaseHandler):
 
     @run_on_executor()
     def send_index(self):
-        with open("index.html") as f:
+        root_path = os.path.dirname(__file__)
+        index = os.path.join(root_path, "index.html")
+        with open(index, encoding="u8") as f:
             html = f.read()
         return html
 

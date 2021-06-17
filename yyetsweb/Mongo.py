@@ -148,7 +148,6 @@ class CommentMongoResource(CommentResource, Mongo):
                     ip: str, username: str, browser: str, comment_id=None) -> dict:
         returned = {"status_code": 0, "message": ""}
         verify_result = CaptchaResource().verify_code(captcha, captcha_id)
-        verify_result["status"] = 1
         if not verify_result["status"]:
             returned["status_code"] = HTTPStatus.BAD_REQUEST
             returned["message"] = verify_result

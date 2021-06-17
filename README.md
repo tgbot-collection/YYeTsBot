@@ -12,6 +12,8 @@
 
 ![](assets/index.png)
 
+👉 前端[在这里](https://github.com/wyx1818/YYeTsFE) 👈
+
 # 使用说明
 
 直接发送想要看的剧集名称就可以了，可选分享网页或者链接（ed2k和磁力链接）。
@@ -67,6 +69,15 @@ yyets_offline - 人人影视离线数据
 
 ## 磁力
 使用百度网盘、115等离线，或使用utorrent等工具，记得更新下 [tracker list](https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt) 哦
+
+# 小白使用
+想要自己留一份资源，但是又不懂编程？
+没关系！请到 [GitHub Release](https://github.com/tgbot-collection/YYeTsBot/releases) 根据自己平台下载一键运行包！
+
+* Windows用户双击 `start_windows.bat` 
+* macOS 在终端中执行 `bash start_unix.sh`
+
+打开浏览器 http://127.0.0.1:8888 就可以看到熟悉的搜索界面啦！
 
 # 开发
 
