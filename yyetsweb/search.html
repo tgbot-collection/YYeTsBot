@@ -62,7 +62,7 @@
     </h2>
     <form action="search.html">
         <label>
-            <input name="kw" id="kw" type="text">
+            <input name="keyword" id="keyword" type="text">
         </label>
         <input type="submit" value="搜索">
     </form>
@@ -85,12 +85,12 @@
 <script src="js/common.js"></script>
 
 <script>
-    let kwe = document.URL.split("kw=")[1];
+    let kwe = document.URL.split("keyword=")[1];
     let kw = decodeURI(kwe).toLowerCase().replace(" ", "");
     // const axios = require('axios');
 
     // Make a request for a user with a given ID
-    axios.get('/api/resource?kw=' + kw)
+    axios.get('/api/resource?keyword=' + kw)
         .then(function (response) {
             // handle success
             doSearch(response.data.data)
@@ -106,7 +106,7 @@
 
 
     function doSearch(data) {
-        let search = document.getElementById("kw");
+        let search = document.getElementById("keyword");
         if (kw !== "undefined") {
             search.value = kw;
         }

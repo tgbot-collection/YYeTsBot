@@ -25,8 +25,11 @@ from tornado import web, escape, gen
 from database import Redis, AntiCrawler, CaptchaResource
 
 escape.json_encode = lambda value: json.dumps(value, ensure_ascii=False)
+logging.basicConfig(level=logging.INFO)
 
 adapter = os.getenv("adapter") or "Mongo"
+
+logging.info("%s Running with %s. %s", "#" * 10, adapter, "#" * 10)
 
 
 class BaseHandler(web.RequestHandler):
@@ -257,10 +260,12 @@ class CommentHandler(BaseHandler):
         resource_id = int(self.get_argument("resource_id", "0"))
         size = int(self.get_argument("size", "5"))
         page = int(self.get_argument("page", "1"))
+        inner_size = int(self.get_argument("inner_size", "5"))
+        inner_page = int(self.get_argument("inner_page", "1"))
         if not resource_id:
             self.set_status(HTTPStatus.BAD_REQUEST)
             return {"status": False, "message": "请提供resource id"}
-        comment_data = self.instance.get_comment(resource_id, page, size)
+        comment_data = self.instance.get_comment(resource_id, page, size, inner_size=inner_size, inner_page=inner_page)
         self.hide_phone((comment_data["data"]))
         return comment_data
 
@@ -271,11 +276,14 @@ class CommentHandler(BaseHandler):
         captcha_id = payload["id"]
         content = payload["content"]
         resource_id = payload["resource_id"]
+        comment_id = payload.get("comment_id")
+
         real_ip = AntiCrawler(self).get_real_ip()
         username = self.get_current_user()
         browser = self.request.headers['user-agent']
 
-        result = self.instance.add_comment(captcha, captcha_id, content, resource_id, real_ip, username, browser)
+        result = self.instance.add_comment(captcha, captcha_id, content, resource_id, real_ip,
+                                           username, browser, comment_id)
         self.set_status(result["status_code"])
         return result
 
@@ -285,8 +293,11 @@ class CommentHandler(BaseHandler):
         # payload = {"id":  "obj_id"}
         payload = json.loads(self.request.body)
         username = self.get_current_user()
+        parent_id = payload["parent_id"]
+        child_id = payload.get("child_id")
+
         if self.instance.is_admin(username):
-            result = self.instance.delete_comment(payload["id"])
+            result = self.instance.delete_comment(parent_id, child_id)
             self.set_status(result["status_code"])
             return result
         else:

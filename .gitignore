@@ -124,3 +124,4 @@ certs/*
 data/*
 logs/*
 **/.DS_Store
+/yyetsweb/yyets.sqlite

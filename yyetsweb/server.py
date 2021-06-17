@@ -78,4 +78,13 @@ if __name__ == "__main__":
     options.parse_command_line()
     p = options.options.p
     h = options.options.h
+    banner = """
+    ▌ ▌ ▌ ▌     ▀▛▘
+    ▝▞  ▝▞  ▞▀▖  ▌  ▞▀▘
+     ▌   ▌  ▛▀   ▌  ▝▀▖
+     ▘   ▘  ▝▀▘  ▘  ▀▀ 
+                        
+     Lazarus came back from the dead. By @Bennythink
+                """
+    print(banner)
     RunServer.run_server(port=p, host=h)

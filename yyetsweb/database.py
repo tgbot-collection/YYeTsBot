@@ -11,10 +11,12 @@ import json
 import logging
 import random
 import re
+import os
 import string
 import base64
 
 import redis
+import fakeredis
 from captcha.image import ImageCaptcha
 
 predefined_str = re.sub(r"[1l0oOI]", "", string.ascii_letters + string.digits)
@@ -22,7 +24,10 @@ predefined_str = re.sub(r"[1l0oOI]", "", string.ascii_letters + string.digits)
 
 class Redis:
     def __init__(self):
-        self.r = redis.StrictRedis(host="redis", decode_responses=True, db=2)
+        if os.getenv("DISABLE_REDIS"):
+            self.r = fakeredis.FakeStrictRedis()
+        else:
+            self.r = redis.StrictRedis(host="redis", decode_responses=True, db=2)
 
     def __del__(self):
         self.r.close()
@@ -140,15 +145,14 @@ class NameResource:
 
 
 class CommentResource:
-    def get_comment(self, resource_id: int, page: int, size: int) -> dict:
+    def get_comment(self, resource_id: int, page: int, size: int, **kwargs) -> dict:
         pass
 
     def add_comment(self, captcha: str, captcha_id: int, content: str, resource_id: int, ip: str,
-                    username: str, browser: str) -> dict:
+                    username: str, browser: str, comment_id=None) -> dict:
         pass
 
-
-    def delete_comment(self, payload: dict):
+    def delete_comment(self, parent_id: str, child_id: str = None):
         pass
 
 
