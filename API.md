@@ -141,7 +141,7 @@
 
 获取个人收藏
 
-* GET /api/like
+* GET `/api/like`
 
 ```json
 {
@@ -269,6 +269,26 @@
 ```json
 {
   "message": "评论成功/评论失败/etc"
+}
+```
+
+## 删除评论，软删除
+
+* DELETE `/api/comment`，提交json数据
+
+```json
+{
+  "id": "60cab935e9f929e09c91392a"
+}
+```  
+
+返回被删除的数量,HTTP 200表示删除成功，404表示未找到这条留言
+
+```json
+{
+  "status_code": 404,
+  "message": "",
+  "count": 0
 }
 ```
 
