@@ -137,7 +137,7 @@ class CommentMongoResource(CommentResource, Mongo):
 
         count = self.db["comment"].count_documents(condition)
         data = self.db["comment"].find(condition, projection={"ip": False}) \
-            .sort("id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
+            .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
         return {
             "data": self.convert_objectid(list(data)),
             "count": count,
@@ -150,7 +150,7 @@ class CommentMongoResource(CommentResource, Mongo):
         verify_result = CaptchaResource().verify_code(captcha, captcha_id)
         if not verify_result["status"]:
             returned["status_code"] = HTTPStatus.BAD_REQUEST
-            returned["message"] = verify_result
+            returned["message"] = verify_result["message"]
             return returned
 
         exists = self.db["yyets"].find_one({"data.info.id": resource_id})
