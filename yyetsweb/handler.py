@@ -151,11 +151,13 @@ class UserHandler(BaseHandler):
         self.write(resp)
 
     @gen.coroutine
+    @web.authenticated
     def patch(self):
         resp = yield self.add_remove_fav()
         self.write(resp)
 
     @gen.coroutine
+    @web.authenticated
     def get(self):
         resp = yield self.get_user_info()
         self.write(resp)
@@ -222,6 +224,7 @@ class UserLikeHandler(BaseHandler):
         return {"LIKE": self.instance.get_user_like(username)}
 
     @gen.coroutine
+    @web.authenticated
     def get(self):
         resp = yield self.like_data()
         self.write(resp)
@@ -295,11 +298,10 @@ class CommentHandler(BaseHandler):
         # payload = {"id":  "obj_id"}
         payload = json.loads(self.request.body)
         username = self.get_current_user()
-        parent_id = payload["parent_id"]
-        child_id = payload.get("child_id")
+        comment_id = payload["comment_id"]
 
         if self.instance.is_admin(username):
-            result = self.instance.delete_comment(parent_id, child_id)
+            result = self.instance.delete_comment(comment_id)
             self.set_status(result["status_code"])
             return result
         else:
@@ -312,11 +314,13 @@ class CommentHandler(BaseHandler):
         self.write(resp)
 
     @gen.coroutine
+    @web.authenticated
     def post(self):
         resp = yield self.add_comment()
         self.write(resp)
 
     @gen.coroutine
+    @web.authenticated
     def delete(self):
         resp = yield self.delete_comment()
         self.write(resp)
@@ -356,6 +360,7 @@ class AnnouncementHandler(BaseHandler):
         self.write(resp)
 
     @gen.coroutine
+    @web.authenticated
     def post(self):
         resp = yield self.add_announcement()
         self.write(resp)

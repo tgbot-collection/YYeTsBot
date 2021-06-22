@@ -276,69 +276,49 @@
 * inner_size: 内嵌评论数量，默认5
 * inner_page: 内嵌评论当前页，默认1
 
-返回
-
-普通评论
+返回 楼中楼评论
 
 ```json
 {
   "data": [
     {
       "username": "Benny",
-      "date": "2021-06-17 10:54:19",
-      "browser": "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.13; rv:85.1) Gecko/20100101 Firefox/85.1",
-      "content": "test",
+      "date": "2021-06-22 18:26:42",
+      "browser": "PostmanRuntime/7.28.0",
+      "content": "父评论benny",
       "resource_id": 233,
-      "id": "60cab95baa7f515ea291392b",
-      "children": [],
-      "children_count": 0
-    }
-  ],
-  "count": 1,
-  "resource_id": 233
-}
-
-```
-
-楼中楼
-
-```json
-{
-  "data": [
-    {
-      "username": "Benny",
-      "date": "2021-06-17 10:54:19",
-      "browser": "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.13; rv:85.1) Gecko/20100101 Firefox/85.1",
-      "content": "test",
-      "resource_id": 233,
-      "id": "60cab95baa7f515ea291392b"
+      "type": "parent",
+      "id": "60d1bae2d87ce6e9a2934a0f"
     },
     {
       "username": "Benny",
-      "date": "2021-06-15 10:54:19",
-      "browser": "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.13; rv:85.1) Gecko/20100101 Firefox/85.1",
-      "content": "test8888",
+      "date": "2021-06-22 18:24:44",
+      "browser": "PostmanRuntime/7.28.0",
+      "content": "父评论benny",
       "resource_id": 233,
-      "id": "60cab95baa7f515ea2988888",
+      "type": "parent",
+      "ack": false,
       "children": [
         {
-          "username": "Alex",
-          "date": "2021-05-31 16:58:21",
+          "username": "admin",
+          "date": "2021-06-22 18:25:12",
           "browser": "PostmanRuntime/7.28.0",
-          "content": "评论17",
-          "id": "60c838a12a5620b7e4ba5dfc",
-          "resource_id": 233
+          "content": "admin子评2论2",
+          "resource_id": 233,
+          "type": "child",
+          "id": "60d1ba88d87ce6e9a2934a0c"
         },
         {
-          "username": "Paul",
-          "date": "2021-05-22 16:58:21",
+          "username": "admin",
+          "date": "2021-06-22 18:25:08",
           "browser": "PostmanRuntime/7.28.0",
-          "content": "评论14",
-          "id": "60c838a12a5620b7e4ba1111",
-          "resource_id": 233
+          "content": "admin子评论2",
+          "resource_id": 233,
+          "type": "child",
+          "id": "60d1ba84d87ce6e9a2934a0a"
         }
       ],
-      "children_count": 2
+      "id": "60d1ba6cd87ce6e9a2934a08"
     }
   ],
   "count": 2,
@@ -396,22 +376,15 @@
 
 * DELETE `/api/comment`，提交json数据
 
-删除子评论
+
 
 ```json
 {
-  "parent_id": "60cab935e9f929e09c91392a",
-  "child_id": "60cab935e9f929e09c91392a1111111"
+  "comment_id": "60cab935e9f929e09c91392a"
 }
 ```  
+不用关心comment_id是子评论还是父评论，会自动删除
 
-删除父评论
-
-```json
-{
-  "parent_id": "60cab935e9f929e09c91392a"
-}
-```  
 
 返回被删除的数量,HTTP 200表示删除成功，404表示未找到这条留言
 

@@ -106,48 +106,55 @@ class BlacklistMongoResource(BlacklistResource):
 class CommentMongoResource(CommentResource, Mongo):
     def __init__(self):
         super().__init__()
-        self.page = 1
-        self.size = 5
+        self.inner_page = 1
+        self.inner_size = 5
+        self.projection = {"ip": False, "parent_id": False}
 
-    def convert_objectid(self, data):
-        final_data = []
+    @staticmethod
+    def convert_objectid(data):
+        # change _id to id, remove _id
         for item in data:
             item["id"] = str(item["_id"])
             item.pop("_id")
-            final_data.append(item)
-            # legacy issues
-            if item.get("children") is None:
-                item["children"] = []
+            for child in item.get("children", []):
+                child["id"] = str(child["_id"])
+                child.pop("_id")
 
-            # 嵌套评论同样也要支持分页
-            # 新评论在上
-            item["children"].reverse()
-            item["children_count"] = len(item["children"])
-            item["children"] = item["children"][(self.page - 1) * self.size: self.page * self.size]
-        return final_data
+    def find_children(self, parent_data):
+        for item in parent_data:
+            children_ids = item.get("children", [])
+            condition = {"_id": {"$in": children_ids}, "deleted_at": {"$exists": False}, "type": "child"}
+            children_data = self.db["comment"].find(condition, self.projection) \
+                .sort("_id", pymongo.DESCENDING).limit(self.inner_size).skip((self.inner_page - 1) * self.inner_size)
+            children_data = list(children_data)
+            if children_data:
+                item["children"] = []
+                item["children"].extend(children_data)
 
     def get_comment(self, resource_id: int, page: int, size: int, **kwargs) -> dict:
-        inner_page = kwargs.get("inner_page", 1)
-        inner_size = kwargs.get("inner_size", 5)
-        self.page = inner_page
-        self.size = inner_size
-        condition = {"resource_id": resource_id, "deleted_at": {"$exists": False}}
+        self.inner_page = kwargs.get("inner_page", 1)
+        self.inner_size = kwargs.get("inner_size", 5)
+        condition = {"resource_id": resource_id, "deleted_at": {"$exists": False}, "type": {"$ne": "child"}}
         if resource_id == -1:
             condition.pop("resource_id")
 
         count = self.db["comment"].count_documents(condition)
-        data = self.db["comment"].find(condition, projection={"ip": False}) \
+        data = self.db["comment"].find(condition, self.projection) \
             .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
+        data = list(data)
+        self.find_children(data)
+        self.convert_objectid(data)
         return {
-            "data": self.convert_objectid(list(data)),
+            "data": data,
             "count": count,
             "resource_id": resource_id
         }
 
     def add_comment(self, captcha: str, captcha_id: int, content: str, resource_id: int,
-                    ip: str, username: str, browser: str, comment_id=None) -> dict:
+                    ip: str, username: str, browser: str, parent_comment_id=None) -> dict:
         returned = {"status_code": 0, "message": ""}
         verify_result = CaptchaResource().verify_code(captcha, captcha_id)
+        # verify_result["status"] = 1
         if not verify_result["status"]:
             returned["status_code"] = HTTPStatus.BAD_REQUEST
             returned["message"] = verify_result["message"]
@@ -159,8 +166,8 @@ class CommentMongoResource(CommentResource, Mongo):
             returned["message"] = "资源不存在"
             return returned
 
-        if comment_id:
-            exists = self.db["comment"].find_one({"_id": ObjectId(comment_id)})
+        if parent_comment_id:
+            exists = self.db["comment"].find_one({"_id": ObjectId(parent_comment_id)})
             if not exists:
                 returned["status_code"] = HTTPStatus.NOT_FOUND
                 returned["message"] = "评论不存在"
@@ -174,29 +181,37 @@ class CommentMongoResource(CommentResource, Mongo):
             "content": content,
             "resource_id": resource_id
         }
-        if comment_id is None:
-            # 普通评论
-            basic_comment["children"] = []
-            self.db["comment"].insert_one(basic_comment)
+        if parent_comment_id is None:
+            basic_comment["type"] = "parent"
         else:
-            # 嵌套评论
-            object_id = uuid.uuid1().hex
-            basic_comment["id"] = object_id
-            self.db["comment"].find_one_and_update({"_id": ObjectId(comment_id)},
-                                                   {"$push": {"children": basic_comment}}
+            basic_comment["type"] = "child"
+        # 无论什么评论，都要插入一个新的document
+        inserted_id: str = self.db["comment"].insert_one(basic_comment).inserted_id
+
+        if parent_comment_id is not None:
+            # 对父评论的子评论，需要给父评论加children id
+            self.db["comment"].find_one_and_update({"_id": ObjectId(parent_comment_id)},
+                                                   {"$push": {"children": inserted_id}}
+                                                   )
+            self.db["comment"].find_one_and_update({"_id": ObjectId(inserted_id)},
+                                                   {"$set": {"parent_id": ObjectId(parent_comment_id)}}
                                                    )
         returned["status_code"] = HTTPStatus.CREATED
         returned["message"] = "评论成功"
         return returned
 
-    def delete_comment(self, parent_id: str, child_id: str = None):
+    def delete_comment(self, comment_id):
         current_time = ts_date()
-        if child_id is None:
-            count = self.db["comment"].update_one({"_id": ObjectId(parent_id), "deleted_at": {"$exists": False}},
-                                                  {"$set": {"deleted_at": current_time}}).modified_count
+        count = self.db["comment"].update_one({"_id": ObjectId(comment_id), "deleted_at": {"$exists": False}},
+                                              {"$set": {"deleted_at": current_time}}).modified_count
+        # 找到子评论，全部标记删除
+        parent_data = self.db["comment"].find_one({"_id": ObjectId(comment_id)})
+        if parent_data:
+            child_ids = parent_data.get("children", [])
         else:
-            count = self.db["comment"].update_one({"_id": ObjectId(parent_id), "deleted_at": {"$exists": False}},
-                                                  {"$pull": {"children": {"id": child_id}}}).modified_count
+            child_ids = []
+        count += self.db["comment"].update_many({"_id": {"$in": child_ids}, "deleted_at": {"$exists": False}},
+                                                {"$set": {"deleted_at": current_time}}).modified_count
 
         returned = {"status_code": 0, "message": "", "count": -1}
         if count == 0:

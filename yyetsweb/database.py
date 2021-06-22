@@ -152,7 +152,7 @@ class CommentResource:
                     username: str, browser: str, comment_id=None) -> dict:
         pass
 
-    def delete_comment(self, parent_id: str, child_id: str = None):
+    def delete_comment(self, comment_id:str):
         pass
 
 
