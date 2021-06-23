@@ -27,7 +27,7 @@ class Redis:
         if os.getenv("DISABLE_REDIS"):
             self.r = fakeredis.FakeStrictRedis()
         else:
-            self.r = redis.StrictRedis(host="redis", decode_responses=True, db=2)
+            self.r = redis.StrictRedis(host="redis", decode_responses=True)
 
     def __del__(self):
         self.r.close()

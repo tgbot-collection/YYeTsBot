@@ -75,6 +75,17 @@
 }
 ```
 
+当数据库搜索不到资源时，会尝试从追新番和字幕侠搜索，返回如下
+
+```json
+{
+  "data": [],
+  "extra": {
+    "女人不杀生": "https://www.zimuxia.cn/portfolio/%e5%a5%b3%e4%ba%ba%e4%b8%8d%e6%9d%80%e7%94%9f"
+  }
+}
+```
+
 # Top
 
 获取top信息，每类返回15条访问量最高的数据
@@ -376,15 +387,13 @@
 
 * DELETE `/api/comment`，提交json数据
 
-
-
 ```json
 {
   "comment_id": "60cab935e9f929e09c91392a"
 }
 ```  
-不用关心comment_id是子评论还是父评论，会自动删除
 
+不用关心comment_id是子评论还是父评论，会自动删除
 
 返回被删除的数量,HTTP 200表示删除成功，404表示未找到这条留言
 

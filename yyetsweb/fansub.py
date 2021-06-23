@@ -1,0 +1,1 @@
+../yyetsbot/fansub.py

@@ -7,13 +7,11 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import uuid
-
 import pymongo
 import os
 import time
 from http import HTTPStatus
-from datetime import timedelta, date, datetime
+from datetime import timedelta, date
 from bson.objectid import ObjectId
 
 import requests
@@ -21,8 +19,9 @@ from passlib.handlers.pbkdf2 import pbkdf2_sha256
 
 from database import (AnnouncementResource, BlacklistResource, CommentResource, ResourceResource,
                       GrafanaQueryResource, MetricsResource, NameResource, OtherResource,
-                      TopResource, UserLikeResource, UserResource, CaptchaResource)
+                      TopResource, UserLikeResource, UserResource, CaptchaResource, Redis)
 from utils import ts_date
+from fansub import ZhuixinfanOnline, ZimuxiaOnline
 
 mongo_host = os.getenv("mongo") or "localhost"
 
@@ -293,6 +292,29 @@ class NameMongoResource(NameResource, Mongo):
 
 
 class ResourceMongoResource(ResourceResource, Mongo):
+    redis = Redis().r
+
+    def zhuixinfan_search(self, kw):
+        # export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+        result = ZhuixinfanOnline().search_preview(kw)
+        result.pop("source")
+        json_result = {}  # name as key, url as value
+        if result:
+            # this means we have search result, get it from redis cache with real name
+            for key, name in result.items():
+                json_result[name] = self.redis.hget(key, "url")
+        return json_result
+
+    def zimuxia_search(self, kw):
+        result = ZimuxiaOnline().search_preview(kw)
+        result.pop("source")
+        json_result = {}  # name as key, url as value
+        if result:
+            # this means we have search result, get it from redis cache with real name
+            for key, name in result.items():
+                json_result[name] = self.redis.hget(key, "url")
+        return json_result
+
     def get_resource_data(self, resource_id: int, username: str) -> dict:
         data = self.db["yyets"].find_one_and_update(
             {"data.info.id": resource_id},
@@ -320,7 +342,17 @@ class ResourceMongoResource(ResourceResource, Mongo):
             ]},
             projection
         )
-        return dict(data=list(data))
+        data = list(data)
+        returned = {}
+        if data:
+            returned = dict(data=data)
+            returned["extra"] = []
+        else:
+            extra = self.zhuixinfan_search(keyword) or self.zimuxia_search(keyword)
+            returned["data"] = []
+            returned["extra"] = extra
+
+        return returned
 
 
 class TopMongoResource(TopResource, Mongo):

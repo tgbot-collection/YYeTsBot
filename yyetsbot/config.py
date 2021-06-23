@@ -20,6 +20,8 @@ SHARE_API = "http://got002.com/api/v1/static/resource/detail?code={code}"
 # fix
 FIX_RESOURCE = "https://www.zimuxia.cn/portfolio/{name}"
 FIX_SEARCH = "https://www.zimuxia.cn/?s={kw}"
+ZHUIXINFAN_SEARCH = "http://www.fanxinzhui.com/list?k={}"
+ZHUIXINFAN_RESOURCE = "http://www.fanxinzhui.com{}"
 # cloudflare worker
 WORKERS = "https://yyets.dmesg.app/resource.html?id={id}"
 
@@ -37,4 +39,4 @@ MONGO = os.environ.get("MONGO") or "mongo"
 MAINTAINER = os.environ.get("MAINTAINER")
 REPORT = os.environ.get("REPORT") or False
 # This name must match class name, other wise this bot won't functional.
-FANSUB_ORDER: str = os.environ.get("ORDER") or 'YYeTsOffline,ZimuxiaOnline'
+FANSUB_ORDER: str = os.environ.get("ORDER") or 'YYeTsOffline,ZimuxiaOnline,ZhuixinfanOnline'

@@ -10,7 +10,7 @@ import pickle
 import sys
 import json
 import hashlib
-import re
+import contextlib
 
 import requests
 import pymongo
@@ -19,7 +19,8 @@ from bs4 import BeautifulSoup
 
 from config import (YYETS_SEARCH_URL, GET_USER, BASE_URL, SHARE_WEB,
                     SHARE_URL, WORKERS, SHARE_API, USERNAME, PASSWORD,
-                    AJAX_LOGIN, REDIS, FANSUB_ORDER, FIX_SEARCH, MONGO)
+                    AJAX_LOGIN, REDIS, FANSUB_ORDER, FIX_SEARCH, MONGO,
+                    ZHUIXINFAN_SEARCH, ZHUIXINFAN_RESOURCE)
 import redis
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
@@ -305,6 +306,51 @@ class ZimuxiaOffline(BaseFansub):
         pass
 
 
+class ZhuixinfanOnline(BaseFansub):
+    label = "zhuixinfan online"
+
+    def __get_search_html__(self, kw: str) -> str:
+        logging.info("[%s] Searching  for %s", self.label, kw)
+        r = session.get(ZHUIXINFAN_SEARCH.format(kw))
+        r.close()
+        return r.text
+
+    def search_preview(self, search_text: str) -> dict:
+        # zhuixinfan online
+        html_text = self.__get_search_html__(search_text)
+        logging.info('[%s] Parsing html...', self.label)
+        soup = BeautifulSoup(html_text, 'html.parser')
+        link_list = soup.find_all("ul", class_="resource_list")
+
+        dict_result = {}
+        for li in link_list:
+            for link in li:
+                with contextlib.suppress(AttributeError):
+                    name = link.dd.text
+                    url = ZHUIXINFAN_RESOURCE.format(link.dd.a["href"])
+                    url_hash = hashlib.sha1(url.encode('u8')).hexdigest()
+                    dict_result[url_hash] = name
+                    self.redis.hset(url_hash, mapping={"class": self.__class__.__name__, "url": url, "name": name})
+
+        dict_result["source"] = self.label
+        return dict_result
+
+    def search_result(self, resource_url: str) -> dict:
+        # zhuixinfan online
+        self.url = resource_url
+        self.data = self.__execute_search_result__()
+        return self.data
+        # {"all": dict_result, "share": share_link, "cnname": cnname}
+
+    def __execute_search_result__(self) -> dict:
+        logging.info("[%s] Loading detail page %s", self.label, self.url)
+        url_hash = hashlib.sha1(self.url.encode('u8')).hexdigest()
+        cnname = self.redis.hget(url_hash, "name")
+        # TODO
+        self.data = {"all": "不好意思，还没做呢……", "share": self.url, "cnname": cnname}
+        return self.data
+
+
 class FansubEntrance(BaseFansub):
     order = FANSUB_ORDER.split(",")
 
@@ -357,6 +403,6 @@ for sub_name in globals().copy():
         vars()[cmd_name] = m
 
 if __name__ == '__main__':
-    a = YYeTsOffline()
-    v = a.search_preview("逃避")
+    a = ZimuxiaOnline()
+    v = a.search_preview("女人为何")
     print(v)
