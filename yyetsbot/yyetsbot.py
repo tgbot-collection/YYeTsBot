@@ -25,7 +25,7 @@ from config import PROXY, TOKEN, YYETS_SEARCH_URL, MAINTAINER, REPORT, FANSUB_OR
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 if PROXY:
-    apihelper.proxy = {'http': PROXY}
+    apihelper.proxy = {'https': PROXY}
 
 bot = telebot.TeleBot(TOKEN, num_threads=100)
 angry_count = 0
@@ -127,13 +127,11 @@ for sub_name in dir(fansub):
             tv_name: str = re.findall(r"/.*line\s*(\S*)", message.text)[0]
             class_name: str = re.findall(r"/(.*line)", message.text)[0]
             class_ = getattr(fansub, class_name)
-            if class_name not in ("zimuxia_online", "yyets_offline"):
-                bot.send_message(message.chat.id, f"{class_.label}: under dev")
-                return
 
             if not tv_name:
-                bot.send_message(message.chat.id, f"{class_.label}: 请附加你要搜索的剧集名称，如 `/{class_name} 逃避可耻`",
+                bot.send_message(message.chat.id, f"{class_.__name__}: 请附加你要搜索的剧集名称，如 `/{class_name} 逃避可耻`",
                                  parse_mode='markdown')
+                return
 
             else:
                 setattr(message, "text", tv_name)
@@ -211,11 +209,10 @@ def base_send_search(message, instance=None):
 
     markup = types.InlineKeyboardMarkup()
 
-    source = result.get("source")
-    result.pop("source")
-    for url, detail in result.items():
-        # we don't need to save which fansub class we used here, because we saved an url and that's good enough.
-        btn = types.InlineKeyboardButton(detail, callback_data="choose%s" % url)
+    source = result.get("class")
+    result.pop("class")
+    for url_hash, detail in result.items():
+        btn = types.InlineKeyboardButton(detail["name"], callback_data="choose%s" % url_hash)
         markup.add(btn)
 
     if result:
@@ -262,7 +259,7 @@ def magic_recycle(fan, call, url_hash):
 def choose_link(call):
     fan = fansub.FansubEntrance()
     bot.send_chat_action(call.message.chat.id, 'typing')
-    # call.data is url, with sha1, http://www.rrys2020.com/resource/36588
+    # call.data is url_hash, with sha1, http://www.rrys2020.com/resource/36588
     resource_url_hash = re.findall(r"choose(\S*)", call.data)[0]
     if magic_recycle(fan, call, resource_url_hash):
         return

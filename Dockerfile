@@ -18,7 +18,8 @@ RUN apk add git
 COPY YYeTsFE/package.json /YYeTsBot/YYeTsFE/
 COPY YYeTsFE/yarn.lock /YYeTsBot/YYeTsFE/
 RUN yarn
-COPY . /YYeTsBot/
+COPY YYeTsFE /YYeTsBot/YYeTsFE/
+COPY .git/modules /YYeTsBot/.git/modules/
 RUN echo "gitdir: ../.git/modules/YYeTsFE" > .git
 RUN yarn run release
 

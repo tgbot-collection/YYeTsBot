@@ -31,9 +31,8 @@ help - 帮助
 credits - 致谢
 ping - 运行状态
 settings - 获取公告
-zimuxia_offline - 字幕侠离线数据
 zimuxia_online - 字幕侠在线数据  
-yyets_online - 人人影视在线数据  
+newzmz_online - new字幕组在线数据 
 yyets_offline - 人人影视离线数据
 ```
 
@@ -54,7 +53,7 @@ yyets_offline - 人人影视离线数据
 
 ## 指定字幕组搜索
 
-目前只支持YYeTsOffline和ZimuxiaOnline
+目前只支持YYeTsOffline、ZimuxiaOnline和NewzmzOnline
 
 ![](assets/3.png)
 
@@ -76,6 +75,7 @@ yyets_offline - 人人影视离线数据
 
 * Windows用户双击 `start_windows.bat` 
 * macOS 在终端中执行 `bash start_unix.sh`
+* Linux用户：没你的份
 
 打开浏览器 http://127.0.0.1:8888 就可以看到熟悉的搜索界面啦！
 
@@ -86,9 +86,9 @@ yyets_offline - 人人影视离线数据
 # Credits
 
 * [人人影视](http://www.zmz2019.com/)
-* [追新番](http://www.zhuixinfan.com/main.php)
-* [磁力下载站](http://oabt005.com/home.html)
+* [追新番](http://www.fanxinzhui.com/)
 * [FIX字幕侠](https://www.zimuxia.cn/)
+* [new字幕组](https://newzmz.com/)
 
 # 支持我
 

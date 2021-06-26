@@ -21,7 +21,7 @@ from database import (AnnouncementResource, BlacklistResource, CommentResource, 
                       GrafanaQueryResource, MetricsResource, NameResource, OtherResource,
                       TopResource, UserLikeResource, UserResource, CaptchaResource, Redis)
 from utils import ts_date
-from fansub import ZhuixinfanOnline, ZimuxiaOnline
+from fansub import ZhuixinfanOnline, ZimuxiaOnline, NewzmzOnline
 
 mongo_host = os.getenv("mongo") or "localhost"
 
@@ -126,9 +126,17 @@ class CommentMongoResource(CommentResource, Mongo):
             children_data = self.db["comment"].find(condition, self.projection) \
                 .sort("_id", pymongo.DESCENDING).limit(self.inner_size).skip((self.inner_page - 1) * self.inner_size)
             children_data = list(children_data)
+            self.get_user_group(children_data)
             if children_data:
                 item["children"] = []
                 item["children"].extend(children_data)
+
+    def get_user_group(self, data):
+        for comment in data:
+            username = comment["username"]
+            user = self.db["users"].find_one({"username": username})
+            group = user.get("group", ["user"])
+            comment["group"] = group
 
     def get_comment(self, resource_id: int, page: int, size: int, **kwargs) -> dict:
         self.inner_page = kwargs.get("inner_page", 1)
@@ -143,6 +151,7 @@ class CommentMongoResource(CommentResource, Mongo):
         data = list(data)
         self.find_children(data)
         self.convert_objectid(data)
+        self.get_user_group(data)
         return {
             "data": data,
             "count": count,
@@ -294,25 +303,15 @@ class NameMongoResource(NameResource, Mongo):
 class ResourceMongoResource(ResourceResource, Mongo):
     redis = Redis().r
 
-    def zhuixinfan_search(self, kw):
-        # export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
-        result = ZhuixinfanOnline().search_preview(kw)
-        result.pop("source")
-        json_result = {}  # name as key, url as value
+    def fansub_search(self, class_name: str, kw: str):
+        class_ = globals().get(class_name)
+        result = class_().search_preview(kw)
+        result.pop("class")
+        json_result = {}  # name as key, url_hash as value
         if result:
             # this means we have search result, get it from redis cache with real name
-            for key, name in result.items():
-                json_result[name] = self.redis.hget(key, "url")
-        return json_result
-
-    def zimuxia_search(self, kw):
-        result = ZimuxiaOnline().search_preview(kw)
-        result.pop("source")
-        json_result = {}  # name as key, url as value
-        if result:
-            # this means we have search result, get it from redis cache with real name
-            for key, name in result.items():
-                json_result[name] = self.redis.hget(key, "url")
+            for values in result.values():
+                json_result = {"name": values["name"], "url": values["url"]}
         return json_result
 
     def get_resource_data(self, resource_id: int, username: str) -> dict:
@@ -348,7 +347,10 @@ class ResourceMongoResource(ResourceResource, Mongo):
             returned = dict(data=data)
             returned["extra"] = []
         else:
-            extra = self.zhuixinfan_search(keyword) or self.zimuxia_search(keyword)
+            extra = self.fansub_search(ZimuxiaOnline.__name__, keyword) or \
+                    self.fansub_search(NewzmzOnline.__name__, keyword) or \
+                    self.fansub_search(ZhuixinfanOnline.__name__, keyword)
+
             returned["data"] = []
             returned["extra"] = extra
 
@@ -444,5 +446,5 @@ class UserMongoResource(UserResource, Mongo):
 
     def update_user_last(self, username: str, now_ip: str) -> None:
         self.db["users"].update_one({"username": username},
-                                    {"$set": {"last_date": (ts_date()), "last_ip": now_ip}}
+                                    {"$set": {"lastDate": (ts_date()), "lastIP": now_ip}}
                                     )

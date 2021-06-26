@@ -1,3 +1,19 @@
+# 需求与待开发功能
+## FE
+- [ ] group为admin特殊显示，评论接口已返回group信息
+- [ ] 评论楼中楼
+- [ ] 评论通知（浏览器通知）
+- [ ] 最新评论（id为-1）
+- [ ] 联合搜索，当本地数据库搜索不到数据时，会返回extra字段
+
+# BE
+- [ ] 添加资源API
+- [x] 联合搜索：字幕侠、new字幕组、追新番
+- [ ] 评论通知，需要新接口
+- [ ] grafana面板
+- [ ] 豆瓣接口
+- [ ] 用户体系（添加邮箱，邮件支持，找回密码）
+
 # 资源
 
 ## 获取指定id的资源
@@ -75,13 +91,14 @@
 }
 ```
 
-当数据库搜索不到资源时，会尝试从追新番和字幕侠搜索，返回如下
+当数据库搜索不到资源时，会尝试从字幕侠、new字幕组和追新番搜索，返回如下
 
 ```json
 {
   "data": [],
   "extra": {
-    "女人不杀生": "https://www.zimuxia.cn/portfolio/%e5%a5%b3%e4%ba%ba%e4%b8%8d%e6%9d%80%e7%94%9f"
+    "name": "东城梦魇",
+    "url": "https://www.zimuxia.cn/portfolio/%e4%b8%9c%e5%9f%8e%e6%a2%a6%e9%ad%87"
   }
 }
 ```
@@ -196,9 +213,9 @@
 {
   "username": "Benny",
   "date": "2021-03-12 11:11:11",
-  "last_date": "2021-03-15 13:11:18",
+  "lastDate": "2021-03-15 13:11:18",
   "ip": "1.1.1.1",
-  "last_ip": "2.2.2.2",
+  "lastIP": "2.2.2.2",
   "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.85 Safari/537.36",
   "like": [
     11133
@@ -287,7 +304,7 @@
 * inner_size: 内嵌评论数量，默认5
 * inner_page: 内嵌评论当前页，默认1
 
-返回 楼中楼评论
+返回 楼中楼评论，group表示用户所属组，admin是管理员，user是普通用户
 
 ```json
 {
@@ -299,7 +316,10 @@
       "content": "父评论benny",
       "resource_id": 233,
       "type": "parent",
-      "id": "60d1bae2d87ce6e9a2934a0f"
+      "id": "60d1bae2d87ce6e9a2934a0f",
+      "group": [
+        "admin"
+      ]
     },
     {
       "username": "Benny",
@@ -308,16 +328,21 @@
       "content": "父评论benny",
       "resource_id": 233,
       "type": "parent",
-      "ack": false,
+      "group": [
+        "admin"
+      ],
       "children": [
         {
-          "username": "admin",
+          "username": "test",
           "date": "2021-06-22 18:25:12",
           "browser": "PostmanRuntime/7.28.0",
           "content": "admin子评2论2",
           "resource_id": 233,
           "type": "child",
-          "id": "60d1ba88d87ce6e9a2934a0c"
+          "id": "60d1ba88d87ce6e9a2934a0c",
+          "group": [
+            "user"
+          ]
         },
         {
           "username": "admin",
@@ -326,7 +351,10 @@
           "content": "admin子评论2",
           "resource_id": 233,
           "type": "child",
-          "id": "60d1ba84d87ce6e9a2934a0a"
+          "id": "60d1ba84d87ce6e9a2934a0a",
+          "group": [
+            "user"
+          ]
         }
       ],
       "id": "60d1ba6cd87ce6e9a2934a08"
