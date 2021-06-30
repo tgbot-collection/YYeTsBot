@@ -27,7 +27,7 @@ class Redis:
         if os.getenv("DISABLE_REDIS"):
             self.r = fakeredis.FakeStrictRedis()
         else:
-            self.r = redis.StrictRedis(host="redis", decode_responses=True)
+            self.r = redis.StrictRedis(host=os.getenv("redis") or "localhost", decode_responses=True)
 
     def __del__(self):
         self.r.close()
@@ -152,7 +152,7 @@ class CommentResource:
                     username: str, browser: str, comment_id=None) -> dict:
         pass
 
-    def delete_comment(self, comment_id:str):
+    def delete_comment(self, comment_id: str):
         pass
 
 

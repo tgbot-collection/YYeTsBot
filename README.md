@@ -75,13 +75,13 @@ yyets_offline - 人人影视离线数据
 
 * Windows用户双击 `start_windows.bat` 
 * macOS 在终端中执行 `bash start_unix.sh`
-* Linux用户：没你的份
+* Linux用户：没你的份🙄️
 
 打开浏览器 http://127.0.0.1:8888 就可以看到熟悉的搜索界面啦！
 
 # 开发
 
-如何参与开发、具体API接口，可以 [参考这个文档](DEVELOPMENT.md)
+如何部署、参与开发、具体API接口，可以 [参考这个文档](DEVELOPMENT.md)
 
 # Credits
 
