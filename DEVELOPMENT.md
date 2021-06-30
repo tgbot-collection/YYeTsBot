@@ -3,9 +3,17 @@
 # 网站部署方式
 ## 一键脚本
 **仅支持AMD64，请先安装 docker、docker-compose和curl**
-* Linux/macOS： 
-  `bash -c "$(curl -fsSL https://raw.githubusercontent.com/tgbot-collection/YYeTsBot/master/scripts/install.sh)"`
-* Windows
+### Linux/macOS： 
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/tgbot-collection/YYeTsBot/master/scripts/install.sh)"
+````
+### Windows
+请再安装一个 [git for windows](https://gitforwindows.org/)，然后桌面空白处右键，选择 `git bash here`
+再然后
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/tgbot-collection/YYeTsBot/master/scripts/install.sh)"
+````
+
 ## docker-compose
 参考 `yyetsweb`目录下的 `README`
 

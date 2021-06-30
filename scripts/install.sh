@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 function splash() {
   echo "本脚本会在 ${HOME}/YYeTs 部署人人影视web"
@@ -35,11 +34,19 @@ function import_db() {
 
   echo "[4/5] 正在下载并导入数据库"
   curl -o /tmp/yyets_mongo.gz https://yyets.dmesg.app/data/yyets_mongo.gz
-
   docker cp /tmp/yyets_mongo.gz yyets_mongo_1:/tmp
-  docker-compose exec mongo mongorestore --gzip --archive=/tmp/yyets_mongo.gz
+  # special for windows
+  result=$(uname -a | grep "Msys")
+  if [[ "$result" != "" ]]; then
+    echo "docker exec yyets_mongo_1 mongorestore --gzip --archive=/tmp/yyets_mongo.gz" >windows.bat
+    echo "docker exec yyets_mongo_1 rm /tmp/yyets_mongo.gz" >>windows.bat
+    cmd "/C windows.bat"
+    rm windows.bat
+  else
+    docker exec yyets_mongo_1 mongorestore --gzip --archive=/tmp/yyets_mongo.gz
+    docker exec yyets_mongo_1 rm /tmp/yyets_mongo.gz
+  fi
 
-  docker-compose exec mongo rm /tmp/yyets_mongo.gz
   rm /tmp/yyets_mongo.gz
 }
 
