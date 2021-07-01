@@ -20,7 +20,8 @@ import fakeredis
 from bs4 import BeautifulSoup
 
 from config import (WORKERS, REDIS, FANSUB_ORDER, FIX_SEARCH, MONGO,
-                    ZHUIXINFAN_SEARCH, ZHUIXINFAN_RESOURCE, NEWZMZ_SEARCH, NEWZMZ_RESOURCE)
+                    ZHUIXINFAN_SEARCH, ZHUIXINFAN_RESOURCE, NEWZMZ_SEARCH, NEWZMZ_RESOURCE,
+                    CK180_SEARCH)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 
@@ -202,7 +203,7 @@ class YYeTsOffline(BaseFansub):
         results["class"] = self.__class__.__name__
         return results
 
-    @Redis.result_cache(600)
+    @Redis.result_cache(1800)
     def search_result(self, resource_url) -> dict:
         # yyets offline
         # https://yyets.dmesg.app/resource.html?id=37089
@@ -239,7 +240,7 @@ class ZimuxiaOnline(BaseFansub):
         dict_result["class"] = self.__class__.__name__
         return dict_result
 
-    @Redis.result_cache(600)
+    @Redis.result_cache(1800)
     def search_result(self, resource_url: str) -> dict:
         # zimuxia online
         logging.info("[%s] Loading detail page %s", self.__class__.__name__, resource_url)
@@ -318,6 +319,38 @@ class NewzmzOnline(BaseFansub):
         return {"all": html, "share": url, "cnname": cnname}
 
 
+class CK180Online(BaseFansub):
+
+    @Redis.preview_cache(3600)
+    def search_preview(self, search_text: str) -> dict:
+        search_link = CK180_SEARCH.format(search_text)
+        html_text = self.get_html(search_link)
+        logging.info('[%s] Parsing html...', self.__class__.__name__)
+        soup = BeautifulSoup(html_text, 'html.parser')
+        link_list = soup.find_all("div", class_="post clearfix")
+        dict_result = {}
+        for div in link_list:
+            name = div.h3.text
+            url = div.h3.a["href"]
+            url_hash = hashlib.sha1(url.encode('u8')).hexdigest()
+            dict_result[url_hash] = {
+                "url": url,
+                "name": name,
+                "class": self.__class__.__name__
+            }
+
+        dict_result["class"] = self.__class__.__name__
+        return dict_result
+
+    @Redis.result_cache(1800)
+    def search_result(self, url: str) -> dict:
+        logging.info("[%s] Loading detail page %s", self.__class__.__name__, url)
+        html = self.get_html(url)
+        soup = BeautifulSoup(html, 'html.parser')
+        cnname = soup.title.text.split("_")[0]
+        return {"all": html, "share": url, "cnname": cnname}
+
+
 class FansubEntrance(BaseFansub):
     order = FANSUB_ORDER.split(",")
 
@@ -370,9 +403,9 @@ for sub_name in globals().copy():
         vars()[cmd_name] = m
 
 if __name__ == '__main__':
-    sub = NewzmzOnline()
-    # search = sub.search_preview("法")
+    sub = CK180Online()
+    # search = sub.search_preview("404")
     # print(search)
-    uh = "914a549bc15e11a610293779761c5dd3f047ceb0"
+    uh = "965892b6b3ecd5635b7df5af4fd8d246aef3986e"
     result = sub.search_result(uh)
     print(json.dumps(result, ensure_ascii=False))

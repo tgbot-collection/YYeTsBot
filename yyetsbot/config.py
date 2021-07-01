@@ -31,6 +31,11 @@ WORKERS = "https://yyets.dmesg.app/resource.html?id={id}"
 # new zmz
 NEWZMZ_SEARCH = "https://newzmz.com/subres/index/getres.html?keyword={}"
 NEWZMZ_RESOURCE = "https://ysfx.tv/view/{}"
+
+# CK180
+CK180_SEARCH = "https://www.ck180.net/?s={}"
+CK180_RESOURCE = "https://ysfx.tv/view/{}"
+
 # authentication config
 TOKEN = os.getenv("TOKEN") or "TOKEN"
 USERNAME = os.getenv("USERNAME") or "USERNAME"
@@ -45,4 +50,4 @@ MONGO = os.getenv("MONGO") or "mongo"
 MAINTAINER = os.getenv("MAINTAINER")
 REPORT = os.getenv("REPORT") or False
 # This name must match class name, other wise this bot won't running.
-FANSUB_ORDER: str = os.getenv("ORDER") or 'YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline'
+FANSUB_ORDER: str = os.getenv("ORDER") or 'YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline,CK180Online'

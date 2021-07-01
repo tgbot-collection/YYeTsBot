@@ -21,7 +21,7 @@ from database import (AnnouncementResource, BlacklistResource, CommentResource, 
                       GrafanaQueryResource, MetricsResource, NameResource, OtherResource,
                       TopResource, UserLikeResource, UserResource, CaptchaResource, Redis)
 from utils import ts_date
-from fansub import ZhuixinfanOnline, ZimuxiaOnline, NewzmzOnline
+from fansub import ZhuixinfanOnline, ZimuxiaOnline, NewzmzOnline, CK180Online
 
 mongo_host = os.getenv("mongo") or "localhost"
 
@@ -307,11 +307,12 @@ class ResourceMongoResource(ResourceResource, Mongo):
         class_ = globals().get(class_name)
         result = class_().search_preview(kw)
         result.pop("class")
-        json_result = {}  # name as key, url_hash as value
+        json_result = {}
+        print(result)
         if result:
             # this means we have search result, get it from redis cache with real name
             for values in result.values():
-                json_result = {"name": values["name"], "url": values["url"]}
+                json_result[values["name"]] = values["url"]
         return json_result
 
     def get_resource_data(self, resource_id: int, username: str) -> dict:
@@ -349,7 +350,8 @@ class ResourceMongoResource(ResourceResource, Mongo):
         else:
             extra = self.fansub_search(ZimuxiaOnline.__name__, keyword) or \
                     self.fansub_search(NewzmzOnline.__name__, keyword) or \
-                    self.fansub_search(ZhuixinfanOnline.__name__, keyword)
+                    self.fansub_search(ZhuixinfanOnline.__name__, keyword) or \
+                    self.fansub_search(CK180Online.__name__, keyword)
 
             returned["data"] = []
             returned["extra"] = extra

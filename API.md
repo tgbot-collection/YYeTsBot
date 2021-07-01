@@ -1,5 +1,7 @@
 # 需求与待开发功能
+
 ## FE
+
 - [ ] group为admin特殊显示，评论接口已返回group信息
 - [ ] 评论楼中楼
 - [ ] 评论通知（浏览器通知）
@@ -7,6 +9,7 @@
 - [ ] 联合搜索，当本地数据库搜索不到数据时，会返回extra字段
 
 # BE
+
 - [ ] 添加资源API
 - [x] 联合搜索：字幕侠、new字幕组、追新番
 - [ ] 评论通知，需要新接口
@@ -97,8 +100,8 @@
 {
   "data": [],
   "extra": {
-    "name": "东城梦魇",
-    "url": "https://www.zimuxia.cn/portfolio/%e4%b8%9c%e5%9f%8e%e6%a2%a6%e9%ad%87"
+    "东城梦魇": "https://www.zimuxia.cn/portfolio/%e4%b8%9c%e5%9f%8e%e6%a2%a6%e9%ad%87",
+    "黑色止血钳": "https://www.zimuxia.cn/portfolio/%e9%bb%91%e8%89%b2%e6%ad%a2%e8%a1%80%e9%92%b3"
   }
 }
 ```
