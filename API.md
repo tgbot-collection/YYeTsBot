@@ -99,10 +99,18 @@
 ```json
 {
   "data": [],
-  "extra": {
-    "东城梦魇": "https://www.zimuxia.cn/portfolio/%e4%b8%9c%e5%9f%8e%e6%a2%a6%e9%ad%87",
-    "黑色止血钳": "https://www.zimuxia.cn/portfolio/%e9%bb%91%e8%89%b2%e6%ad%a2%e8%a1%80%e9%92%b3"
-  }
+  "extra": [
+    {
+      "url": "https://www.zimuxia.cn/portfolio/%e4%b8%9c%e5%9f%8e%e6%a2%a6%e9%ad%87",
+      "name": "东城梦魇",
+      "class": "ZimuxiaOnline"
+    },
+    {
+      "url": "https://www.zimuxia.cn/portfolio/%e9%bb%91%e8%89%b2%e6%ad%a2%e8%a1%80%e9%92%b3",
+      "name": "黑色止血钳",
+      "class": "ZimuxiaOnline"
+    }
+  ]
 }
 ```
 

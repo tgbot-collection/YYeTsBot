@@ -7,6 +7,8 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
+import contextlib
+
 import pymongo
 import os
 import time
@@ -307,13 +309,10 @@ class ResourceMongoResource(ResourceResource, Mongo):
         class_ = globals().get(class_name)
         result = class_().search_preview(kw)
         result.pop("class")
-        json_result = {}
-        print(result)
         if result:
-            # this means we have search result, get it from redis cache with real name
-            for values in result.values():
-                json_result[values["name"]] = values["url"]
-        return json_result
+            return list(result.values())
+        else:
+            return []
 
     def get_resource_data(self, resource_id: int, username: str) -> dict:
         data = self.db["yyets"].find_one_and_update(
