@@ -7,7 +7,7 @@ dev:
 	git pull
 	git submodule update --remote
 	cp .env YYeTsFE/.env
-	docker build -t bennythink/yyetsbot .
+	docker build --build-arg env=dev -t bennythink/yyetsbot .
 	docker-compose up -d
 
 clean:
@@ -26,3 +26,7 @@ static:
 
 zip:
 	zip -r yyetsweb-one-key-$(date +"%F %T").zip yyetsweb
+
+docker:
+	# docker buildx create --use --name mybuilder
+	docker buildx build --platform linux/amd64,linux/arm64 -t bennythink/test  . --push

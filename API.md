@@ -265,7 +265,7 @@
   "id": "60cab95baa7f515ea291392b",
   "children": [
   ],
-  "children_count": 0
+  "childrenCount": 0
 }
 
 ```
@@ -298,7 +298,7 @@
       "resource_id": 233
     }
   ],
-  "children_count": 2
+  "childrenCount": 2
 }
 
 ```
@@ -341,6 +341,7 @@
       "group": [
         "admin"
       ],
+      "childrenCount": 22,
       "children": [
         {
           "username": "test",
@@ -398,6 +399,7 @@
       "resource_id": 233,
       "type": "child",
       "id": "60dfc9d5802d2c69cf877514",
+      "childrenCount": 17,
       "group": [
         "admin"
       ]

@@ -13,6 +13,7 @@ RUN apk update && apk add --no-cache libressl jpeg-dev openjpeg-dev libimagequan
 
 
 FROM node:alpine as nodebuilder
+ARG env
 WORKDIR /YYeTsBot/YYeTsFE/
 RUN apk add git
 COPY YYeTsFE/package.json /YYeTsBot/YYeTsFE/
@@ -21,7 +22,7 @@ RUN yarn
 COPY YYeTsFE /YYeTsBot/YYeTsFE/
 COPY .git/modules /YYeTsBot/.git/modules/
 RUN echo "gitdir: ../.git/modules/YYeTsFE" > .git
-RUN yarn run release
+RUN if [ "$env" = "dev" ]; then echo "dev build";yarn build; else echo "prod build"; yarn run release; fi
 
 
 FROM runner
