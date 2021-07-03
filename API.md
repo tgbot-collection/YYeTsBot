@@ -314,8 +314,7 @@
 * page: 当前页，默认1
 * inner_size: 内嵌评论数量，默认5
 * inner_page: 内嵌评论当前页，默认1
-
-返回 楼中楼评论，group表示用户所属组，admin是管理员，user是普通用户
+  **注意：如上两个inner参数是对整个页面生效的，如要进行某个父评论的子评论分页，请参考下面的子评论分页接口 返回 楼中楼评论，group表示用户所属组，admin是管理员，user是普通用户
 
 ```json
 {
@@ -373,6 +372,50 @@
   ],
   "count": 2,
   "resource_id": 233
+}
+```
+
+## 子评论分页
+
+* GET `/api/comment/child`
+  URL参数：
+* parent_id:父评论id
+* size: 每页评论数量，默认5
+* page: 当前页，默认1
+
+`/api/comment/child?parent_id=60dfc932802d2c69cf8774ce&size=2&page=2`
+
+返回子评论
+
+```json
+{
+  "data": [
+    {
+      "username": "Benny",
+      "date": "2021-07-03 10:22:13",
+      "browser": "PostmanRuntime/7.28.1",
+      "content": "子15",
+      "resource_id": 233,
+      "type": "child",
+      "id": "60dfc9d5802d2c69cf877514",
+      "group": [
+        "admin"
+      ]
+    },
+    {
+      "username": "Benny",
+      "date": "2021-07-03 10:22:11",
+      "browser": "PostmanRuntime/7.28.1",
+      "content": "子14",
+      "resource_id": 233,
+      "type": "child",
+      "id": "60dfc9d3802d2c69cf877512",
+      "group": [
+        "admin"
+      ]
+    }
+  ],
+  "count": 17
 }
 ```
 

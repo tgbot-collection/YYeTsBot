@@ -20,7 +20,7 @@ from tornado import web, httpserver, ioloop, options
 from Mongo import OtherMongoResource
 from handler import IndexHandler, UserHandler, ResourceHandler, TopHandler, UserLikeHandler, NameHandler, \
     CommentHandler, AnnouncementHandler, CaptchaHandler, MetricsHandler, GrafanaIndexHandler, GrafanaSearchHandler, \
-    GrafanaQueryHandler, BlacklistHandler, NotFoundHandler, DBDumpHandler
+    GrafanaQueryHandler, BlacklistHandler, NotFoundHandler, DBDumpHandler,CommentChildHandler
 
 enable_pretty_logging()
 
@@ -38,6 +38,7 @@ class RunServer:
         (r'/api/user', UserHandler),
         (r'/api/name', NameHandler),
         (r'/api/comment', CommentHandler),
+        (r'/api/comment/child', CommentChildHandler),
         (r'/api/captcha', CaptchaHandler),
         (r'/api/metrics', MetricsHandler),
         (r'/api/grafana/', GrafanaIndexHandler),

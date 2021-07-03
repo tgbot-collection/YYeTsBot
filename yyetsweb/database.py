@@ -156,6 +156,11 @@ class CommentResource:
         pass
 
 
+class CommentChildResource:
+    def get_comment(self, parent_id: str, page: int, size: int) -> dict:
+        pass
+
+
 class CaptchaResource:
     redis = Redis()
 

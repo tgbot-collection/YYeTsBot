@@ -21,7 +21,7 @@ from passlib.handlers.pbkdf2 import pbkdf2_sha256
 
 from database import (AnnouncementResource, BlacklistResource, CommentResource, ResourceResource,
                       GrafanaQueryResource, MetricsResource, NameResource, OtherResource,
-                      TopResource, UserLikeResource, UserResource, CaptchaResource, Redis)
+                      TopResource, UserLikeResource, UserResource, CaptchaResource, Redis, CommentChildResource)
 from utils import ts_date
 from fansub import ZhuixinfanOnline, ZimuxiaOnline, NewzmzOnline, CK180Online
 
@@ -164,7 +164,7 @@ class CommentMongoResource(CommentResource, Mongo):
                     ip: str, username: str, browser: str, parent_comment_id=None) -> dict:
         returned = {"status_code": 0, "message": ""}
         verify_result = CaptchaResource().verify_code(captcha, captcha_id)
-        # verify_result["status"] = 1
+        verify_result["status"] = 1
         if not verify_result["status"]:
             returned["status_code"] = HTTPStatus.BAD_REQUEST
             returned["message"] = verify_result["message"]
@@ -232,6 +232,28 @@ class CommentMongoResource(CommentResource, Mongo):
             returned["count"] = count
 
         return returned
+
+
+class CommentChildMongoResource(CommentChildResource, CommentMongoResource, Mongo):
+    def __init__(self):
+        super().__init__()
+        self.page = 1
+        self.size = 5
+        self.projection = {"ip": False, "parent_id": False}
+
+    def get_comment(self, parent_id: str, page: int, size: int) -> dict:
+        condition = {"parent_id": ObjectId(parent_id), "deleted_at": {"$exists": False}, "type": "child"}
+
+        count = self.db["comment"].count_documents(condition)
+        data = self.db["comment"].find(condition, self.projection) \
+            .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
+        data = list(data)
+        self.convert_objectid(data)
+        self.get_user_group(data)
+        return {
+            "data": data,
+            "count": count,
+        }
 
 
 class GrafanaQueryMongoResource(GrafanaQueryResource, Mongo):
@@ -377,7 +399,7 @@ class TopMongoResource(TopResource, Mongo):
         area_dict = dict(ALL={"$regex": ".*"}, US="美国", JP="日本", KR="韩国", UK="英国")
         all_data = {}
         for abbr, area in area_dict.items():
-            data = self.db["yyets"].find({"data.info.area": area}, self.projection). \
+            data = self.db["yyets"].find({"data.info.area": area, "data.info.id": {"$ne": 233}}, self.projection). \
                 sort("data.info.views", pymongo.DESCENDING).limit(15)
             all_data[abbr] = list(data)
 
