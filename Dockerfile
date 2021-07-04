@@ -18,7 +18,7 @@ WORKDIR /YYeTsBot/YYeTsFE/
 RUN apk add git
 COPY YYeTsFE/package.json /YYeTsBot/YYeTsFE/
 COPY YYeTsFE/yarn.lock /YYeTsBot/YYeTsFE/
-RUN yarn
+RUN yarn --network-timeout 100000
 COPY YYeTsFE /YYeTsBot/YYeTsFE/
 COPY .git/modules /YYeTsBot/.git/modules/
 RUN echo "gitdir: ../.git/modules/YYeTsFE" > .git
