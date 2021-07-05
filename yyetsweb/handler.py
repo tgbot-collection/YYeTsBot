@@ -329,8 +329,8 @@ class CommentHandler(BaseHandler):
 class CommentChildHandler(CommentHandler):
     class_name = f"CommentChild{adapter}Resource"
 
-    from Mongo import CommentChildResource
-    instance = CommentChildResource()
+    # from Mongo import CommentChildResource
+    # instance = CommentChildResource()
 
     @run_on_executor()
     def get_comment(self):
@@ -455,7 +455,8 @@ class GrafanaIndexHandler(BaseHandler):
 class GrafanaSearchHandler(BaseHandler):
 
     def post(self):
-        data = ["access", "search", "resource"]
+        data = ["resource", "top", "home", "search", "extra", "discuss", "multiDownload", "download", "user", "share",
+                "me", "database", "help", "backOld", "favorite", "unFavorite", "comment"]
         self.write(json.dumps(data))
 
 
@@ -493,8 +494,9 @@ class GrafanaQueryHandler(BaseHandler):
         for target in targets:
             data_points = []
             result = self.instance.get_grafana_data(date_series)
+            i: dict
             for i in result:
-                datum = [i[target], self.time_str_int(i["date"]) * 1000]
+                datum = [i[target], self.time_str_int(i["date"]) * 1000] if i.get(target) else []
                 data_points.append(datum)
             temp = {
                 "target": target,

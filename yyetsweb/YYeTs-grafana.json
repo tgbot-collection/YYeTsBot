@@ -14,7 +14,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "7.3.4"
+      "version": "7.5.9"
     },
     {
       "type": "panel",
@@ -55,9 +55,7 @@
       "dashes": false,
       "datasource": "${DS_JSON}",
       "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
+        "defaults": {},
         "overrides": []
       },
       "fill": 1,
@@ -66,6 +64,113 @@
         "h": 8,
         "w": 12,
         "x": 0,
+        "y": 0
+      },
+      "hiddenSeries": false,
+      "id": 10,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.9",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "data": "",
+          "refId": "A",
+          "target": "help",
+          "type": "timeseries"
+        },
+        {
+          "data": "",
+          "hide": false,
+          "refId": "B",
+          "target": "database",
+          "type": "timeseries"
+        },
+        {
+          "data": "",
+          "hide": false,
+          "refId": "C",
+          "target": "discuss",
+          "type": "timeseries"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Other",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_JSON}",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
         "y": 0
       },
       "hiddenSeries": false,
@@ -86,7 +191,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.3.4",
+      "pluginVersion": "7.5.9",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -98,19 +203,42 @@
         {
           "data": "",
           "refId": "A",
-          "target": "access",
+          "target": "resource",
           "type": "timeseries"
         },
         {
           "data": "",
+          "hide": false,
           "refId": "B",
+          "target": "top",
+          "type": "timeseries"
+        },
+        {
+          "data": "",
+          "hide": false,
+          "refId": "C",
+          "target": "home",
+          "type": "timeseries"
+        },
+        {
+          "data": "",
+          "hide": false,
+          "refId": "D",
           "target": "search",
           "type": "timeseries"
         },
         {
           "data": "",
-          "refId": "C",
-          "target": "resource",
+          "hide": false,
+          "refId": "E",
+          "target": "backOld",
+          "type": "timeseries"
+        },
+        {
+          "data": "",
+          "hide": false,
+          "refId": "F",
+          "target": "extra",
           "type": "timeseries"
         }
       ],
@@ -118,7 +246,235 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Access Report",
+      "title": "Resource",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_JSON}",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "hiddenSeries": false,
+      "id": 8,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.9",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "data": "",
+          "refId": "A",
+          "target": "user",
+          "type": "timeseries"
+        },
+        {
+          "data": "",
+          "hide": false,
+          "refId": "B",
+          "target": "share",
+          "type": "timeseries"
+        },
+        {
+          "data": "",
+          "hide": false,
+          "refId": "C",
+          "target": "me",
+          "type": "timeseries"
+        },
+        {
+          "data": "",
+          "hide": false,
+          "refId": "D",
+          "target": "comment",
+          "type": "timeseries"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "User",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_JSON}",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "hiddenSeries": false,
+      "id": 6,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.9",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "data": "",
+          "refId": "A",
+          "target": "multiDownload",
+          "type": "timeseries"
+        },
+        {
+          "data": "",
+          "hide": false,
+          "refId": "B",
+          "target": "download",
+          "type": "timeseries"
+        },
+        {
+          "data": "",
+          "hide": false,
+          "refId": "C",
+          "target": "favorite",
+          "type": "timeseries"
+        },
+        {
+          "data": "",
+          "hide": false,
+          "refId": "D",
+          "target": "unFavorite",
+          "type": "timeseries"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Action",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -156,7 +512,7 @@
       }
     }
   ],
-  "schemaVersion": 26,
+  "schemaVersion": 27,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -170,5 +526,5 @@
   "timezone": "",
   "title": "YYeTs",
   "uid": "zJOru_8Gz",
-  "version": 2
+  "version": 5
 }

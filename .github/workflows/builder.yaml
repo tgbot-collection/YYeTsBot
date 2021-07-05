@@ -51,7 +51,7 @@ jobs:
           push: true
           tags: bennythink/yyetsbot:latest
           cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
       - name: Move cache
         run: |
