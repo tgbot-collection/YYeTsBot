@@ -43,13 +43,19 @@ jobs:
           GENERATE_SOURCEMAP: ${{ secrets.GENERATE_SOURCEMAP }}
         run: bash hooks/pre_build
 
+      - name: Lower case
+        id: string
+        uses: ASzc/change-string-case-action@v1
+        with:
+          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
+
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: bennythink/yyetsbot:latest
+          tags: ${{ steps.string.outputs.lowercase }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
