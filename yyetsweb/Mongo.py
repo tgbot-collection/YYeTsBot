@@ -7,8 +7,8 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import contextlib
-
+import sys
+import pathlib
 import pymongo
 import os
 import time
@@ -23,6 +23,9 @@ from database import (AnnouncementResource, BlacklistResource, CommentResource, 
                       GrafanaQueryResource, MetricsResource, NameResource, OtherResource,
                       TopResource, UserLikeResource, UserResource, CaptchaResource, Redis, CommentChildResource)
 from utils import ts_date
+
+lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().as_posix()
+sys.path.append(lib_path)
 from fansub import ZhuixinfanOnline, ZimuxiaOnline, NewzmzOnline, CK180Online
 
 mongo_host = os.getenv("mongo") or "localhost"

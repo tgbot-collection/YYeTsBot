@@ -174,7 +174,7 @@ class YYeTsOffline(BaseFansub):
         self.mongo = pymongo.MongoClient(host=MONGO)
         self.collection = self.mongo[db][col]
 
-    @Redis.preview_cache(3600)
+    @Redis.preview_cache(3600 * 6)
     def search_preview(self, search_text: str) -> dict:
         logging.info("[%s] Loading offline data from MongoDB...", self.__class__.__name__)
 
@@ -203,7 +203,7 @@ class YYeTsOffline(BaseFansub):
         results["class"] = self.__class__.__name__
         return results
 
-    @Redis.result_cache(1800)
+    @Redis.result_cache(3600 * 3)
     def search_result(self, resource_url) -> dict:
         # yyets offline
         # https://yyets.dmesg.app/resource.html?id=37089
@@ -217,7 +217,7 @@ class YYeTsOffline(BaseFansub):
 
 
 class ZimuxiaOnline(BaseFansub):
-    @Redis.preview_cache(3600)
+    @Redis.preview_cache(3600 * 6)
     def search_preview(self, search_text: str) -> dict:
         # zimuxia online
         search_url = FIX_SEARCH.format(kw=search_text)
@@ -240,7 +240,7 @@ class ZimuxiaOnline(BaseFansub):
         dict_result["class"] = self.__class__.__name__
         return dict_result
 
-    @Redis.result_cache(1800)
+    @Redis.result_cache(3600 * 3)
     def search_result(self, resource_url: str) -> dict:
         # zimuxia online
         logging.info("[%s] Loading detail page %s", self.__class__.__name__, resource_url)
@@ -252,7 +252,7 @@ class ZimuxiaOnline(BaseFansub):
 
 class ZhuixinfanOnline(BaseFansub):
 
-    @Redis.preview_cache(3600)
+    @Redis.preview_cache(3600 * 6)
     def search_preview(self, search_text: str) -> dict:
         # zhuixinfan online
         search_link = ZHUIXINFAN_SEARCH.format(search_text)
@@ -276,7 +276,7 @@ class ZhuixinfanOnline(BaseFansub):
         dict_result["class"] = self.__class__.__name__
         return dict_result
 
-    @Redis.result_cache(1800)
+    @Redis.result_cache(3600 * 3)
     def search_result(self, url: str) -> dict:
         # zhuixinfan online
         # don't worry, url_hash will become real url
@@ -290,7 +290,7 @@ class ZhuixinfanOnline(BaseFansub):
 
 class NewzmzOnline(BaseFansub):
 
-    @Redis.preview_cache(3600)
+    @Redis.preview_cache(3600 * 6)
     def search_preview(self, search_text: str) -> dict:
         # zhuixinfan online
         search_link = NEWZMZ_SEARCH.format(search_text)
@@ -309,7 +309,7 @@ class NewzmzOnline(BaseFansub):
         dict_result["class"] = self.__class__.__name__
         return dict_result
 
-    @Redis.result_cache(1800)
+    @Redis.result_cache(3600 * 3)
     def search_result(self, url: str) -> dict:
         logging.info("[%s] Loading detail page %s", self.__class__.__name__, url)
         html = self.get_html(url)
@@ -321,7 +321,7 @@ class NewzmzOnline(BaseFansub):
 
 class CK180Online(BaseFansub):
 
-    @Redis.preview_cache(3600)
+    @Redis.preview_cache(3600 * 6)
     def search_preview(self, search_text: str) -> dict:
         search_link = CK180_SEARCH.format(search_text)
         html_text = self.get_html(search_link)
@@ -342,7 +342,7 @@ class CK180Online(BaseFansub):
         dict_result["class"] = self.__class__.__name__
         return dict_result
 
-    @Redis.result_cache(1800)
+    @Redis.result_cache(3600 * 3)
     def search_result(self, url: str) -> dict:
         logging.info("[%s] Loading detail page %s", self.__class__.__name__, url)
         html = self.get_html(url)
