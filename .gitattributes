@@ -16,3 +16,4 @@ yyetsweb/resource.html linguist-vendored
 yyetsweb/js/common.js -linguist-vendored
 
 tests/data/* linguist-vendored
+yyetsweb/craw_data/*.html linguist-vendored

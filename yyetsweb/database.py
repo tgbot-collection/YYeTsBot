@@ -214,3 +214,12 @@ class AnnouncementResource:
 
     def add_announcement(self, username, content, ip, browser):
         pass
+
+
+class DoubanResource:
+
+    def get_douban_data(self, rid: int) -> dict:
+        pass
+
+    def get_douban_image(self, rid: int) -> bytes:
+        pass

@@ -103,7 +103,7 @@ yyets_offline - 人人影视离线数据
 * 捐助我，[爱发电？](https://afdian.net/@BennyThink)
 
 # 感谢
-感谢所有支持本项目的人！
+感谢所有[支持本项目](SPONSOR.md)的人！
 
 # License
 [MIT](LICENSE)

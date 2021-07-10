@@ -15,12 +15,16 @@ import time
 from http import HTTPStatus
 from datetime import timedelta, date
 from bson.objectid import ObjectId
+from urllib.parse import unquote
+import re
+import logging
 
+from bs4 import BeautifulSoup
 import requests
 from passlib.handlers.pbkdf2 import pbkdf2_sha256
 
 from database import (AnnouncementResource, BlacklistResource, CommentResource, ResourceResource,
-                      GrafanaQueryResource, MetricsResource, NameResource, OtherResource,
+                      GrafanaQueryResource, MetricsResource, NameResource, OtherResource, DoubanResource,
                       TopResource, UserLikeResource, UserResource, CaptchaResource, Redis, CommentChildResource)
 from utils import ts_date
 
@@ -29,6 +33,8 @@ sys.path.append(lib_path)
 from fansub import ZhuixinfanOnline, ZimuxiaOnline, NewzmzOnline, CK180Online
 
 mongo_host = os.getenv("mongo") or "localhost"
+DOUBAN_SEARCH = "https://www.douban.com/search?cat=1002&q={}"
+DOUBAN_DETAIL = "https://movie.douban.com/subject/{}/"
 
 
 class Mongo:
@@ -479,3 +485,73 @@ class UserMongoResource(UserResource, Mongo):
         self.db["users"].update_one({"username": username},
                                     {"$set": {"lastDate": (ts_date()), "lastIP": now_ip}}
                                     )
+
+
+class DoubanMongoResource(DoubanResource, Mongo):
+
+    def get_douban_data(self, rid: int) -> dict:
+        return self.find_douban(rid)
+
+    def get_douban_image(self, rid: int) -> bytes:
+        db_data = self.get_douban_data(rid)
+        return db_data["poster_data"]
+
+    def find_douban(self, resource_id: int):
+        session = requests.Session()
+        ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+        session.headers.update({"User-Agent": ua})
+
+        douban_col = self.db["douban"]
+        yyets_col = self.db["yyets"]
+        data = douban_col.find_one({"resource_id": resource_id}, {"_id": False})
+        if data:
+            logging.info("Existing data for %s", resource_id)
+            return data
+
+        projection = {"data.info.cnname": True, "data.info.enname": True, "data.info.aliasname": True}
+        names = yyets_col.find_one({"data.info.id": resource_id}, projection=projection)
+        if names is None:
+            return {}
+        cname = names["data"]["info"]["cnname"]
+        logging.info("cnname for douban is %s", cname)
+        # enname = names["data"]["info"]["enname"]
+        # aliasname = names["data"]["info"]["aliasname"].split("/")
+
+        search_html = session.get(DOUBAN_SEARCH.format(cname)).text
+        logging.info("Analysis search html...%s", search_html)
+        soup = BeautifulSoup(search_html, 'html.parser')
+        douban_item = soup.find_all("div", class_="content")
+
+        fwd_link = unquote(douban_item[0].a["href"])
+        douban_id = re.findall(r"https://movie.douban.com/subject/(\d*)/&query=", fwd_link)[0]
+        detail_link = DOUBAN_DETAIL.format(douban_id)
+
+        detail_html = session.get(detail_link).text
+        logging.info("Analysis detail html...%s", detail_link)
+        soup = BeautifulSoup(detail_html, 'html.parser')
+
+        poster = soup.find_all("div", id="mainpic")
+        poster_image_link = poster[0].a.img["src"]
+
+        rating_obj = soup.find_all("strong", class_="ll rating_num")
+        rating = rating_obj[0].text
+
+        actors_obj = soup.find_all("span", class_="attrs")
+        actors = actors_obj[-1].text
+        year = soup.find_all("span", class_="year")[0].text
+        year_text = re.sub(r"[()]", "", year)
+        intro = soup.find_all("span", property="v:summary")[0].text
+        intro = re.sub(r"\s", "", intro)
+        final_data = {
+            "douban_id": douban_id,
+            "douban_link": detail_link,
+            "poster_link": poster_image_link,
+            "poster_data": session.get(poster_image_link).content,
+            "resource_id": resource_id,
+            "rating": rating,
+            "actors": actors,
+            "year": year_text,
+            "introduction": intro
+        }
+        douban_col.insert_one(final_data.copy())
+        return final_data

@@ -13,6 +13,7 @@ import os
 import re
 import time
 import importlib
+import filetype
 
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
@@ -586,3 +587,32 @@ class DBDumpHandler(BaseHandler):
     def get(self):
         resp = yield self.get_hash()
         self.write(resp)
+
+
+class DoubanHandler(BaseHandler):
+    class_name = f"Douban{adapter}Resource"
+
+    # from Mongo import DoubanMongoResource
+    # instance = DoubanMongoResource()
+
+    @run_on_executor()
+    def douban_data(self):
+        rid = self.get_query_argument("resource_id")
+        data = self.instance.get_douban_data(int(rid))
+        data.pop("poster_data")
+        return data
+
+    def get_image(self) -> bytes:
+        rid = self.get_query_argument("resource_id")
+        return self.instance.get_douban_image(int(rid))
+
+    @gen.coroutine
+    def get(self):
+        _type = self.get_query_argument("type", None)
+        if _type == "image":
+            data = self.get_image()
+            self.set_header("content-type", filetype.guess_mime(data))
+            self.write(data)
+        else:
+            resp = yield self.douban_data()
+            self.write(resp)
