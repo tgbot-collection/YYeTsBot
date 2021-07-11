@@ -14,7 +14,3 @@ with open("douban_detail.html") as f:
     detail_html = f.read()
 soup = BeautifulSoup(detail_html, 'html.parser')
 
-intro = soup.find_all("span", property="v:summary")[0].text
-i = re.sub(r"\s", "", intro)
-
-print(i)

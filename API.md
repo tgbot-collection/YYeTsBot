@@ -567,12 +567,43 @@
 
 ```json
 {
-  "douban_id": "26816519",
-  "douban_link": "https://movie.douban.com/subject/26816519/",
-  "poster_link": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2400201631.jpg",
-  "resource_id": 34812,
+  "name": "逃避可耻却有用",
+  "doubanId": 26816519,
+  "doubanLink": "https://movie.douban.com/subject/26816519/",
+  "posterLink": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2400201631.jpg",
+  "resourceId": 34812,
   "rating": "8.4",
-  "actors": "新垣结衣 / 星野源 / 大谷亮平 / 藤井隆 / 真野惠里菜 / 成田凌 / 山贺琴子 / 宇梶刚士 / 富田靖子 / 古田新太 / 石田百合子 / 细田善彦 / 古馆宽治 / 叶山奖之",
+  "actors": [
+    "新垣结衣",
+    "星野源",
+    "大谷亮平",
+    "藤井隆",
+    "真野惠里菜",
+    "成田凌",
+    "山贺琴子",
+    "宇梶刚士",
+    "富田靖子",
+    "古田新太",
+    "石田百合子",
+    "细田善彦",
+    "古馆宽治",
+    "叶山奖之"
+  ],
+  "directors": [
+    "金子文纪",
+    "土井裕泰",
+    "石井康晴"
+  ],
+  "genre": [
+    "喜剧"
+  ],
+  "releaseDate": "2016-10-11(日本)",
+  "episodeCount": " 11",
+  "episodeDuration": " 45分钟",
+  "writers": [
+    "野木亚纪子",
+    "海野纲弥"
+  ],
   "year": "2016",
   "introduction": "森山实栗（新垣结衣饰）自研究生毕业之后就一直仕途不顺，最近更是惨遭解雇，处于“无业游民”的状态之下，日子过得十分凄惨。经由父亲的介绍，无处可去的实栗来到了名为津崎平匡（星野源饰）的单身男子家中，为其料理家事，就这样，二十五岁的实栗成为了一名家政妇。实栗心地善良手脚勤快，在她的安排和劳作下，平匡家中的一切被打理的井井有条，实栗因此获得了平匡的信赖，亦找到了生活的重心，重新振作了起来。然而好景不长，实栗的父母决定搬离此地，这也就意味着实栗必须“离职”。实在无法接受此事的实栗决定和平匡“契约结婚”，在外装做夫妻，在内依旧是雇主和职员。就这样，这对“孤男寡女”开始了他们的同居生活。"
 }
@@ -581,4 +612,4 @@
 ## 获取海报
 
 * GET `api/douban?resource_id=34812&type=image`
-  会返回相应格式（jpeg、webp、png等）的图片，与上次数据中 `poster_link`所看到的内容相同
+  会返回相应格式（jpeg、webp、png等）的图片，与上次数据中 `posterLink`所看到的内容相同

@@ -599,7 +599,7 @@ class DoubanHandler(BaseHandler):
     def douban_data(self):
         rid = self.get_query_argument("resource_id")
         data = self.instance.get_douban_data(int(rid))
-        data.pop("poster_data")
+        data.pop("posterData")
         return data
 
     def get_image(self) -> bytes:

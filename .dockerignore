@@ -5,7 +5,6 @@ logs/*
 YYeTsFE/node_modules/*
 .github/*
 assets/*
-tools/*
 scripts/*
 conf/*
 tests/*
