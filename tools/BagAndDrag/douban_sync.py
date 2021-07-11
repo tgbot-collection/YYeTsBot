@@ -29,11 +29,12 @@ session.headers.update({"User-Agent": ua})
 
 yyets_data = douban.db["yyets"].find()
 
-for data in tqdm(yyets_data):
-    resource_id = data["data"]["info"]["id"]
+rids = [i["data"]["info"]["id"] for i in yyets_data]
+logging.info("resource id complete")
+for rid in tqdm(rids):
     with contextlib.suppress(Exception):
-        d = douban.find_douban(resource_id)
-        logging.info("Processed %s, length %d", resource_id, len(d))
-        time.sleep(random.randint(5, 20))
+        d = douban.find_douban(rid)
+        logging.info("Processed %s, length %d", rid, len(d))
+        time.sleep(random.randint(1, 5))
 
 logging.info("ALL FINISH!")
