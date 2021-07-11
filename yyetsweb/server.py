@@ -7,21 +7,23 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import os
 import logging
+import os
 import platform
 
 import pytz
-
 from apscheduler.schedulers.background import BackgroundScheduler
+from tornado import httpserver, ioloop, options, web
 from tornado.log import enable_pretty_logging
-from tornado import web, httpserver, ioloop, options
 
+from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
+                     CommentChildHandler, CommentHandler, CommentNewestHandler,
+                     DBDumpHandler, DoubanHandler, GrafanaIndexHandler,
+                     GrafanaQueryHandler, GrafanaSearchHandler, IndexHandler,
+                     MetricsHandler, NameHandler, NotFoundHandler,
+                     ResourceHandler, TopHandler, UserHandler, UserLikeHandler)
+from migration.douban_sync import sync_douban
 from Mongo import OtherMongoResource
-from handler import IndexHandler, UserHandler, ResourceHandler, TopHandler, UserLikeHandler, NameHandler, \
-    CommentHandler, AnnouncementHandler, CaptchaHandler, MetricsHandler, GrafanaIndexHandler, GrafanaSearchHandler, \
-    GrafanaQueryHandler, BlacklistHandler, NotFoundHandler, DBDumpHandler, CommentChildHandler, DoubanHandler, \
-    CommentNewestHandler
 
 enable_pretty_logging()
 
@@ -83,6 +85,7 @@ if __name__ == "__main__":
     timez = pytz.timezone('Asia/Shanghai')
     scheduler = BackgroundScheduler(timezone=timez)
     scheduler.add_job(OtherMongoResource().reset_top, 'cron', hour=0, minute=0, day=1)
+    scheduler.add_job(sync_douban, 'cron', hour=0, minute=0, day=1)
     scheduler.start()
     options.define("p", default=8888, help="running port", type=int)
     options.define("h", default='127.0.0.1', help="listen address", type=str)
