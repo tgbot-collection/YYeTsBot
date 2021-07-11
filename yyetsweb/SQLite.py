@@ -8,9 +8,9 @@
 __author__ = "Benny <benny.think@gmail.com>"
 
 import json
+import logging
 import os
 import sqlite3
-import logging
 
 from database import ResourceResource
 

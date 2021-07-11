@@ -7,23 +7,22 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
+import importlib
 import json
 import logging
 import os
 import re
 import time
-import importlib
-import filetype
-
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from hashlib import sha1
 from http import HTTPStatus
 
+import filetype
+from tornado import escape, gen, web
 from tornado.concurrent import run_on_executor
-from tornado import web, escape, gen
 
-from database import Redis, AntiCrawler, CaptchaResource
+from database import AntiCrawler, CaptchaResource, Redis
 
 escape.json_encode = lambda value: json.dumps(value, ensure_ascii=False)
 logging.basicConfig(level=logging.INFO)

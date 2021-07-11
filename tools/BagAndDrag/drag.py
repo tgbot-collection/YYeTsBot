@@ -10,12 +10,14 @@ __author__ = "Benny <benny.think@gmail.com>"
 import argparse
 import logging
 import time
-import requests
 import traceback
 from concurrent.futures import ThreadPoolExecutor
+
+import requests
 from tqdm import tqdm
 
-from bag import SHARE_URL, API_DATA, load_cookies, is_cookie_valid, login, insert_db, insert_error
+from bag import (API_DATA, SHARE_URL, insert_db, insert_error, is_cookie_valid,
+                 load_cookies, login)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 s = requests.session()

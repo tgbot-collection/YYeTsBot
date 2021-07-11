@@ -4,24 +4,24 @@
 
 __author__ = 'Benny <benny.think@gmail.com>'
 
-import os
-import logging
-import pickle
-import sys
-import json
-import hashlib
 import contextlib
+import hashlib
+import json
+import logging
+import os
+import pickle
 import re
+import sys
 
-import requests
+import fakeredis
 import pymongo
 import redis
-import fakeredis
+import requests
 from bs4 import BeautifulSoup
 
-from config import (WORKERS, REDIS, FANSUB_ORDER, FIX_SEARCH, MONGO,
-                    ZHUIXINFAN_SEARCH, ZHUIXINFAN_RESOURCE, NEWZMZ_SEARCH, NEWZMZ_RESOURCE,
-                    CK180_SEARCH)
+from config import (CK180_SEARCH, FANSUB_ORDER, FIX_SEARCH, MONGO,
+                    NEWZMZ_RESOURCE, NEWZMZ_SEARCH, REDIS, WORKERS,
+                    ZHUIXINFAN_RESOURCE, ZHUIXINFAN_SEARCH)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 

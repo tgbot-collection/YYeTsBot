@@ -9,13 +9,13 @@ __author__ = "Benny <benny.think@gmail.com>"
 
 # convert to mongodb and con_sqlite
 
+import json
 import sqlite3
+from typing import List
+
 import pymongo
 import pymysql
 import tqdm
-import json
-
-from typing import List
 
 con_mysql = pymysql.Connect(host="127.0.0.1", user="root", password="root", charset="utf8mb4", database="yyets",
                             cursorclass=pymysql.cursors.DictCursor

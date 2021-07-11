@@ -4,15 +4,16 @@
 
 __author__ = 'Benny <benny.think@gmail.com>'
 
-import os
-import sys
-import pickle
 import json
 import logging
-import requests
-import redis
+import os
+import pickle
+import sys
 
-from config import AJAX_LOGIN, USERNAME, PASSWORD, REDIS
+import redis
+import requests
+
+from config import AJAX_LOGIN, PASSWORD, REDIS, USERNAME
 
 r = redis.StrictRedis(host=REDIS, decode_responses=True)
 

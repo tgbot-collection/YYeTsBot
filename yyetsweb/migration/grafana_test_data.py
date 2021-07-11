@@ -7,9 +7,10 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import pymongo
 import random
 from datetime import date, timedelta
+
+import pymongo
 
 client = pymongo.MongoClient()
 col = client["zimuzu"]["metrics"]

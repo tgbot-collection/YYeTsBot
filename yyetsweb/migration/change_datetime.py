@@ -7,8 +7,9 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import pymongo
 import time
+
+import pymongo
 
 client = pymongo.MongoClient()
 from bson import ObjectId

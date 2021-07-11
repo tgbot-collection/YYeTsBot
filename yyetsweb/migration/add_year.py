@@ -7,11 +7,12 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import pymongo
-import time
-import re
-from tqdm import tqdm
 import logging
+import re
+import time
+
+import pymongo
+from tqdm import tqdm
 
 logging.basicConfig(level=logging.INFO)
 

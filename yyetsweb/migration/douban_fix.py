@@ -8,10 +8,10 @@
 __author__ = "Benny <benny.think@gmail.com>"
 
 import argparse
+import pathlib
+import sys
 
 import requests
-import sys
-import pathlib
 
 lib_path = pathlib.Path(__file__).parent.parent.resolve().as_posix()
 sys.path.append(lib_path)

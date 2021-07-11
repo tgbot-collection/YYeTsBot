@@ -7,10 +7,10 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
+import json
 import time
 
 import PySimpleGUI as sg
-import json
 
 # All the stuff inside your window.
 channel_map = {

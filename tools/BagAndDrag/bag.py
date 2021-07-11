@@ -7,16 +7,17 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import os
-import requests
-import pickle
-import logging
-import sys
 import contextlib
-import pymysql
 import json
-import traceback
+import logging
+import os
+import pickle
+import sys
 import time
+import traceback
+
+import pymysql
+import requests
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 

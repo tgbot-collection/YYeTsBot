@@ -8,11 +8,11 @@
 __author__ = "Benny <benny.think@gmail.com>"
 
 import contextlib
+import logging
+import pathlib
 import random
 import sys
-import pathlib
 import time
-import logging
 
 import requests
 from tqdm import tqdm

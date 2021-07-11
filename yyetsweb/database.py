@@ -7,16 +7,16 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
+import base64
 import json
 import logging
+import os
 import random
 import re
-import os
 import string
-import base64
 
-import redis
 import fakeredis
+import redis
 from captcha.image import ImageCaptcha
 
 predefined_str = re.sub(r"[1l0oOI]", "", string.ascii_letters + string.digits)

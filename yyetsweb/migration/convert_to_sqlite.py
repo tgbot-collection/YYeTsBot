@@ -8,9 +8,9 @@
 __author__ = "Benny <benny.think@gmail.com>"
 
 import json
+import sqlite3
 
 import pymongo
-import sqlite3
 
 mongo = pymongo.MongoClient()
 yyets = mongo["zimuzu"]["yyets"]

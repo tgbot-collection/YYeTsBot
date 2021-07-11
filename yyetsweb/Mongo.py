@@ -8,31 +8,33 @@
 __author__ = "Benny <benny.think@gmail.com>"
 
 import contextlib
-import sys
-import pathlib
-import pymongo
-import os
-import time
-from http import HTTPStatus
-from datetime import timedelta, date
-from bson.objectid import ObjectId
-from urllib.parse import unquote
-import re
 import logging
+import os
+import pathlib
+import re
+import sys
+import time
+from datetime import date, timedelta
+from http import HTTPStatus
+from urllib.parse import unquote
 
-from bs4 import BeautifulSoup
+import pymongo
 import requests
+from bs4 import BeautifulSoup
+from bson.objectid import ObjectId
 from passlib.handlers.pbkdf2 import pbkdf2_sha256
 
-from database import (AnnouncementResource, BlacklistResource, CommentResource, ResourceResource,
-                      GrafanaQueryResource, MetricsResource, NameResource, OtherResource, DoubanResource,
-                      TopResource, UserLikeResource, UserResource, CaptchaResource, Redis,
-                      CommentChildResource, CommentNewestResource)
+from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
+                      CommentChildResource, CommentNewestResource,
+                      CommentResource, DoubanResource, GrafanaQueryResource,
+                      MetricsResource, NameResource, OtherResource, Redis,
+                      ResourceResource, TopResource, UserLikeResource,
+                      UserResource)
 from utils import ts_date
 
 lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().as_posix()
 sys.path.append(lib_path)
-from fansub import ZhuixinfanOnline, ZimuxiaOnline, NewzmzOnline, CK180Online
+from fansub import CK180Online, NewzmzOnline, ZhuixinfanOnline, ZimuxiaOnline
 
 mongo_host = os.getenv("mongo") or "localhost"
 DOUBAN_SEARCH = "https://www.douban.com/search?cat=1002&q={}"
