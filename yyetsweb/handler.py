@@ -352,6 +352,27 @@ class CommentChildHandler(CommentHandler):
         self.write(resp)
 
 
+class CommentNewestHandler(CommentHandler):
+    class_name = f"CommentNewest{adapter}Resource"
+
+    # from Mongo import CommentNewestResource
+    # instance = CommentNewestResource()
+
+    @run_on_executor()
+    def get_comment(self):
+        size = int(self.get_argument("size", "5"))
+        page = int(self.get_argument("page", "1"))
+
+        comment_data = self.instance.get_comment(page, size)
+        self.hide_phone((comment_data["data"]))
+        return comment_data
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_comment()
+        self.write(resp)
+
+
 class AnnouncementHandler(BaseHandler):
     class_name = f"Announcement{adapter}Resource"
 

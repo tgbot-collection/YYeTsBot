@@ -26,7 +26,8 @@ from passlib.handlers.pbkdf2 import pbkdf2_sha256
 
 from database import (AnnouncementResource, BlacklistResource, CommentResource, ResourceResource,
                       GrafanaQueryResource, MetricsResource, NameResource, OtherResource, DoubanResource,
-                      TopResource, UserLikeResource, UserResource, CaptchaResource, Redis, CommentChildResource)
+                      TopResource, UserLikeResource, UserResource, CaptchaResource, Redis,
+                      CommentChildResource, CommentNewestResource)
 from utils import ts_date
 
 lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().as_posix()
@@ -159,8 +160,6 @@ class CommentMongoResource(CommentResource, Mongo):
         self.inner_page = kwargs.get("inner_page", 1)
         self.inner_size = kwargs.get("inner_size", 5)
         condition = {"resource_id": resource_id, "deleted_at": {"$exists": False}, "type": {"$ne": "child"}}
-        if resource_id == -1:
-            condition.pop("resource_id")
 
         count = self.db["comment"].count_documents(condition)
         data = self.db["comment"].find(condition, self.projection) \
@@ -265,6 +264,33 @@ class CommentChildMongoResource(CommentChildResource, CommentMongoResource, Mong
         data = list(data)
         self.convert_objectid(data)
         self.get_user_group(data)
+        return {
+            "data": data,
+            "count": count,
+        }
+
+
+class CommentNewestMongoResource(CommentNewestResource, CommentMongoResource, Mongo):
+    def __init__(self):
+        super().__init__()
+        self.page = 1
+        self.size = 5
+        self.projection = {"ip": False, "parent_id": False, "children": False}
+        self.condition = {"deleted_at": {"$exists": False}}
+
+    def get_comment(self, page: int, size: int) -> dict:
+        # ID，时间，用户名，用户组，资源名，资源id
+        condition = {"deleted_at": {"$exists": False}}
+        count = self.db["comment"].count_documents(condition)
+        data = self.db["comment"].find(condition, self.projection) \
+            .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
+        data = list(data)
+        self.convert_objectid(data)
+        self.get_user_group(data)
+        for i in data:
+            resource_id = i.get("resource_id", 233)
+            res = self.db["yyets"].find_one({"data.info.id": resource_id})
+            i["cnname"] = res["data"]["info"]["cnname"]
         return {
             "data": data,
             "count": count,

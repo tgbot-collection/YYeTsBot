@@ -6,7 +6,7 @@
 - [x] 评论楼中楼
 - [x] 联合搜索，当本地数据库搜索不到数据时，会返回extra字段
 - [ ] 评论通知（浏览器通知）
-- [ ] 最新评论（id为-1）
+- [ ] 最新评论
 - [ ] 公告
 
 # BE
@@ -487,6 +487,58 @@
   "status_code": 404,
   "message": "",
   "count": 0
+}
+```
+
+## 最新评论
+
+* GET `api/comment/newest`
+  page size参数同上
+
+```json
+{
+  "data": [
+    {
+      "username": "111",
+      "date": "2021-07-11 10:22:59",
+      "browser": "Mozi0.31.0",
+      "content": "1111？",
+      "resource_id": 233,
+      "type": "parent",
+      "id": "60ea53113178773",
+      "group": [
+        "user"
+      ],
+      "cnname": "留言板"
+    },
+    {
+      "username": "11111222",
+      "date": "2021-07-10 23:54:43",
+      "browser": "Mozi3322.64",
+      "content": "<reply value=\"60e939be4ad7f20773865d7a\">@abcd</reply>怎么下载啊\n",
+      "resource_id": 37552,
+      "type": "child",
+      "id": "60e9c2c222111397e",
+      "group": [
+        "user"
+      ],
+      "cnname": "黑寡妇"
+    },
+    {
+      "username": "1111",
+      "date": "2021-07-10 23:41:06",
+      "browser": "Moz) Chrom.864.67",
+      "content": "我是1精彩",
+      "resource_id": 41382,
+      "type": "parent",
+      "id": "60e9bf924ad7f2077381111",
+      "group": [
+        "user"
+      ],
+      "cnname": "洛基"
+    }
+  ],
+  "count": 294
 }
 ```
 
