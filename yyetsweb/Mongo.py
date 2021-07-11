@@ -85,11 +85,14 @@ class AnnouncementMongoResource(AnnouncementResource, Mongo):
     def get_announcement(self, page: int, size: int) -> dict:
         condition = {}
         count = self.db["announcement"].count_documents(condition)
-        data = self.db["announcement"].find(condition, projection={"_id": False, "ip": False}) \
+        data = self.db["announcement"].find(condition, projection={"_id": True, "ip": False}) \
             .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
-
+        data = list(data)
+        for i in data:
+            i["id"] = str(i["_id"])
+            i.pop("_id")
         return {
-            "data": list(data),
+            "data": data,
             "count": count,
         }
 

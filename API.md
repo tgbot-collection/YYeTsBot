@@ -594,7 +594,7 @@
 
 ## 获取公告
 
-* GET `/api/announcmement`，接受URL参数 size、page
+* GET `/api/announcement`，接受URL参数 size、page
 
 ```json
 {
