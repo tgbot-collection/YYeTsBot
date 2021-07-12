@@ -2,23 +2,24 @@
 default:
 	make dev
 
-dev:
-	rm -f YYeTsFE/.env
+update:
 	git pull
 	git submodule update --remote
-	cp .env YYeTsFE/.env
+
+dev:
+	make update
 	docker build --build-arg env=dev -t bennythink/yyetsbot .
 	docker-compose up -d
 
 clean:
 	docker rmi bennythink/yyetsbot:latest
-	rm -rf build
-	rm -rf dist
+	rm -rf YYeTsFE/build
+	rm -rf YYeTsFE/dist
 
 static:
 	make clean
 	cd yyetsweb
-	pyinstaller -F server.py
+	pyinstaller -F server.spec
 	cp dists/server ./
 	cd migration
 	python3 convert_to_sqlite.py
@@ -33,3 +34,9 @@ docker:
 	cp .env YYeTsFE/.env
 	# docker buildx create --use --name mybuilder
 	docker buildx build --platform=linux/amd64,linux/arm64 -t bennythink/yyetsbot  . --push
+
+local:
+	make update
+	docker build --build-arg env=dev \
+				--build-arg http_proxy=http://192.168.7.67:23456  \
+				-t bennythink/yyetsbot .

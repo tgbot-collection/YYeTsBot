@@ -21,8 +21,9 @@ COPY YYeTsFE/yarn.lock /YYeTsBot/YYeTsFE/
 RUN yarn --network-timeout 1000000
 COPY YYeTsFE /YYeTsBot/YYeTsFE/
 COPY .git/modules /YYeTsBot/.git/modules/
+COPY hooks/dev_robots.sh /tmp/
 RUN echo "gitdir: ../.git/modules/YYeTsFE" > .git
-RUN if [ "$env" = "dev" ]; then echo "dev build";yarn build; else echo "prod build"; yarn run release; fi
+RUN if [ "$env" = "dev" ]; then echo "dev build"; yarn build; sh /tmp/dev_robots.sh; rm /tmp/dev_robots.sh; else echo "prod build"; yarn run release; fi
 
 
 FROM runner

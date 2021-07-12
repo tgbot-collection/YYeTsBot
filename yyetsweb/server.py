@@ -53,7 +53,8 @@ class RunServer:
         (r'/api/announcement', AnnouncementHandler),
         (r'/', IndexHandler),
         (r'/api/douban', DoubanHandler),
-        (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|.*\.svg|.*\.json)',
+        (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|'
+         r'.*\.svg|.*\.json|.*\.txt)',
          web.StaticFileHandler,
          {'path': static_path}),
     ]
