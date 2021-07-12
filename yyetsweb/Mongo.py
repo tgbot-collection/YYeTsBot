@@ -567,7 +567,7 @@ class DoubanMongoResource(DoubanResource, Mongo):
         soup = BeautifulSoup(detail_html, 'html.parser')
 
         directors = [i.text for i in (soup.find_all("a", rel="v:directedBy"))]
-        writers = episode_count = episode_duration = ""
+        release_date = poster_image_link = rating = year_text = intro = writers = episode_count = episode_duration = ""
         with contextlib.suppress(IndexError):
             episode_duration = soup.find_all("span", property="v:runtime")[0].text
         for i in soup.find_all("span", class_="pl"):
@@ -579,11 +579,17 @@ class DoubanMongoResource(DoubanResource, Mongo):
                 episode_duration = str(i.nextSibling)
         actors = [i.text for i in soup.find_all("a", rel="v:starring")]
         genre = [i.text for i in soup.find_all("span", property="v:genre")]
-        release_date = soup.find_all("span", property="v:initialReleaseDate")[0].text
-        poster_image_link = soup.find_all("div", id="mainpic")[0].a.img["src"]
-        rating = soup.find_all("strong", class_="ll rating_num")[0].text
-        year_text = re.sub(r"[()]", "", soup.find_all("span", class_="year")[0].text)
-        intro = re.sub(r"\s", "", soup.find_all("span", property="v:summary")[0].text)
+
+        with contextlib.suppress(IndexError):
+            release_date = soup.find_all("span", property="v:initialReleaseDate")[0].text
+        with contextlib.suppress(IndexError):
+            poster_image_link = soup.find_all("div", id="mainpic")[0].a.img["src"]
+        with contextlib.suppress(IndexError):
+            rating = soup.find_all("strong", class_="ll rating_num")[0].text
+        with contextlib.suppress(IndexError):
+            year_text = re.sub(r"[()]", "", soup.find_all("span", class_="year")[0].text)
+        with contextlib.suppress(IndexError):
+            intro = re.sub(r"\s", "", soup.find_all("span", property="v:summary")[0].text)
 
         final_data = {
             "name": cname,
