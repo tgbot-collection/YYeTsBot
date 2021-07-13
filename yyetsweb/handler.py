@@ -429,6 +429,11 @@ class CaptchaHandler(BaseHandler, CaptchaResource):
         self.write(resp)
 
 
+def call(*args, **kwargs):
+    print(*args, **kwargs)
+    pass
+
+
 class MetricsHandler(BaseHandler):
     class_name = f"Metrics{adapter}Resource"
 
@@ -446,6 +451,10 @@ class MetricsHandler(BaseHandler):
 
     @run_on_executor()
     def get_metrics(self):
+        if not self.instance.is_admin(self.get_current_user()):
+            self.set_status(HTTPStatus.NOT_FOUND)
+            return ""
+
         # only return latest 7 days. with days parameter to generate different range
         from_date = self.get_query_argument("from", None)
         to_date = self.get_query_argument("to", None)
