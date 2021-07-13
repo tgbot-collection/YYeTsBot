@@ -13,4 +13,5 @@ fakeredis==1.5.0
 pytz==2021.1
 filetype==1.0.7
 requests[socks]
-tqdm
+tqdm==4.61.1
+retry==0.9.2

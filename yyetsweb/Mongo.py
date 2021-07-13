@@ -23,6 +23,7 @@ import requests
 from bs4 import BeautifulSoup
 from bson.objectid import ObjectId
 from passlib.handlers.pbkdf2 import pbkdf2_sha256
+from retry import retry
 
 from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
                       CommentChildResource, CommentNewestResource,
@@ -528,6 +529,7 @@ class DoubanMongoResource(DoubanResource, Mongo):
         db_data = self.get_douban_data(rid)
         return db_data["posterData"]
 
+    @retry(IndexError, tries=3, delay=5)
     def find_douban(self, resource_id: int):
         session = requests.Session()
         ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
