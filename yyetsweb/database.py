@@ -228,3 +228,12 @@ class DoubanResource:
 
     def get_douban_image(self, rid: int) -> bytes:
         pass
+
+
+class DoubanReportResource:
+
+    def report_error(self, captcha: str, captcha_id: int, content: str, resource_id: int) -> dict:
+        pass
+
+    def get_error(self) -> dict:
+        pass

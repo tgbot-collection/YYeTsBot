@@ -30,7 +30,7 @@ from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
                       CommentResource, DoubanResource, GrafanaQueryResource,
                       MetricsResource, NameResource, OtherResource, Redis,
                       ResourceResource, TopResource, UserLikeResource,
-                      UserResource)
+                      UserResource, DoubanReportResource)
 from utils import ts_date
 
 lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().as_posix()
@@ -184,7 +184,6 @@ class CommentMongoResource(CommentResource, Mongo):
                     ip: str, username: str, browser: str, parent_comment_id=None) -> dict:
         returned = {"status_code": 0, "message": ""}
         verify_result = CaptchaResource().verify_code(captcha, captcha_id)
-        verify_result["status"] = 1
         if not verify_result["status"]:
             returned["status_code"] = HTTPStatus.BAD_REQUEST
             returned["message"] = verify_result["message"]
@@ -618,3 +617,21 @@ class DoubanMongoResource(DoubanResource, Mongo):
             "introduction": intro
         }
         return final_data
+
+
+class DoubanReportMongoResource(DoubanReportResource, Mongo):
+    def get_error(self) -> dict:
+        return dict(data=list(self.db["douban_error"].find(projection={"_id": False})))
+
+    def report_error(self, captcha: str, captcha_id: int, content: str, resource_id: int) -> dict:
+        returned = {"status_code": 0, "message": ""}
+        verify_result = CaptchaResource().verify_code(captcha, captcha_id)
+        if not verify_result["status"]:
+            returned["status_code"] = HTTPStatus.BAD_REQUEST
+            returned["message"] = verify_result["message"]
+            return returned
+
+        count = self.db["douban_error"].update_one(
+            {"resource_id": resource_id},
+            {"$push": {"content": content}}, upsert=True).matched_count
+        return dict(count=count)

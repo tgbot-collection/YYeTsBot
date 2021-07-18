@@ -5,15 +5,15 @@
 - [x] group为admin特殊显示，评论接口已返回group信息
 - [x] 评论楼中楼
 - [x] 联合搜索，当本地数据库搜索不到数据时，会返回extra字段
+- [x] 最新评论
+- [x] 公告
 - [ ] 评论通知（浏览器通知）
-- [ ] 最新评论
-- [ ] 公告
 
 # BE
 
 - [x] 联合搜索：字幕侠、new字幕组、追新番
 - [x] grafana面板
-- [ ] 豆瓣接口：进行中……
+- [x] 豆瓣接口
 - [ ] 用户体系（添加邮箱，邮件支持，找回密码）
 - [ ] 评论通知，需要新接口
 - [ ] 添加资源API
@@ -665,3 +665,68 @@
 
 * GET `api/douban?resource_id=34812&type=image`
   会返回相应格式（jpeg、webp、png等）的图片，与上次数据中 `posterLink`所看到的内容相同
+
+# 验证码
+
+## 获取验证码
+
+* GET `/api/captcha?id=1234abc`，id是随机生成的字符串 API 返回字符串，形如 `data:image/png;base64,iVBORw0KGgoAAA....`
+
+## 校验验证码
+
+除去评论中的校验验证码，如有额外需求，也可以使用 POST 方法校验
+
+* POST `/api/captcha`
+
+```json
+{
+  "id": "1234abc",
+  "captcha": "38op"
+}
+```
+
+# 豆瓣报错
+
+## 提交
+
+* POST `/api/douban/report`
+
+```json
+{
+  "captcha_id": "用户输入的验证码",
+  "id": "验证码id",
+  "content": "内容难过-咔咔",
+  "resource_id": 23133312
+}
+```
+
+## 查询
+
+* GET `/api/douban/report`
+
+```json
+{
+  "data": [
+    {
+      "resource_id": 2333,
+      "content": [
+        "dddd",
+        "1款大家咔咔",
+        "1款大家dadadada-咔咔"
+      ]
+    },
+    {
+      "resource_id": 23133,
+      "content": [
+        "1款大家dadadada-咔咔"
+      ]
+    },
+    {
+      "resource_id": 23133312,
+      "content": [
+        "1款大家dadadada-咔咔"
+      ]
+    }
+  ]
+}
+```

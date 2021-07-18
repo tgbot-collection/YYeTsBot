@@ -415,6 +415,20 @@ class AnnouncementHandler(BaseHandler):
 class CaptchaHandler(BaseHandler, CaptchaResource):
 
     @run_on_executor()
+    def verify_captcha(self):
+        data = json.loads(self.request.body)
+        captcha_id = data.get("id", None)
+        userinput = data.get("captcha", None)
+        if captcha_id is None or userinput is None:
+            self.set_status(HTTPStatus.BAD_REQUEST)
+            return "Please supply id or captcha parameter."
+        returned = self.verify_code(userinput, captcha_id)
+        status_code = returned.get("status")
+        if not status_code:
+            self.set_status(HTTPStatus.FORBIDDEN)
+        return returned
+
+    @run_on_executor()
     def captcha(self):
         request_id = self.get_argument("id", None)
         if request_id is None:
@@ -428,10 +442,10 @@ class CaptchaHandler(BaseHandler, CaptchaResource):
         resp = yield self.captcha()
         self.write(resp)
 
-
-def call(*args, **kwargs):
-    print(*args, **kwargs)
-    pass
+    @gen.coroutine
+    def post(self):
+        resp = yield self.verify_captcha()
+        self.write(resp)
 
 
 class MetricsHandler(BaseHandler):
@@ -645,3 +659,36 @@ class DoubanHandler(BaseHandler):
         else:
             resp = yield self.douban_data()
             self.write(resp)
+
+
+class DoubanReportHandler(BaseHandler):
+    class_name = f"DoubanReport{adapter}Resource"
+
+    # from Mongo import DoubanReportMongoResource
+    # instance = DoubanReportMongoResource()
+
+    @run_on_executor()
+    def get_error(self):
+        return self.instance.get_error()
+
+    @run_on_executor()
+    def report_error(self):
+        data = json.loads(self.request.body)
+        user_captcha = data["captcha_id"]
+        captcha_id = data["id"]
+        content = data["content"]
+        resource_id = data["resource_id"]
+        returned = self.instance.report_error(user_captcha, captcha_id, content, resource_id)
+        status_code = returned.get("status_code", HTTPStatus.CREATED)
+        self.set_status(status_code)
+        return self.instance.report_error(user_captcha, captcha_id, content, resource_id)
+
+    @gen.coroutine
+    def post(self):
+        resp = yield self.report_error()
+        self.write(resp)
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_error()
+        self.write(resp)

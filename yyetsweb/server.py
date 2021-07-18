@@ -20,7 +20,7 @@ from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      CommentChildHandler, CommentHandler, CommentNewestHandler,
                      DBDumpHandler, DoubanHandler, GrafanaIndexHandler,
                      GrafanaQueryHandler, GrafanaSearchHandler, IndexHandler,
-                     MetricsHandler, NameHandler, NotFoundHandler,
+                     MetricsHandler, NameHandler, NotFoundHandler, DoubanReportHandler,
                      ResourceHandler, TopHandler, UserHandler, UserLikeHandler)
 from migration.douban_sync import sync_douban
 from Mongo import OtherMongoResource
@@ -53,6 +53,7 @@ class RunServer:
         (r'/api/announcement', AnnouncementHandler),
         (r'/', IndexHandler),
         (r'/api/douban', DoubanHandler),
+        (r'/api/douban/report', DoubanReportHandler),
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|'
          r'.*\.svg|.*\.json|.*\.txt)',
          web.StaticFileHandler,
