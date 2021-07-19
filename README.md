@@ -12,7 +12,7 @@
 
 ![](assets/index.png)
 
-👉 前端[在这里](https://github.com/wyx1818/YYeTsFE) 👈
+👉 前端[在这里](https://github.com/tgbot-collection/YYeTsFE) 👈
 
 # 使用说明
 
