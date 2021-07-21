@@ -31,8 +31,6 @@ services:
     volumes:
       - ./data:/YYeTsBot/yyetsweb/data/
     command: [ "python3","server.py","-h=0.0.0.0" ]
-    ports:
-      - 127.0.0.1:8888:8888
 
   yyets-bot:
     image: bennythink/yyetsbot
