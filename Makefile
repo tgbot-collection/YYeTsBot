@@ -30,13 +30,11 @@ zip:
 
 docker:
 	# production configuration
-	rm -f YYeTsFE/.env
 	cp .env YYeTsFE/.env
 	# docker buildx create --use --name mybuilder
 	docker buildx build --platform=linux/amd64,linux/arm64 -t bennythink/yyetsbot  . --push
 
-local:
+prod:
 	make update
-	docker build --build-arg env=dev \
-				--build-arg http_proxy=http://192.168.7.67:23456  \
-				-t bennythink/yyetsbot .
+	cp .env YYeTsFE/.env
+	docker build -t bennythink/yyetsbot .

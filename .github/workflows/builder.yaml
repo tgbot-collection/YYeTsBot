@@ -1,3 +1,4 @@
+name: build docker image
 on:
   push:
     branches:
@@ -63,3 +64,10 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Notification to Telegram
+        env:
+          TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: |
+          curl "https://api.telegram.org/bot$TOKEN/sendMessage?chat_id=260260121&text=Normal%20Build%20complete!"
+          echo "Build complete!"
