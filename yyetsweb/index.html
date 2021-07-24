@@ -1,1 +1,283 @@
-<!doctype html><html lang="zh"><head><meta charset="utf-8"/><link rel="icon" href="/logo.png"/><meta name="viewport" content="minimum-scale=1,initial-scale=1,width=device-width"/><meta name="theme-color" content="#000000"/><meta name="description" content="开源，免费，人人备胎^_^ Web Design by Zuiyu"/><link rel="apple-touch-icon" href="/logo192.png"/><script async src="https://www.googletagmanager.com/gtag/js?id=%REACT_APP_GA%"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","%REACT_APP_GA%")</script><link rel="manifest" href="/manifest.json"/><title>人人影视分享下载站</title></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div><script>!function(e){function t(t){for(var n,l,f=t[0],i=t[1],a=t[2],c=0,s=[];c<f.length;c++)l=f[c],Object.prototype.hasOwnProperty.call(o,l)&&o[l]&&s.push(o[l][0]),o[l]=0;for(n in i)Object.prototype.hasOwnProperty.call(i,n)&&(e[n]=i[n]);for(p&&p(t);s.length;)s.shift()();return u.push.apply(u,a||[]),r()}function r(){for(var e,t=0;t<u.length;t++){for(var r=u[t],n=!0,f=1;f<r.length;f++){var i=r[f];0!==o[i]&&(n=!1)}n&&(u.splice(t--,1),e=l(l.s=r[0]))}return e}var n={},o={1:0},u=[];function l(t){if(n[t])return n[t].exports;var r=n[t]={i:t,l:!1,exports:{}};return e[t].call(r.exports,r,r.exports,l),r.l=!0,r.exports}l.m=e,l.c=n,l.d=function(e,t,r){l.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},l.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},l.t=function(e,t){if(1&t&&(e=l(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(l.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var n in e)l.d(r,n,function(t){return e[t]}.bind(null,n));return r},l.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return l.d(t,"a",t),t},l.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},l.p="/";var f=this.webpackJsonpyyetsbot=this.webpackJsonpyyetsbot||[],i=f.push.bind(f);f.push=t,f=f.slice();for(var a=0;a<f.length;a++)t(f[a]);var p=i;r()}([])</script><script src="/static/js/2.d9edd2b6.chunk.js"></script><script src="/static/js/main.61127da7.chunk.js"></script></body></html>
+<!doctype html>
+<html>
+<head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-K76PSKSSGX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-K76PSKSSGX');
+    </script>
+    <meta charset="utf-8">
+    <title>人人影视下载分享</title>
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link href="https://fonts.googleapis.com/css?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="/css/normalize.min.css" rel="stylesheet">
+    <style>
+        h1 {
+            font-family: Pacifico, sans-serif;
+            font-size: 4em;
+            color: #3eb5f1;
+            margin: 0;
+        }
+
+        h2 {
+            font-weight: 300;
+            font-family: sans-serif;
+        }
+
+        .centered {
+            /*position: fixed;*/
+            top: 50%;
+            left: 50%;
+            /*transform: translate(-50%, -50%);*/
+            text-align: center;
+        }
+
+        #ferris {
+            width: 75%;
+        }
+
+        /*a::after {*/
+        /*    content: attr(title);*/
+        /*    display: none;*/
+        /*}*/
+
+        /*a:hover::after {*/
+        /*    display: block;*/
+        /*}*/
+        /* Style the tab */
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+
+            /*background-color: #f1f1f1;*/
+        }
+
+        /* Style the buttons inside the tab */
+        .tab button {
+            text-align: center;
+            background-color: inherit;
+            float: inherit;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 17px;
+        }
+
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+            background-color: #ddd;
+        }
+
+        /* Create an active/current tablink class */
+        .tab button.active {
+            background-color: #ccc;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .footer {
+            text-decoration: none;
+            color: green;
+        }
+    </style>
+
+
+</head>
+<body>
+<div class="centered">
+    <h1>人人影视下载分享 By Benny</h1>
+    <h2>
+        <a href="https://www.buymeacoffee.com/bennythink" target="_blank"><img src="/img/default-green.png"
+                                                                               alt="Buy Me A Coffee"
+                                                                               style="height: 55px !important;width: 200px !important;"></a>
+        <a href="https://afdian.net/@BennyThink" target="_blank"><img src="/img/afdian.png" alt="爱发电"
+                                                                      style="height: 55px !important;width: 200px !important;"></a>
+    </h2>
+    <h2>本站数据库<b><a style="color: skyblue" href="/help.html">永久开源免费</a></b>，<abbr
+            style="text-decoration: none" title="你也爬不下来啊">请不要做无意义的爬虫。</abbr>
+        <a href="help.html" style="color: deepskyblue">使用帮助？</a>
+    </h2>
+
+    <form action="search.html">
+        <label>
+            <input name="keyword" type="text">
+        </label>
+        <input type="submit" value="搜索">
+    </form>
+    <br>
+    <h2>大家都在看🤔……每月重置排行榜</h2>
+    <div class="tab">
+
+    </div>
+
+    <div id="topContent">
+
+    </div>
+
+    <h2>相关资源⬇️</h2>
+    <h3>
+        联系我 <a class="footer" href="https://t.me/BennyThink">Benny 小可爱</a>・
+        YYeTs 机器人<a class="footer" href="https://t.me/yyets_bot">Telegram Bot</a>・
+        Telegram <a class="footer" href="https://t.me/mikuri520">Channel</a>・
+        开源 <a class="footer" href="https://github.com/tgbot-collection/YYeTsBot">GitHub</a>・
+        我的博客 <a class="footer" href="https://dmesg.app/">土豆不好吃</a>
+    </h3>
+</div>
+<form method="post" style="display: none" id="login-form">
+    <label>
+        <input type="text" required="required" placeholder="用户名" name="username"/>
+    </label>
+    <label>
+        <input type="password" required="required" placeholder="密码" name="password"/>
+    </label>
+    <button class="but" type="submit" onclick="login()">登录</button>
+</form>
+
+</body>
+<script src="js/axios.min.js"></script>
+<script src="js/common.js"></script>
+<link href="css/noty.css" rel="stylesheet">
+<script src="js/noty.min.js"></script>
+
+<script>
+    accessMetrics("access");
+
+    // get top
+    axios.get('/api/top')
+        .then(function (response) {
+            showTop(response.data)
+        })
+        .catch(function (error) {
+            // handle error
+            new Noty({
+                type: 'error',
+                layout: 'topRight',
+                theme: 'relax',
+                text: error.response.data,
+                timeout: 1500
+            }).show();
+            console.log(error);
+        })
+        .then(function () {
+            // always executed
+        });
+
+
+    function showTop(data) {
+        const code2Name = data["class"];
+        let buttonParent = document.getElementsByClassName("tab")[0]
+        let topParent = document.getElementById("topContent")
+        delete data["class"];
+        for (let code in data) {
+            let button = `<button class="tablinks" onclick="openCity(event, '${code}')">${code2Name[code]}</button>`;
+            let div = `<div id="${code}" class="tabcontent"></div>`;
+
+            let buttonChild = document.createElement('button');
+            buttonChild.innerHTML = button;
+            buttonChild = buttonChild.firstChild;
+            buttonParent.appendChild(buttonChild);
+
+            let divChild = document.createElement('div');
+            divChild.innerHTML = div;
+            divChild = divChild.firstChild;
+            topParent.appendChild(divChild);
+
+            // render data
+            let countryInfo = data[code]
+            // let div = HTMLElement
+            for (let each in countryInfo) {
+                let info = countryInfo[each]["data"]["info"];
+                let divParent = document.getElementById(code);
+                let name = `${info.cnname} ${info.enname} ${info.aliasname}`;
+                let html = `<h4><a title="浏览量 ${info.views}" style="text-decoration: none;color: cornflowerblue" href="/resource.html?id=${info.id}">${name}</a></h4>`;
+
+                let divChild = document.createElement('h4');
+                divChild.innerHTML = html;
+                divChild = divChild.firstChild;
+                divParent.appendChild(divChild);
+
+            }
+
+        }
+        document.getElementsByClassName("tab")[0].firstElementChild.className += " active"
+        document.getElementById("ALL").style.display = "block"
+
+        let like = document.getElementById("LIKE");
+        let user_cookie = getCookie("username");
+        let login_form = document.getElementById("login-form");
+        if (user_cookie === "") {
+            like.innerHTML = "请登录，未注册用户将会自动注册<br><br>" + login_form.innerHTML + "<br>"
+        }
+
+    }
+
+    function login() {
+        let username = document.getElementsByName("username")[0].value
+        let password = document.getElementsByName("password")[0].value
+        axios.post('/api/user', {
+            username: username,
+            password: password
+        })
+            .then(function (response) {
+                let message = response.status === 201 ? "注册成功" : "登录成功"
+                new Noty({
+                    type: 'success',
+                    layout: 'topRight',
+                    theme: 'relax',
+                    text: message,
+                    timeout: 1500
+                }).show();
+                setTimeout(function () {
+                    location.reload();
+                }, 3000);
+            })
+            .catch(function (error) {
+                new Noty({
+                    type: 'error',
+                    layout: 'topRight',
+                    theme: 'relax',
+                    text: error.response.data,
+                    timeout: 1500
+                }).show();
+
+            });
+    }
+
+
+    function openCity(evt, cityName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(cityName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+</script>
+</html>

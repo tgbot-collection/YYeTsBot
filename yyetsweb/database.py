@@ -14,6 +14,7 @@ import os
 import random
 import re
 import string
+import sys
 
 import fakeredis
 import redis
@@ -24,7 +25,8 @@ predefined_str = re.sub(r"[1l0oOI]", "", string.ascii_letters + string.digits)
 
 class Redis:
     def __init__(self):
-        if os.getenv("DISABLE_REDIS"):
+        if getattr(sys, '_MEIPASS', None):
+            logging.info("%s Disable redis for standalone exe! %s", "#" * 10, "#" * 10)
             self.r = fakeredis.FakeStrictRedis()
         else:
             self.r = redis.StrictRedis(host=os.getenv("redis") or "localhost", decode_responses=True)

@@ -1,0 +1,79 @@
+name: Release one key runner
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  linux:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Golang
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.3'
+
+      - name: Build exe
+        run: |
+          cd yyetsweb
+          make
+          mv yyetsweb yyetsweb-linux
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: yyetsweb/yyetsweb-linux
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  windows:
+    runs-on: windows-2016
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Golang
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16'
+
+      - name: Build exe
+        run: |
+          cd yyetsweb
+          make
+          mv yyetsweb.exe yyetsweb-windows.exe
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: yyetsweb/yyetsweb-windows.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  macos:
+    runs-on: macos-10.15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Golang
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.3'
+
+      - name: Build exe
+        run: |
+          cd yyetsweb
+          make
+          mv yyetsweb yyetsweb-darwin
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: yyetsweb/yyetsweb-darwin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

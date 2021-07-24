@@ -25,6 +25,7 @@
 **由于译名的不同，建议输入部分译名，然后从列表中进行选择。比如说想看权力的游戏第四季，那么直接搜索"权力的游戏"就可以了。**
 
 ## 命令
+
 ```
 start - 开始使用
 help - 帮助
@@ -43,6 +44,7 @@ yyets_offline - 人人影视离线数据
 ![](assets/1.png)
 
 ## 资源分享站截图
+
 本网站永久免费，并且没有任何限制。
 ![](assets/new_resource.png)
 
@@ -58,8 +60,11 @@ yyets_offline - 人人影视离线数据
 ![](assets/3.png)
 
 # 如何下载磁力和电驴资源？迅雷提示资源敏感
+
 ## 电驴资源
+
 请下载使用 [eMule](https://www.emule-project.net/home/perl/general.cgi?l=42) ，然后添加如下两个server list
+
 * [server.met](http://www.server-met.de/)
 * [server list for emule](https://www.emule-security.org/serverlist/)
 
@@ -67,15 +72,27 @@ yyets_offline - 人人影视离线数据
 速度还可以哦
 
 ## 磁力
-使用百度网盘、115等离线，或使用utorrent等工具，记得更新下 [tracker list](https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt) 哦
+
+使用百度网盘、115等离线，或使用utorrent等工具，记得更新下 [tracker list](https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt)
+哦
 
 # 小白使用
-想要自己留一份资源，但是又不懂编程？
-没关系！请到 [GitHub Release](https://github.com/tgbot-collection/YYeTsBot/releases) 根据自己平台下载一键运行包！
 
-* Windows用户双击 `start_windows.bat` 
-* macOS 在终端中执行 `bash start_unix.sh`
-* Linux用户：没你的份🙄️
+想要自己留一份资源，但是又不懂编程？ 没关系！目前提供两种方式，请根据自己情况选择
+
+## 一键安装包
+
+这个版本是新的UI，拥有全部的最新功能。
+[参考文档](https://github.com/tgbot-collection/YYeTsBot/blob/master/DEVELOPMENT.md#%E4%B8%80%E9%94%AE%E8%84%9A%E6%9C%AC)
+
+## 一键运行包
+
+这个版本使用起来也很简单，无依赖。步骤如下
+
+1. 请到 [GitHub Release](https://github.com/tgbot-collection/YYeTsBot/releases) 根据自己平台下载一键运行包
+2. 请到 [database download](https://yyets.dmesg.app/database) 下载SQLite数据库，然后解压缩
+3. 把这两个文件放到同一个目录，结构如下 `yyets.sqlite yyetsweb`
+4. windows：双击第一步下载的文件； macos/Linux，cd到你的目录, `chmod +x yyetsweb ; ./yyetsweb`
 
 打开浏览器 http://127.0.0.1:8888 就可以看到熟悉的搜索界面啦！
 
@@ -103,7 +120,9 @@ yyets_offline - 人人影视离线数据
 * 捐助我，[爱发电？](https://afdian.net/@BennyThink)
 
 # 感谢
+
 感谢所有[支持本项目](SPONSOR.md)的人！
 
 # License
+
 [MIT](LICENSE)

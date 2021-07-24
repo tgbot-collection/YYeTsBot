@@ -2,7 +2,7 @@ name: Normal upgrade
 on:
   push:
     tags:
-      - "*"
+      - "v*"
 
 jobs:
   update:

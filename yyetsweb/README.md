@@ -10,14 +10,12 @@
 
 # 导入数据
 
-## 方法1: 自己迁移数据
+从 [这里](https://yyets.dmesg.app/database) 下载mongodb数据，然后导入
 
-1. 下载[MySQL的数据](https://t.me/mikuri520/668)
-1. 导入数据到MySQL
-2. 运行 `python prepare/convert_db.py`
+```shell
+mongorestore --gzip --archive=yyets_mongo.gz
+```
 
-## 方法2:使用我的导出
-参考 [这里](https://yyets.dmesg.app/help.html)
 # 运行
 
 `python server.py`

@@ -27,10 +27,10 @@ from retry import retry
 
 from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
                       CommentChildResource, CommentNewestResource,
-                      CommentResource, DoubanResource, GrafanaQueryResource,
-                      MetricsResource, NameResource, OtherResource, Redis,
-                      ResourceResource, TopResource, UserLikeResource,
-                      UserResource, DoubanReportResource)
+                      CommentResource, DoubanReportResource, DoubanResource,
+                      GrafanaQueryResource, MetricsResource, NameResource,
+                      OtherResource, Redis, ResourceResource, TopResource,
+                      UserLikeResource, UserResource)
 from utils import ts_date
 
 lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().as_posix()
