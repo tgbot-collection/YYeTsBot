@@ -10,9 +10,7 @@ __author__ = "Benny <benny.think@gmail.com>"
 import contextlib
 import logging
 import pathlib
-import random
 import sys
-import time
 
 import requests
 from tqdm import tqdm
@@ -40,6 +38,9 @@ def sync_douban():
         with contextlib.suppress(Exception):
             d = douban.find_douban(rid)
             logging.info("Processed %s, length %d", rid, len(d))
-            time.sleep(random.randint(1, 5))
 
     logging.info("ALL FINISH!")
+
+
+if __name__ == '__main__':
+    sync_douban()

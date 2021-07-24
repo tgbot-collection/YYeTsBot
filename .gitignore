@@ -125,3 +125,5 @@ data/*
 logs/*
 **/.DS_Store
 /yyetsweb/yyets.sqlite
+/yyetsweb/yyetsweb
+/yyetsweb/assets.go

@@ -522,7 +522,9 @@ class UserMongoResource(UserResource, Mongo):
 class DoubanMongoResource(DoubanResource, Mongo):
 
     def get_douban_data(self, rid: int) -> dict:
-        return self.find_douban(rid)
+        with contextlib.suppress(Exception):
+            return self.find_douban(rid)
+        return {"posterData": None}
 
     def get_douban_image(self, rid: int) -> bytes:
         db_data = self.get_douban_data(rid)
@@ -541,6 +543,7 @@ class DoubanMongoResource(DoubanResource, Mongo):
             logging.info("Existing data for %s", resource_id)
             return data
 
+        # data not found, craw from douban
         projection = {"data.info.cnname": True, "data.info.enname": True, "data.info.aliasname": True}
         names = yyets_col.find_one({"data.info.id": resource_id}, projection=projection)
         if names is None:
