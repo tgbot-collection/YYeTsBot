@@ -9,7 +9,6 @@ __author__ = "Benny <benny.think@gmail.com>"
 
 import json
 import logging
-import os
 import sqlite3
 
 from database import ResourceResource
@@ -20,9 +19,7 @@ logging.warning("\n\n%s\n### SQLite adapter is immature! Only search and view re
 
 class SQLite:
     def __init__(self):
-        root_path = os.path.dirname(__file__)
-        db_path = os.path.join(root_path, "yyets.sqlite")
-        self.con = sqlite3.connect(db_path, check_same_thread=False)
+        self.con = sqlite3.connect("yyets.sqlite", check_same_thread=False)
         self.cur = self.con.cursor()
 
     def __del__(self):
@@ -65,7 +62,8 @@ class ResourceSQLiteResource(ResourceResource, SQLite):
 
 
 if __name__ == '__main__':
-    r = ResourceSQLiteResource()
+    r = SQLite()
+    print(globals())
     # r.get_resource_data(80000)
-    a = r.search_resource("NIGERUHA")
-    print(json.dumps(a, ensure_ascii=False))
+    # a = r.search_resource("NIGERUHA")
+    # print(json.dumps(a, ensure_ascii=False))

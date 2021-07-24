@@ -18,10 +18,11 @@ from tornado.log import enable_pretty_logging
 
 from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      CommentChildHandler, CommentHandler, CommentNewestHandler,
-                     DBDumpHandler, DoubanHandler, GrafanaIndexHandler,
-                     GrafanaQueryHandler, GrafanaSearchHandler, IndexHandler,
-                     MetricsHandler, NameHandler, NotFoundHandler, DoubanReportHandler,
-                     ResourceHandler, TopHandler, UserHandler, UserLikeHandler)
+                     DBDumpHandler, DoubanHandler, DoubanReportHandler,
+                     GrafanaIndexHandler, GrafanaQueryHandler,
+                     GrafanaSearchHandler, IndexHandler, MetricsHandler,
+                     NameHandler, NotFoundHandler, ResourceHandler, TopHandler,
+                     UserHandler, UserLikeHandler)
 from migration.douban_sync import sync_douban
 from Mongo import OtherMongoResource
 

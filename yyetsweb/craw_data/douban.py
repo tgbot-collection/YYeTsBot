@@ -7,8 +7,10 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-from bs4 import BeautifulSoup
 import re
+
+from bs4 import BeautifulSoup
+
 from Mongo import DoubanMongoResource
 
 with open("douban_detail.html") as f:

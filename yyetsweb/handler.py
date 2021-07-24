@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import re
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
@@ -27,7 +28,10 @@ from database import AntiCrawler, CaptchaResource, Redis
 escape.json_encode = lambda value: json.dumps(value, ensure_ascii=False)
 logging.basicConfig(level=logging.INFO)
 
-adapter = os.getenv("adapter") or "Mongo"
+if getattr(sys, '_MEIPASS', None):
+    adapter = "SQLite"
+else:
+    adapter = "Mongo"
 
 logging.info("%s Running with %s. %s", "#" * 10, adapter, "#" * 10)
 

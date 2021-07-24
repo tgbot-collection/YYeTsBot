@@ -7,9 +7,10 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import pymongo
 import json
 import os
+
+import pymongo
 
 mongo_client = pymongo.MongoClient()
 

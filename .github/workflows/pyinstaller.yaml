@@ -1,0 +1,90 @@
+name: Release one key runner
+on:
+  push:
+    tags:
+      - "*"
+jobs:
+  linux:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install pyinstaller
+        run: |
+          pip install pyinstaller==4.3
+
+      - name: Build exe
+        run: |
+          cd yyetsweb
+          pyinstaller -F server.spec
+          mv dist/yyetsweb dist/yyetsweb-linux
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: yyetsweb/dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  windows:
+    runs-on: windows-2016
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install pyinstaller
+        run: |
+          pip install pyinstaller==4.3
+
+      - name: Build exe
+        run: |
+          cd yyetsweb
+          pyinstaller -F server.spec
+          mv dist\yyetsweb.exe dist\yyetsweb-windows.exe
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: yyetsweb/dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  macos:
+    runs-on: macos-10.15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install pyinstaller
+        run: |
+          pip install pyinstaller==4.3
+
+      - name: Build exe
+        run: |
+          cd yyetsweb
+          pyinstaller -F server.spec
+          mv dist/yyetsweb dist/yyetsweb-darwin
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: yyetsweb/dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
