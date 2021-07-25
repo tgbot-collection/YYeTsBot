@@ -86,6 +86,9 @@
 
 <script>
     let kwe = document.URL.split("keyword=")[1];
+    if (kwe === undefined) {
+        kwe = document.URL.split("kw=")[1];
+    }
     let kw = decodeURI(kwe).toLowerCase().replace(" ", "");
     // const axios = require('axios');
 
