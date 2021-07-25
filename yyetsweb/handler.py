@@ -121,6 +121,7 @@ class UserHandler(BaseHandler):
             self.set_login(username)
             returned_value = ""
         else:
+            self.set_status(HTTPStatus.FORBIDDEN)
             returned_value = response["message"]
 
         return returned_value
