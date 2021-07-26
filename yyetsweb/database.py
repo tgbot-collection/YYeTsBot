@@ -157,6 +157,9 @@ class CommentResource:
     def delete_comment(self, comment_id: str):
         pass
 
+    def react_comment(self, username, comment_id, verb):
+        pass
+
 
 class CommentChildResource:
     def get_comment(self, parent_id: str, page: int, size: int) -> dict:

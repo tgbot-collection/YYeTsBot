@@ -224,17 +224,22 @@
 ```json
 {
   "username": "Benny",
-  "date": "2021-03-12 11:11:11",
-  "lastDate": "2021-03-15 13:11:18",
-  "ip": "1.1.1.1",
-  "lastIP": "2.2.2.2",
-  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.85 Safari/537.36",
+  "date": "2021-06-12 13:55:50",
+  "ip": "172.70.122.84",
+  "browser": "Mozilla/5.0 (X11; Gentoo; rv:84.0) Gecko/20100101 Firefox/84.0",
   "like": [
-    11133
+    31346,
+    39894,
+    41382
   ],
   "group": [
-    "admin",
-    "user"
+    "admin"
+  ],
+  "comments_like": [
+    "60c46d6a6d7c5dd22d69fd3b"
+  ],
+  "comments_dislike": [
+    "60c46d6a6d7c5dd22d69fd3b"
   ]
 }
 ```
@@ -541,6 +546,29 @@
   "count": 294
 }
 ```
+
+## 点赞或踩评论
+
+* PATCH `/api/comment`
+
+verb 为`like` 或 `dislike`
+
+```json
+{
+  "comment_id": "60c46d6a6d7c5dd22d69fd3b",
+  "verb": "dislike/like"
+}
+
+```
+
+返回：
+
+* 201 成功
+* 404 评论没找到
+* 422 已经赞/踩过了
+* 400 请求参数错误
+
+用户曾经点赞的记录会在 `GET /api/user` 返回
 
 # metrics
 

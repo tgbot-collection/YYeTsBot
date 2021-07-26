@@ -252,6 +252,30 @@ class CommentMongoResource(CommentResource, Mongo):
 
         return returned
 
+    def react_comment(self, username, comment_id, verb):
+        if verb not in ("like", "dislike"):
+            return {"status": False,
+                    "message": "verb could only be like or dislike",
+                    "status_code": HTTPStatus.BAD_REQUEST}
+
+        result = self.db["users"].find_one({"username": username, f"comments_{verb}": {"$in": [comment_id]}})
+        if result:
+            return {"status": False, "message": "too many reactions", "status_code": HTTPStatus.UNPROCESSABLE_ENTITY}
+
+        if not self.db["comment"].find_one({"_id": ObjectId(comment_id)}):
+            return {"status": False, "message": "Where is your comments?", "status_code": HTTPStatus.NOT_FOUND}
+
+        self.db["users"].update_one({"username": username},
+                                    {"$push": {f"comments_{verb}": comment_id}}
+                                    )
+
+        self.db["comment"].update_one({"_id": ObjectId(comment_id)},
+                                      {"$inc": {verb: 1}}
+                                      )
+
+        return {"status": True, "message": "success",
+                "status_code": HTTPStatus.CREATED}
+
 
 class CommentChildMongoResource(CommentChildResource, CommentMongoResource, Mongo):
     def __init__(self):

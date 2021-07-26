@@ -313,6 +313,16 @@ class CommentHandler(BaseHandler):
             self.set_status(HTTPStatus.UNAUTHORIZED)
             return {"count": 0, "message": "You're unauthorized to delete comment."}
 
+    @run_on_executor()
+    def comment_reaction(self):
+        payload = json.loads(self.request.body)
+        username = self.get_current_user()
+        comment_id = payload["comment_id"]
+        verb = payload["verb"]
+        result = self.instance.react_comment(username, comment_id, verb)
+        self.set_status(result.get("status_code") or HTTPStatus.IM_A_TEAPOT)
+        return result
+
     @gen.coroutine
     def get(self):
         resp = yield self.get_comment()
@@ -328,6 +338,12 @@ class CommentHandler(BaseHandler):
     @web.authenticated
     def delete(self):
         resp = yield self.delete_comment()
+        self.write(resp)
+
+    @gen.coroutine
+    @web.authenticated
+    def patch(self):
+        resp = yield self.comment_reaction()
         self.write(resp)
 
 
