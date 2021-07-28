@@ -20,9 +20,10 @@ from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      CommentChildHandler, CommentHandler, CommentNewestHandler,
                      DBDumpHandler, DoubanHandler, DoubanReportHandler,
                      GrafanaIndexHandler, GrafanaQueryHandler,
-                     GrafanaSearchHandler, IndexHandler, MetricsHandler,
-                     NameHandler, NotFoundHandler, ResourceHandler, TopHandler,
-                     UserHandler, UserLikeHandler,NotificationHandler)
+                     GrafanaSearchHandler, IndexHandler, LikeHandler,
+                     MetricsHandler, NameHandler, NotFoundHandler,
+                     NotificationHandler, ResourceHandler, TopHandler,
+                     UserHandler)
 from migration.douban_sync import sync_douban
 from Mongo import OtherMongoResource
 
@@ -36,9 +37,10 @@ class RunServer:
     root_path = os.path.dirname(__file__)
     static_path = os.path.join(root_path, '')
     handlers = [
+        (r'/', IndexHandler),
         (r'/api/resource', ResourceHandler),
         (r'/api/top', TopHandler),
-        (r'/api/like', UserLikeHandler),
+        (r'/api/like', LikeHandler),
         (r'/api/user', UserHandler),
         (r'/api/name', NameHandler),
         (r'/api/comment', CommentHandler),
@@ -52,7 +54,6 @@ class RunServer:
         (r'/api/blacklist', BlacklistHandler),
         (r'/api/db_dump', DBDumpHandler),
         (r'/api/announcement', AnnouncementHandler),
-        (r'/', IndexHandler),
         (r'/api/douban', DoubanHandler),
         (r'/api/douban/report', DoubanReportHandler),
         (r'/api/notification', NotificationHandler),

@@ -117,8 +117,7 @@ class UserResource:
     def login_user(self, username: str, password: str, ip: str, browser: str) -> dict:
         pass
 
-    def add_remove_fav(self, resource_id: int, username: str) -> str:
-        pass
+
 
     def get_user_info(self, username: str) -> dict:
         pass
@@ -136,10 +135,11 @@ class TopResource:
         pass
 
 
-class UserLikeResource:
+class LikeResource:
     def get_user_like(self, username: str) -> list:
         pass
-
+    def add_remove_fav(self, resource_id: int, username: str) -> str:
+        pass
 
 class NameResource:
     def get_names(self, is_readable: [str, bool]) -> dict:
@@ -250,4 +250,13 @@ class NotificationResource:
         pass
 
     def update_notification(self,username,verb,comment_id):
+        pass
+
+
+class EmailResource:
+
+    def get_notification(self, username, page, size):
+        pass
+
+    def update_notification(self, username, verb, comment_id):
         pass

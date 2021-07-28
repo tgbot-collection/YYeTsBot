@@ -131,20 +131,6 @@ class UserHandler(BaseHandler):
         return returned_value
 
     @run_on_executor()
-    def add_remove_fav(self):
-        data = self.json
-        resource_id = int(data["resource_id"])
-        username = self.get_current_user()
-        if username:
-            response = self.instance.add_remove_fav(resource_id, username)
-            self.set_status(response["status_code"])
-        else:
-            response = {"message": "请先登录"}
-            self.set_status(HTTPStatus.UNAUTHORIZED)
-
-        return response["message"]
-
-    @run_on_executor()
     def get_user_info(self) -> dict:
         username = self.get_current_user()
         if username:
@@ -157,12 +143,6 @@ class UserHandler(BaseHandler):
     @gen.coroutine
     def post(self):
         resp = yield self.login_user()
-        self.write(resp)
-
-    @gen.coroutine
-    @web.authenticated
-    def patch(self):
-        resp = yield self.add_remove_fav()
         self.write(resp)
 
     @gen.coroutine
@@ -221,10 +201,10 @@ class ResourceHandler(BaseHandler):
         self.write(resp)
 
 
-class UserLikeHandler(BaseHandler):
-    class_name = f"UserLike{adapter}Resource"
+class LikeHandler(BaseHandler):
+    class_name = f"Like{adapter}Resource"
 
-    # from Mongo import UserLikeMongoResource
+    # from Mongo import LikeMongoResource
     # instance = UserLikeMongoResource()
 
     @run_on_executor()
@@ -236,6 +216,26 @@ class UserLikeHandler(BaseHandler):
     @web.authenticated
     def get(self):
         resp = yield self.like_data()
+        self.write(resp)
+
+    @run_on_executor()
+    def add_remove_fav(self):
+        data = self.json
+        resource_id = int(data["resource_id"])
+        username = self.get_current_user()
+        if username:
+            response = self.instance.add_remove_fav(resource_id, username)
+            self.set_status(response["status_code"])
+        else:
+            response = {"message": "请先登录"}
+            self.set_status(HTTPStatus.UNAUTHORIZED)
+
+        return response["message"]
+
+    @gen.coroutine
+    @web.authenticated
+    def patch(self):
+        resp = yield self.add_remove_fav()
         self.write(resp)
 
 
@@ -755,3 +755,10 @@ class NotificationHandler(BaseHandler):
     def patch(self):
         resp = yield self.update_notification()
         self.write(resp)
+
+
+class EmailHandler(BaseHandler):
+    class_name = f"Email{adapter}Resource"
+
+    # from Mongo import UserMongoResource
+    # instance = UserMongoResource()

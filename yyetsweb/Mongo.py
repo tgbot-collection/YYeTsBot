@@ -28,9 +28,9 @@ from retry import retry
 from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
                       CommentChildResource, CommentNewestResource,
                       CommentResource, DoubanReportResource, DoubanResource,
-                      GrafanaQueryResource, MetricsResource, NameResource,
-                      OtherResource, Redis, ResourceResource, TopResource,
-                      UserLikeResource, UserResource, NotificationResource)
+                      GrafanaQueryResource, LikeResource, MetricsResource,
+                      NameResource, NotificationResource, OtherResource, Redis,
+                      ResourceResource, TopResource, UserResource)
 from utils import ts_date
 
 lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().as_posix()
@@ -489,7 +489,7 @@ class TopMongoResource(TopResource, Mongo):
         return all_data
 
 
-class UserLikeMongoResource(UserLikeResource, Mongo):
+class LikeMongoResource(LikeResource, Mongo):
     projection = {'_id': False, 'data.info': True}
 
     def get_user_like(self, username: str) -> list:
@@ -497,6 +497,22 @@ class UserLikeMongoResource(UserLikeResource, Mongo):
         data = self.db["yyets"].find({"data.info.id": {"$in": like_list}}, self.projection) \
             .sort("data.info.views", pymongo.DESCENDING)
         return list(data)
+
+    def add_remove_fav(self, resource_id: int, username: str) -> dict:
+        returned = {"status_code": 0, "message": ""}
+        like_list: list = self.db["users"].find_one({"username": username}).get("like", [])
+        if resource_id in like_list:
+            returned["status_code"] = HTTPStatus.OK
+            returned["message"] = "已取消收藏"
+            like_list.remove(resource_id)
+        else:
+            returned["status_code"] = HTTPStatus.CREATED
+            returned["message"] = "已添加收藏"
+            like_list.append(resource_id)
+
+        value = dict(like=like_list)
+        self.db["users"].update_one({"username": username}, {'$set': value})
+        return returned
 
 
 class UserMongoResource(UserResource, Mongo):
@@ -526,22 +542,6 @@ class UserMongoResource(UserResource, Mongo):
                 returned_value["message"] = str(e)
 
         return returned_value
-
-    def add_remove_fav(self, resource_id: int, username: str) -> dict:
-        returned = {"status_code": 0, "message": ""}
-        like_list: list = self.db["users"].find_one({"username": username}).get("like", [])
-        if resource_id in like_list:
-            returned["status_code"] = HTTPStatus.OK
-            returned["message"] = "已取消收藏"
-            like_list.remove(resource_id)
-        else:
-            returned["status_code"] = HTTPStatus.CREATED
-            returned["message"] = "已添加收藏"
-            like_list.append(resource_id)
-
-        value = dict(like=like_list)
-        self.db["users"].update_one({"username": username}, {'$set': value})
-        return returned
 
     def get_user_info(self, username: str) -> dict:
         projection = {"_id": False, "password": False}

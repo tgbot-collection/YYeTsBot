@@ -251,7 +251,7 @@
 
 # 添加或删除收藏
 
-* PATCH `/api/user`，提交json，字段 `resource_id`
+* PATCH `/api/like`，提交json，字段 `resource_id`
 
 # 评论
 
