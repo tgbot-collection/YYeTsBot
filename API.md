@@ -758,3 +758,57 @@ verb 为`like` 或 `dislike`
   ]
 }
 ```
+
+# 通知
+
+只有登录用户可以获取，只有楼主能够获取到通知，其他楼层的人获取不到。
+
+## 获取通知
+
+* GET `http://127.0.0.1:8888/api/notification`
+
+支持URL参数page和size，默认1和5
+
+```json
+{
+  "_id": "61013c0f89c9cd0c75460184",
+  "username": "user1",
+  "unread_item": [
+    {
+      "_id": "61013c839633a80254ef2e38",
+      "username": "user3",
+      "date": "2021-07-28 19:16:19",
+      "browser": "Mozilla/5.0 (Windows NT 6.3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.123 Safari/537.36",
+      "content": "<reply value=\"61013c0f9633a80254ef2e30\">@user2</reply>user3",
+      "resource_id": 233,
+      "type": "child"
+    }
+  ],
+  "read_item": [
+    {
+      "_id": "61013c0f9633a80254ef2e30",
+      "username": "user2",
+      "date": "2021-07-28 19:14:23",
+      "browser": "Mozilla/5.0 (X11; Gentoo; rv:82.0) Gecko/20100101 Firefox/82.0",
+      "content": "<reply value=\"610135c9d1f873388feb5c78\">@user1</reply>okkk",
+      "resource_id": 233,
+      "type": "child"
+    }
+  ]
+}
+```
+
+# 已读、未读消息
+
+* PATCH `http://127.0.0.1:8888/api/notification`
+  json body
+
+```json
+{
+  "comment_id": "61013c839633a80254ef2e38",
+  "verb": "unread"
+}
+```
+
+verb只可以是 `read` 和 `unread`
+comment_id 是评论的id

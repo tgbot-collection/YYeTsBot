@@ -30,7 +30,7 @@ from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
                       CommentResource, DoubanReportResource, DoubanResource,
                       GrafanaQueryResource, MetricsResource, NameResource,
                       OtherResource, Redis, ResourceResource, TopResource,
-                      UserLikeResource, UserResource)
+                      UserLikeResource, UserResource, NotificationResource)
 from utils import ts_date
 
 lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().as_posix()
@@ -227,6 +227,16 @@ class CommentMongoResource(CommentResource, Mongo):
                                                    )
         returned["status_code"] = HTTPStatus.CREATED
         returned["message"] = "评论成功"
+
+        # notification
+        if parent_comment_id:
+            # find username
+
+            self.db["notification"].find_one_and_update(
+                {"username": exists["username"]},
+                {"$push": {"unread": inserted_id}},
+                upsert=True
+            )
         return returned
 
     def delete_comment(self, comment_id):
@@ -663,3 +673,43 @@ class DoubanReportMongoResource(DoubanReportResource, Mongo):
             {"resource_id": resource_id},
             {"$push": {"content": content}}, upsert=True).matched_count
         return dict(count=count)
+
+
+class NotificationMongoResource(NotificationResource, Mongo):
+    def get_notification(self, username, page, size):
+        # .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
+        notify = self.db["notification"].find_one({"username": username})
+        notify["unread_item"] = []
+        notify["read_item"] = []
+
+        unread = notify.get("unread", [])
+        for item in unread[(page - 1) * size:size * page]:
+            comment = self.db["comment"].find_one({"_id": item}, projection={"ip": False, "parent_id": False})
+            comment["_id"] = str(comment["_id"])
+            notify["unread_item"].append(comment)
+
+        read = notify.get("read", [])
+        for item in read[(page - 1) * size:size * page]:
+            comment = self.db["comment"].find_one({"_id": item}, projection={"ip": False, "parent_id": False})
+            comment["_id"] = str(comment["_id"])
+            notify["read_item"].append(comment)
+
+        notify["_id"] = str(notify["_id"])
+        notify.pop("unread", None)
+        notify.pop("read", None)
+        return notify
+
+    def update_notification(self, username, verb, comment_id):
+        if verb == "read":
+            v1, v2 = "read", "unread"
+        else:
+            v1, v2 = "unread", "read"
+        self.db["notification"].find_one_and_update(
+            {"username": username},
+            {
+                "$push": {v1: ObjectId(comment_id)},
+                "$pull": {v2: ObjectId(comment_id)}
+            }
+        )
+
+        return {}

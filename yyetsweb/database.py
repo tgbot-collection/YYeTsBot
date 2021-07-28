@@ -242,3 +242,12 @@ class DoubanReportResource:
 
     def get_error(self) -> dict:
         pass
+
+
+class NotificationResource:
+
+    def get_notification(self,username,page,size):
+        pass
+
+    def update_notification(self,username,verb,comment_id):
+        pass

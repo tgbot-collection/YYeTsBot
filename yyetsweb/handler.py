@@ -7,6 +7,7 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
+import contextlib
 import importlib
 import json
 import logging
@@ -43,6 +44,9 @@ class BaseHandler(web.RequestHandler):
 
     def __init__(self, application, request, **kwargs):
         super().__init__(application, request, **kwargs)
+        self.json = {}
+        with contextlib.suppress(ValueError):
+            self.json = json.loads(self.request.body)
         self.instance = getattr(self.adapter_module, self.class_name)()
 
     def write_error(self, status_code, **kwargs):
@@ -110,7 +114,7 @@ class UserHandler(BaseHandler):
 
     @run_on_executor()
     def login_user(self):
-        data = json.loads(self.request.body)
+        data = self.json
         username = data["username"]
         password = data["password"]
         ip = AntiCrawler(self).get_real_ip()
@@ -128,7 +132,7 @@ class UserHandler(BaseHandler):
 
     @run_on_executor()
     def add_remove_fav(self):
-        data = json.loads(self.request.body)
+        data = self.json
         resource_id = int(data["resource_id"])
         username = self.get_current_user()
         if username:
@@ -281,7 +285,7 @@ class CommentHandler(BaseHandler):
 
     @run_on_executor()
     def add_comment(self):
-        payload = json.loads(self.request.body)
+        payload = self.json
         captcha = payload["captcha"]
         captcha_id = payload["id"]
         content = payload["content"]
@@ -301,7 +305,7 @@ class CommentHandler(BaseHandler):
     def delete_comment(self):
         # need resource_id & id
         # payload = {"id":  "obj_id"}
-        payload = json.loads(self.request.body)
+        payload = self.json
         username = self.get_current_user()
         comment_id = payload["comment_id"]
 
@@ -315,7 +319,7 @@ class CommentHandler(BaseHandler):
 
     @run_on_executor()
     def comment_reaction(self):
-        payload = json.loads(self.request.body)
+        payload = self.json
         username = self.get_current_user()
         comment_id = payload["comment_id"]
         verb = payload["verb"]
@@ -412,7 +416,7 @@ class AnnouncementHandler(BaseHandler):
             self.set_status(HTTPStatus.FORBIDDEN)
             return {"message": "只有管理员可以设置公告"}
 
-        payload = json.loads(self.request.body)
+        payload = self.json
         content = payload["content"]
         real_ip = AntiCrawler(self).get_real_ip()
         browser = self.request.headers['user-agent']
@@ -437,7 +441,7 @@ class CaptchaHandler(BaseHandler, CaptchaResource):
 
     @run_on_executor()
     def verify_captcha(self):
-        data = json.loads(self.request.body)
+        data = self.json
         captcha_id = data.get("id", None)
         userinput = data.get("captcha", None)
         if captcha_id is None or userinput is None:
@@ -477,7 +481,7 @@ class MetricsHandler(BaseHandler):
 
     @run_on_executor()
     def set_metrics(self):
-        payload = json.loads(self.request.body)
+        payload = self.json
         metrics_type = payload["type"]
 
         self.instance.set_metrics(metrics_type)
@@ -550,7 +554,7 @@ class GrafanaQueryHandler(BaseHandler):
         return time.mktime(time.strptime(text, "%Y-%m-%d"))
 
     def post(self):
-        payload = json.loads(self.request.body)
+        payload = self.json
         start = payload["range"]["from"].split("T")[0]
         end = payload["range"]["to"].split("T")[0]
         date_series = self.generate_date_series(start, end)
@@ -694,7 +698,7 @@ class DoubanReportHandler(BaseHandler):
 
     @run_on_executor()
     def report_error(self):
-        data = json.loads(self.request.body)
+        data = self.json
         user_captcha = data["captcha_id"]
         captcha_id = data["id"]
         content = data["content"]
@@ -712,4 +716,42 @@ class DoubanReportHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         resp = yield self.get_error()
+        self.write(resp)
+
+
+class NotificationHandler(BaseHandler):
+    class_name = f"Notification{adapter}Resource"
+
+    # from Mongo import NotificationResource
+    # instance = NotificationResource()
+
+    @run_on_executor()
+    def get_notification(self):
+        username = self.get_current_user()
+        size = int(self.get_argument("size", "5"))
+        page = int(self.get_argument("page", "1"))
+
+        return self.instance.get_notification(username, page, size)
+
+    @run_on_executor()
+    def update_notification(self):
+        username = self.get_current_user()
+        verb = self.json["verb"]
+        comment_id = self.json["comment_id"]
+        if verb not in ["read", "unread"]:
+            self.set_status(HTTPStatus.BAD_REQUEST)
+            return {"status": False, "message": "verb: read or unread"}
+        self.set_status(HTTPStatus.CREATED)
+        return self.instance.update_notification(username, verb, comment_id)
+
+    @gen.coroutine
+    @web.authenticated
+    def get(self):
+        resp = yield self.get_notification()
+        self.write(resp)
+
+    @gen.coroutine
+    @web.authenticated
+    def patch(self):
+        resp = yield self.update_notification()
         self.write(resp)
