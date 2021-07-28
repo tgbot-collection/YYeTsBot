@@ -23,7 +23,7 @@ from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      GrafanaSearchHandler, IndexHandler, LikeHandler,
                      MetricsHandler, NameHandler, NotFoundHandler,
                      NotificationHandler, ResourceHandler, TopHandler,
-                     UserHandler)
+                     UserEmailHandler, UserHandler)
 from migration.douban_sync import sync_douban
 from Mongo import OtherMongoResource
 
@@ -42,6 +42,7 @@ class RunServer:
         (r'/api/top', TopHandler),
         (r'/api/like', LikeHandler),
         (r'/api/user', UserHandler),
+        (r'/api/user/email', UserEmailHandler),
         (r'/api/name', NameHandler),
         (r'/api/comment', CommentHandler),
         (r'/api/comment/child', CommentChildHandler),

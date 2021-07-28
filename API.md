@@ -8,15 +8,20 @@
 - [x] 最新评论
 - [x] 公告
 - [ ] 评论通知（浏览器通知）
+- [ ] API变更：登录时需要验证码
+- [ ] API变更：like API变更 PATCH `/api/user/` --> PATCH `/api/like/`
+- [ ] 删除评论（admin only）
 
 # BE
 
 - [x] 联合搜索：字幕侠、new字幕组、追新番
 - [x] grafana面板
 - [x] 豆瓣接口
-- [ ] 用户体系（添加邮箱，邮件支持，找回密码）
-- [ ] 评论通知，需要新接口
-- [ ] 添加资源API
+- [x] 评论通知：站内通知
+- [x] 添加邮箱
+- [x] 邮件通知
+- [ ] 找回密码
+- [ ] 添加资源
 
 # 资源
 
@@ -215,6 +220,8 @@
 
 * POST `/api/user`，提交json，字段 `username`, `password`
 
+返回json
+
 ## 获取当前登录用户信息
 
 登录用户可用，未登录会返回401
@@ -240,7 +247,57 @@
   ],
   "comments_dislike": [
     "60c46d6a6d7c5dd22d69fd3b"
-  ]
+  ],
+  "email": {
+    "verified": false,
+    "address": "123@qq.com"
+  }
+}
+```
+
+## 更改用户信息
+
+* PATCH `http://127.0.0.1:8888/api/user`
+
+* 目前只支持修改email字段，会发送验证邮件，1800秒之内只能验证一次，有效期24小时
+
+暂不支持取消绑定
+
+```json
+{
+  "email": "123@qq.com"
+}
+```
+
+response
+
+```json
+{
+  "status_code": 429,
+  "status": false,
+  "message": "try again in 1797s"
+}
+```
+
+## 验证邮件
+
+* POST `http://127.0.0.1:8888/api/user/email`
+
+10次错误会被加到黑名单，账号注销
+
+```json
+{
+  "code": "83216"
+}
+```
+
+response
+
+```json
+{
+  "status": true,
+  "status_code": 201,
+  "message": "success"
 }
 ```
 

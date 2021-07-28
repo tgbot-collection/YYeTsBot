@@ -117,18 +117,24 @@ class UserHandler(BaseHandler):
         data = self.json
         username = data["username"]
         password = data["password"]
+        captcha = data["captcha"]
+        captcha_id = data["captcha_id"]
         ip = AntiCrawler(self).get_real_ip()
         browser = self.request.headers['user-agent']
 
-        response = self.instance.login_user(username, password, ip, browser)
+        response = self.instance.login_user(username, password, captcha, captcha_id, ip, browser)
         if response["status_code"] in (HTTPStatus.CREATED, HTTPStatus.OK):
             self.set_login(username)
-            returned_value = ""
         else:
             self.set_status(HTTPStatus.FORBIDDEN)
-            returned_value = response["message"]
 
-        return returned_value
+        return response
+
+    @run_on_executor()
+    def update_info(self):
+        result = self.instance.update_user_info(self.current_user, self.json)
+        self.set_status(result.get("status_code", HTTPStatus.IM_A_TEAPOT))
+        return result
 
     @run_on_executor()
     def get_user_info(self) -> dict:
@@ -156,6 +162,12 @@ class UserHandler(BaseHandler):
         if username:
             now_ip = AntiCrawler(self).get_real_ip()
             self.instance.update_user_last(username, now_ip)
+
+    @gen.coroutine
+    @web.authenticated
+    def patch(self):
+        resp = yield self.update_info()
+        self.write(resp)
 
 
 class ResourceHandler(BaseHandler):
@@ -757,8 +769,20 @@ class NotificationHandler(BaseHandler):
         self.write(resp)
 
 
-class EmailHandler(BaseHandler):
-    class_name = f"Email{adapter}Resource"
+class UserEmailHandler(BaseHandler):
+    class_name = f"UserEmail{adapter}Resource"
 
-    # from Mongo import UserMongoResource
-    # instance = UserMongoResource()
+    from Mongo import UserEmailResource
+    instance = UserEmailResource()
+
+    @run_on_executor()
+    def verify_email(self):
+        result = self.instance.verify_email(self.get_current_user(), self.json["code"])
+        self.set_status(result.get("status_code"))
+        return result
+
+    @gen.coroutine
+    @web.authenticated
+    def post(self):
+        resp = yield self.verify_email()
+        self.write(resp)

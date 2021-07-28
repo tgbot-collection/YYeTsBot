@@ -11,6 +11,7 @@ import contextlib
 import logging
 import os
 import pathlib
+import random
 import re
 import sys
 import time
@@ -30,8 +31,9 @@ from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
                       CommentResource, DoubanReportResource, DoubanResource,
                       GrafanaQueryResource, LikeResource, MetricsResource,
                       NameResource, NotificationResource, OtherResource, Redis,
-                      ResourceResource, TopResource, UserResource)
-from utils import ts_date
+                      ResourceResource, TopResource, UserEmailResource,
+                      UserResource)
+from utils import send_mail, ts_date
 
 lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().as_posix()
 sys.path.append(lib_path)
@@ -237,6 +239,20 @@ class CommentMongoResource(CommentResource, Mongo):
                 {"$push": {"unread": inserted_id}},
                 upsert=True
             )
+            # send email
+            # TODO unsubscribe
+            parent_comment = self.db["comment"].find_one({"_id": ObjectId(parent_comment_id)})
+            if resource_id == 233:
+                link = f"https://yyets.dmesg.app/discuss#{parent_comment_id}"
+            else:
+                link = f"https://yyets.dmesg.app/resource?id={resource_id}#{parent_comment_id}"
+            user_info = self.db["users"].find_one({"username": parent_comment["username"], "email.verified": True})
+            if user_info:
+                subject = "[人人影视下载分享站] 你的评论有了新的回复"
+                pt_content = content.split("</reply>")[-1]
+                body = f"{username} 您好，<br>你的评论 {parent_comment['content']} 有了新的回复：<br>{pt_content}" \
+                       f"\n你可以<a href='{link}'>点此链接</a>查看"
+                send_mail(user_info["email"]["address"], subject, body)
         return returned
 
     def delete_comment(self, comment_id):
@@ -516,8 +532,22 @@ class LikeMongoResource(LikeResource, Mongo):
 
 
 class UserMongoResource(UserResource, Mongo):
-    def login_user(self, username: str, password: str, ip: str, browser: str) -> dict:
+    def login_user(self, username: str, password: str, captcha: str, captcha_id: str, ip: str, browser: str) -> dict:
+        # verify captcha in the first place.
+        redis = Redis().r
+        correct_captcha = redis.get(captcha_id)
+        if correct_captcha and correct_captcha.lower() == captcha.lower():
+            redis.expire(captcha_id, 0)
+        else:
+            return {"status_code": HTTPStatus.FORBIDDEN, "message": "验证码错误", "status": False}
+        # check user account is locked.
+
         data = self.db["users"].find_one({"username": username})
+        if data.get("status", {}).get("disable"):
+            return {"status_code": HTTPStatus.FORBIDDEN,
+                    "status": False,
+                    "message": data.get("status", {}).get("reason")}
+
         returned_value = {"status_code": 0, "message": ""}
 
         if data:
@@ -552,6 +582,43 @@ class UserMongoResource(UserResource, Mongo):
         self.db["users"].update_one({"username": username},
                                     {"$set": {"lastDate": (ts_date()), "lastIP": now_ip}}
                                     )
+
+    def update_user_info(self, username: str, data: dict) -> dict:
+        redis = Redis().r
+        valid_fields = ["email"]
+        valid_data = {}
+        for field in valid_fields:
+            if data.get(field):
+                valid_data[field] = data[field]
+
+        if valid_data.get("email") and not re.findall(r"\S@\S", valid_data.get("email")):
+            return {"status_code": HTTPStatus.BAD_REQUEST, "status": False, "message": "email format error  "}
+        elif valid_data.get("email"):
+            # rate limit
+            user_email = valid_data.get("email")
+            timeout_key = f"timeout-{user_email}"
+            if redis.get(timeout_key):
+                return {"status_code": HTTPStatus.TOO_MANY_REQUESTS,
+                        "status": False,
+                        "message": f"try again in {redis.ttl(timeout_key)}s"}
+
+            verify_code = random.randint(10000, 99999)
+            valid_data["email"] = {"verified": False, "address": user_email}
+            # send email confirm
+            subject = "[人人影视下载分享站] 请验证你的邮箱"
+            body = f"{username} 您好，<br>请输入如下验证码完成你的邮箱认证。验证码有效期为24小时。<br>" \
+                   f"如果您未有此请求，请忽略此邮件。<br><br>验证码： {verify_code}"
+
+            redis.set(timeout_key, username, ex=1800)
+            redis.hset(user_email, mapping={"code": verify_code, "wrong": 0})
+            redis.expire(user_email, 24 * 3600)
+            send_mail(user_email, subject, body)
+
+        self.db["users"].update_one(
+            {"username": username},
+            {"$set": valid_data}
+        )
+        return {"status_code": HTTPStatus.CREATED, "status": True, "message": "success"}
 
 
 class DoubanMongoResource(DoubanResource, Mongo):
@@ -713,3 +780,31 @@ class NotificationMongoResource(NotificationResource, Mongo):
         )
 
         return {}
+
+
+class UserEmailMongoResource(UserEmailResource, Mongo):
+    def verify_email(self, username, code):
+        r = Redis().r
+        email = self.db["users"].find_one({"username": username})["email"]["address"]
+        verify_data = r.hgetall(email)
+        wrong_count = int(verify_data["wrong"])
+        MAX = 10
+        if wrong_count >= MAX:
+            self.db["users"].update_one({"username": username},
+                                        {"$set": {"status": {"disable": True, "reason": "verify email crack"}}}
+                                        )
+            return {"status": False, "status_code": HTTPStatus.FORBIDDEN, "message": "Account locked. Please stay away"}
+        correct_code = verify_data["code"]
+
+        if correct_code == code:
+            r.expire(email, 0)
+            r.expire(f"timeout-{email}", 0)
+            self.db["users"].update_one({"username": username},
+                                        {"$set": {"email.verified": True}}
+                                        )
+            return {"status": True, "status_code": HTTPStatus.CREATED, "message": "success"}
+        else:
+            r.hset(email, "wrong", wrong_count + 1)
+            return {"status": False,
+                    "status_code": HTTPStatus.FORBIDDEN,
+                    "message": f"verification code is incorrect. You have {MAX - wrong_count} attempts remaining"}

@@ -114,15 +114,16 @@ class OtherResource():
 
 
 class UserResource:
-    def login_user(self, username: str, password: str, ip: str, browser: str) -> dict:
+    def login_user(self, username: str, password: str, captcha: str, captcha_id:str,ip: str, browser: str) -> dict:
         pass
-
-
 
     def get_user_info(self, username: str) -> dict:
         pass
 
     def update_user_last(self, username: str, now_ip: str) -> None:
+        pass
+
+    def update_user_info(self, username: str, data: dict) -> dict:
         pass
 
 
@@ -138,8 +139,10 @@ class TopResource:
 class LikeResource:
     def get_user_like(self, username: str) -> list:
         pass
+
     def add_remove_fav(self, resource_id: int, username: str) -> str:
         pass
+
 
 class NameResource:
     def get_names(self, is_readable: [str, bool]) -> dict:
@@ -246,17 +249,14 @@ class DoubanReportResource:
 
 class NotificationResource:
 
-    def get_notification(self,username,page,size):
-        pass
-
-    def update_notification(self,username,verb,comment_id):
-        pass
-
-
-class EmailResource:
-
     def get_notification(self, username, page, size):
         pass
 
     def update_notification(self, username, verb, comment_id):
+        pass
+
+
+class UserEmailResource:
+
+    def verify_email(self, username, code):
         pass
