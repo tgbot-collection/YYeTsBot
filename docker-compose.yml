@@ -32,6 +32,12 @@ services:
     env_file:
       - env/yyets.env
 
+  mailhog:
+    image: cd2team/mailhog
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+
   nginx:
     restart: always
     image: nginx:alpine
