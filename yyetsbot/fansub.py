@@ -19,14 +19,14 @@ import redis
 import requests
 from bs4 import BeautifulSoup
 
-from config import (CK180_SEARCH, FANSUB_ORDER, FIX_SEARCH, MONGO,
+from config import (BD2020_SEARCH, FANSUB_ORDER, FIX_SEARCH, MONGO,
                     NEWZMZ_RESOURCE, NEWZMZ_SEARCH, REDIS, WORKERS,
-                    ZHUIXINFAN_RESOURCE, ZHUIXINFAN_SEARCH)
+                    XL720_SEARCH, ZHUIXINFAN_RESOURCE, ZHUIXINFAN_SEARCH)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 
 session = requests.Session()
-ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
 session.headers.update({"User-Agent": ua})
 
 this_module = sys.modules[__name__]
@@ -43,7 +43,7 @@ class Redis:
         self.r.close()
 
     @classmethod
-    def preview_cache(cls, timeout):
+    def preview_cache(cls, timeout=3600 * 24):
         def func(fun):
             def inner(*args, **kwargs):
                 search_text = args[1]
@@ -71,7 +71,7 @@ class Redis:
         return func
 
     @classmethod
-    def result_cache(cls, timeout):
+    def result_cache(cls, timeout=3600 * 24):
         def func(fun):
             def inner(*args, **kwargs):
                 # this method will convert hash to url
@@ -127,11 +127,11 @@ class BaseFansub:
 
     def get_html(self, link: str, encoding=None) -> str:
         # return html text of search page
-        logging.info("[%s] Searching  for %s", self.__class__.__name__, link)
         with session.get(link) as r:
             if encoding is not None:
                 r.encoding = encoding
             html = r.text
+        logging.info("[%s] [%s] Searching  for %s", self.__class__.__name__, r.status_code, link)
         return html
 
     def search_preview(self, search_text: str) -> dict:
@@ -174,7 +174,7 @@ class YYeTsOffline(BaseFansub):
         self.mongo = pymongo.MongoClient(host=MONGO)
         self.collection = self.mongo[db][col]
 
-    @Redis.preview_cache(3600 * 6)
+    @Redis.preview_cache()
     def search_preview(self, search_text: str) -> dict:
         logging.info("[%s] Loading offline data from MongoDB...", self.__class__.__name__)
 
@@ -203,7 +203,7 @@ class YYeTsOffline(BaseFansub):
         results["class"] = self.__class__.__name__
         return results
 
-    @Redis.result_cache(3600 * 3)
+    @Redis.result_cache()
     def search_result(self, resource_url) -> dict:
         # yyets offline
         # https://yyets.dmesg.app/resource.html?id=37089
@@ -217,7 +217,7 @@ class YYeTsOffline(BaseFansub):
 
 
 class ZimuxiaOnline(BaseFansub):
-    @Redis.preview_cache(3600 * 6)
+    @Redis.preview_cache()
     def search_preview(self, search_text: str) -> dict:
         # zimuxia online
         search_url = FIX_SEARCH.format(kw=search_text)
@@ -240,7 +240,7 @@ class ZimuxiaOnline(BaseFansub):
         dict_result["class"] = self.__class__.__name__
         return dict_result
 
-    @Redis.result_cache(3600 * 3)
+    @Redis.result_cache()
     def search_result(self, resource_url: str) -> dict:
         # zimuxia online
         logging.info("[%s] Loading detail page %s", self.__class__.__name__, resource_url)
@@ -252,7 +252,7 @@ class ZimuxiaOnline(BaseFansub):
 
 class ZhuixinfanOnline(BaseFansub):
 
-    @Redis.preview_cache(3600 * 6)
+    @Redis.preview_cache()
     def search_preview(self, search_text: str) -> dict:
         # zhuixinfan online
         search_link = ZHUIXINFAN_SEARCH.format(search_text)
@@ -276,7 +276,7 @@ class ZhuixinfanOnline(BaseFansub):
         dict_result["class"] = self.__class__.__name__
         return dict_result
 
-    @Redis.result_cache(3600 * 3)
+    @Redis.result_cache()
     def search_result(self, url: str) -> dict:
         # zhuixinfan online
         # don't worry, url_hash will become real url
@@ -290,7 +290,7 @@ class ZhuixinfanOnline(BaseFansub):
 
 class NewzmzOnline(BaseFansub):
 
-    @Redis.preview_cache(3600 * 6)
+    @Redis.preview_cache()
     def search_preview(self, search_text: str) -> dict:
         # zhuixinfan online
         search_link = NEWZMZ_SEARCH.format(search_text)
@@ -309,7 +309,7 @@ class NewzmzOnline(BaseFansub):
         dict_result["class"] = self.__class__.__name__
         return dict_result
 
-    @Redis.result_cache(3600 * 3)
+    @Redis.result_cache()
     def search_result(self, url: str) -> dict:
         logging.info("[%s] Loading detail page %s", self.__class__.__name__, url)
         html = self.get_html(url)
@@ -319,19 +319,20 @@ class NewzmzOnline(BaseFansub):
         return {"all": html, "share": url, "cnname": cnname}
 
 
-class CK180Online(BaseFansub):
+class BD2020(NewzmzOnline):
 
-    @Redis.preview_cache(3600 * 6)
+    @Redis.preview_cache()
     def search_preview(self, search_text: str) -> dict:
-        search_link = CK180_SEARCH.format(search_text)
+        search_link = BD2020_SEARCH.format(search_text)
         html_text = self.get_html(search_link)
         logging.info('[%s] Parsing html...', self.__class__.__name__)
         soup = BeautifulSoup(html_text, 'html.parser')
-        link_list = soup.find_all("div", class_="post clearfix")
+        link_list = soup.find_all("li", class_="list-item")
+
         dict_result = {}
-        for div in link_list:
-            name = div.h3.text
-            url = div.h3.a["href"]
+        for item in link_list:
+            name = item.div.a.text.strip()
+            url = item.div.a["href"]
             url_hash = hashlib.sha1(url.encode('u8')).hexdigest()
             dict_result[url_hash] = {
                 "url": url,
@@ -342,12 +343,38 @@ class CK180Online(BaseFansub):
         dict_result["class"] = self.__class__.__name__
         return dict_result
 
-    @Redis.result_cache(3600 * 3)
+
+class XL720(BD2020):
+
+    @Redis.preview_cache()
+    def search_preview(self, search_text: str) -> dict:
+        search_link = XL720_SEARCH.format(search_text)
+        html_text = self.get_html(search_link)
+        logging.info('[%s] Parsing html...', self.__class__.__name__)
+        soup = BeautifulSoup(html_text, 'html.parser')
+
+        dict_result = {}
+        link_list = soup.find_all("div", class_="post clearfix")
+        for item in link_list:
+            name = re.sub(r"\s", "", item.h3.a.text.strip())
+            url = item.h3.a["href"]
+            url_hash = hashlib.sha1(url.encode('u8')).hexdigest()
+            dict_result[url_hash] = {
+                "url": url,
+                "name": name,
+                "class": self.__class__.__name__
+
+            }
+
+        dict_result["class"] = self.__class__.__name__
+        return dict_result
+
+    @Redis.result_cache()
     def search_result(self, url: str) -> dict:
         logging.info("[%s] Loading detail page %s", self.__class__.__name__, url)
         html = self.get_html(url)
         soup = BeautifulSoup(html, 'html.parser')
-        cnname = soup.title.text.split("_")[0]
+        cnname = soup.title.text.split("迅雷下载")[0]
         return {"all": html, "share": url, "cnname": cnname}
 
 
@@ -403,9 +430,9 @@ for sub_name in globals().copy():
         vars()[cmd_name] = m
 
 if __name__ == '__main__':
-    sub = CK180Online()
-    # search = sub.search_preview("404")
-    # print(search)
-    uh = "965892b6b3ecd5635b7df5af4fd8d246aef3986e"
-    result = sub.search_result(uh)
-    print(json.dumps(result, ensure_ascii=False))
+    sub = BD2020()
+    search = sub.search_preview("我老婆要嫁人")
+    print(search)
+    # uh = "a0702952077718cb9d1e08dca3485c51d5deee6e"
+    # result = sub.search_result(uh)
+    # print(json.dumps(result, ensure_ascii=False))

@@ -35,7 +35,7 @@ from utils import ts_date
 
 lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().as_posix()
 sys.path.append(lib_path)
-from fansub import CK180Online, NewzmzOnline, ZhuixinfanOnline, ZimuxiaOnline
+from fansub import BD2020, XL720, NewzmzOnline, ZhuixinfanOnline, ZimuxiaOnline
 
 mongo_host = os.getenv("mongo") or "localhost"
 DOUBAN_SEARCH = "https://www.douban.com/search?cat=1002&q={}"
@@ -442,7 +442,8 @@ class ResourceMongoResource(ResourceResource, Mongo):
             extra = self.fansub_search(ZimuxiaOnline.__name__, keyword) or \
                     self.fansub_search(NewzmzOnline.__name__, keyword) or \
                     self.fansub_search(ZhuixinfanOnline.__name__, keyword) or \
-                    self.fansub_search(CK180Online.__name__, keyword)
+                    self.fansub_search(XL720.__name__, keyword) or \
+                    self.fansub_search(BD2020.__name__, keyword)
 
             returned["data"] = []
             returned["extra"] = extra
