@@ -266,3 +266,9 @@ class CategoryResource:
 
     def get_category(self, query: dict):
         pass
+
+
+class ResourceLatestResource:
+    @staticmethod
+    def get_latest_resource() -> dict:
+        pass

@@ -22,10 +22,11 @@ from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      DoubanReportHandler, GrafanaIndexHandler,
                      GrafanaQueryHandler, GrafanaSearchHandler, IndexHandler,
                      LikeHandler, MetricsHandler, NameHandler, NotFoundHandler,
-                     NotificationHandler, ResourceHandler, TopHandler,
-                     UserEmailHandler, UserHandler)
+                     NotificationHandler, ResourceHandler,
+                     ResourceLatestHandler, TopHandler, UserEmailHandler,
+                     UserHandler)
 from migration.douban_sync import sync_douban
-from Mongo import OtherMongoResource
+from Mongo import OtherMongoResource, ResourceLatestMongoResource
 
 enable_pretty_logging()
 
@@ -39,6 +40,7 @@ class RunServer:
     handlers = [
         (r'/', IndexHandler),
         (r'/api/resource', ResourceHandler),
+        (r'/api/resource/latest', ResourceLatestHandler),
         (r'/api/top', TopHandler),
         (r'/api/like', LikeHandler),
         (r'/api/user', UserHandler),
@@ -94,6 +96,7 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler(timezone=timez)
     scheduler.add_job(OtherMongoResource().reset_top, 'cron', hour=0, minute=0, day=1)
     scheduler.add_job(sync_douban, 'cron', hour=0, minute=0, day=1)
+    scheduler.add_job(ResourceLatestMongoResource().refresh_latest_resource, 'cron', minute=0)
     scheduler.start()
     options.define("p", default=8888, help="running port", type=int)
     options.define("h", default='127.0.0.1', help="listen address", type=str)

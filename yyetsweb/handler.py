@@ -213,6 +213,42 @@ class ResourceHandler(BaseHandler):
         self.write(resp)
 
 
+class ResourceLatestHandler(BaseHandler):
+    class_name = f"ResourceLatest{adapter}Resource"
+
+    # from Mongo import ResourceLatestMongoResource
+    # instance = ResourceLatestMongoResource()
+    @run_on_executor()
+    def get_latest(self):
+        size = int(self.get_query_argument("size", "100"))
+        result = self.instance.get_latest_resource()
+        result["data"] = result["data"][:size]
+        return result
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_latest()
+        self.write(resp)
+
+
+#
+# class ResourceLatestHandler(BaseHandler):
+#     from concurrent.futures import ProcessPoolExecutor
+#
+#     class_name = f"ResourceLatest{adapter}Resource"
+#     executor = ProcessPoolExecutor(200)
+#
+#     # from Mongo import ResourceLatestMongoResource
+#     # instance = ResourceLatestMongoResource()
+#
+#     @gen.coroutine
+#     def get(self):
+#         # This returns a concurrent.futures.Future
+#         fut = self.executor.submit(self.instance.get_latest_resource)
+#         ret = yield fut
+#         self.write(ret)
+
+
 class LikeHandler(BaseHandler):
     class_name = f"Like{adapter}Resource"
 

@@ -8,6 +8,7 @@
 - [x] 最新评论
 - [x] 公告
 - [ ] 分类
+- [ ] 最新更新资源
 - [ ] 评论通知（浏览器通知）
 - [ ] API变更：登录时需要验证码
 - [ ] API变更：like API变更 PATCH `/api/user/` --> PATCH `/api/like/`
@@ -1036,3 +1037,40 @@ comment_id 是评论的id
 * 美国的纪录片 `http://127.0.0.1:8888/api/category?&area=美国&channel_cn=纪录片`
 * 日本的电影 `http://127.0.0.1:8888/api/category?size=1&area=日本&channel=movie` 或 `channel_cn=电影`
 * 动漫 `http://127.0.0.1:8888/api/category?size=1&channel_cn=动漫`
+
+# 最新资源
+
+* GET `/api/resource/latest`
+
+可选URL参数 size，最大100，超过100无效。如 `http://127.0.0.1:8888/api/resource/latest?size=5` 即为获取最新5条数据
+
+```json
+{
+  "data": [
+    {
+      "name": "速度与激情9-F9 (2021) (1080p) [BluRay] [HD FULL].avi 1.52 GB",
+      "timestamp": "1623415867",
+      "size": "1.52GB",
+      "resource_id": 39894,
+      "res_name": "速度与激情9",
+      "date": "2021-06-11 20:51:07"
+    },
+    {
+      "name": "洛基-E01",
+      "timestamp": "1623415867",
+      "size": "788.53MB",
+      "resource_id": 41382,
+      "res_name": "洛基",
+      "date": "2021-06-11 20:51:07"
+    },
+    {
+      "name": "致命女人-EP01",
+      "timestamp": "1623415867",
+      "size": "790MB",
+      "resource_id": 38413,
+      "res_name": "致命女人",
+      "date": "2021-06-11 20:51:07"
+    }
+  ]
+}
+```

@@ -9,6 +9,7 @@ __author__ = "Benny <benny.think@gmail.com>"
 
 import base64
 import contextlib
+import json
 import logging
 import os
 import pathlib
@@ -26,6 +27,7 @@ from bs4 import BeautifulSoup
 from bson.objectid import ObjectId
 from passlib.handlers.pbkdf2 import pbkdf2_sha256
 from retry import retry
+from tqdm import tqdm
 
 from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
                       CategoryResource, CommentChildResource,
@@ -33,8 +35,8 @@ from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
                       DoubanReportResource, DoubanResource,
                       GrafanaQueryResource, LikeResource, MetricsResource,
                       NameResource, NotificationResource, OtherResource, Redis,
-                      ResourceResource, TopResource, UserEmailResource,
-                      UserResource)
+                      ResourceLatestResource, ResourceResource, TopResource,
+                      UserEmailResource, UserResource)
 from utils import send_mail, ts_date
 
 lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().as_posix()
@@ -837,3 +839,52 @@ class CategoryMongoResource(CategoryResource, Mongo):
                     item["data"]["info"]["douban"] = {}
             f.append(item["data"]["info"])
         return dict(data=f, count=count)
+
+
+class ResourceLatestMongoResource(ResourceLatestResource, Mongo):
+    @staticmethod
+    def get_latest_resource() -> dict:
+        redis = Redis().r
+        key = "latest-resource"
+        latest = redis.get(key)
+        if latest:
+            logging.info("Cache hit for latest resource")
+            latest = json.loads(latest)
+            latest["data"] = latest["data"][:100]
+        else:
+            logging.warning("Cache miss for latest resource")
+            latest = ResourceLatestMongoResource().query_db()
+            redis.set(key, json.dumps(latest, ensure_ascii=False))
+        return latest
+
+    def query_db(self) -> dict:
+        col = self.db["yyets"]
+        projection = {"_id": False, "status": False, "info": False}
+        episode_data = {}
+        for res in tqdm(col.find(projection=projection), total=col.count()):
+            for season in res["data"]["list"]:
+                for item in season["items"].values():
+                    for single in item:
+                        ts = single["dateline"]
+                        res_name = res["data"]["info"]["cnname"]
+                        name = "{}-{}".format(res_name, single["name"])
+                        size = single["size"]
+                        episode_data[name] = {"timestamp": ts, "size": size, "resource_id": res["data"]["info"]["id"],
+                                              "res_name": res_name, "date": ts_date(int(ts))}
+
+        sorted_res: list = sorted(episode_data.items(), key=lambda x: x[1]["timestamp"], reverse=True)
+        limited_res = dict(sorted_res[:100])
+        ok = []
+        for k, v in limited_res.items():
+            t = {"name": k}
+            t.update(v)
+            ok.append(t)
+        return dict(data=ok)
+
+    def refresh_latest_resource(self):
+        redis = Redis().r
+        logging.info("Getting new resources...")
+        latest = self.query_db()
+        redis.set("latest-resource", json.dumps(latest, ensure_ascii=False))
+        logging.info("latest-resource data refreshed.")
+
