@@ -2,7 +2,7 @@ name: Release one key runner
 on:
   push:
     tags:
-      - "*"
+      - "one-key*"
 
 jobs:
   linux:
