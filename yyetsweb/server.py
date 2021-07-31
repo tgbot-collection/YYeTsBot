@@ -17,11 +17,11 @@ from tornado import httpserver, ioloop, options, web
 from tornado.log import enable_pretty_logging
 
 from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
-                     CommentChildHandler, CommentHandler, CommentNewestHandler,
-                     DBDumpHandler, DoubanHandler, DoubanReportHandler,
-                     GrafanaIndexHandler, GrafanaQueryHandler,
-                     GrafanaSearchHandler, IndexHandler, LikeHandler,
-                     MetricsHandler, NameHandler, NotFoundHandler,
+                     CategoryHandler, CommentChildHandler, CommentHandler,
+                     CommentNewestHandler, DBDumpHandler, DoubanHandler,
+                     DoubanReportHandler, GrafanaIndexHandler,
+                     GrafanaQueryHandler, GrafanaSearchHandler, IndexHandler,
+                     LikeHandler, MetricsHandler, NameHandler, NotFoundHandler,
                      NotificationHandler, ResourceHandler, TopHandler,
                      UserEmailHandler, UserHandler)
 from migration.douban_sync import sync_douban
@@ -58,6 +58,7 @@ class RunServer:
         (r'/api/douban', DoubanHandler),
         (r'/api/douban/report', DoubanReportHandler),
         (r'/api/notification', NotificationHandler),
+        (r'/api/category', CategoryHandler),
 
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|'
          r'.*\.svg|.*\.json|.*\.txt)',

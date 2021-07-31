@@ -114,7 +114,7 @@ class OtherResource():
 
 
 class UserResource:
-    def login_user(self, username: str, password: str, captcha: str, captcha_id:str,ip: str, browser: str) -> dict:
+    def login_user(self, username: str, password: str, captcha: str, captcha_id: str, ip: str, browser: str) -> dict:
         pass
 
     def get_user_info(self, username: str) -> dict:
@@ -259,4 +259,10 @@ class NotificationResource:
 class UserEmailResource:
 
     def verify_email(self, username, code):
+        pass
+
+
+class CategoryResource:
+
+    def get_category(self, query: dict):
         pass

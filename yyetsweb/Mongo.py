@@ -7,6 +7,7 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
+import base64
 import contextlib
 import logging
 import os
@@ -27,8 +28,9 @@ from passlib.handlers.pbkdf2 import pbkdf2_sha256
 from retry import retry
 
 from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
-                      CommentChildResource, CommentNewestResource,
-                      CommentResource, DoubanReportResource, DoubanResource,
+                      CategoryResource, CommentChildResource,
+                      CommentNewestResource, CommentResource,
+                      DoubanReportResource, DoubanResource,
                       GrafanaQueryResource, LikeResource, MetricsResource,
                       NameResource, NotificationResource, OtherResource, Redis,
                       ResourceResource, TopResource, UserEmailResource,
@@ -808,3 +810,30 @@ class UserEmailMongoResource(UserEmailResource, Mongo):
             return {"status": False,
                     "status_code": HTTPStatus.FORBIDDEN,
                     "message": f"verification code is incorrect. You have {MAX - wrong_count} attempts remaining"}
+
+
+class CategoryMongoResource(CategoryResource, Mongo):
+    def get_category(self, query: dict):
+        page, size, douban = query["page"], query["size"], query["douban"]
+        query.pop("page")
+        query.pop("size")
+        query.pop("douban")
+        query_dict = {}
+        for key, value in query.items():
+            query_dict[f"data.info.{key}"] = value
+        logging.info("Query dict %s", query_dict)
+        projection = {"_id": False, "data.list": False}
+        data = self.db["yyets"].find(query_dict, projection=projection).limit(size).skip((page - 1) * size)
+        count = self.db["yyets"].count_documents(query_dict)
+        f = []
+        for item in data:
+            if douban:
+                douban_data = self.db["douban"].find_one({"resourceId": item["data"]["info"]["id"]},
+                                                         projection=projection)
+                if douban_data:
+                    douban_data["posterData"] = base64.b64encode(douban_data["posterData"]).decode("u8")
+                    item["data"]["info"]["douban"] = douban_data
+                else:
+                    item["data"]["info"]["douban"] = {}
+            f.append(item["data"]["info"])
+        return dict(data=f, count=count)

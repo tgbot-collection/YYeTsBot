@@ -46,7 +46,7 @@ class BaseHandler(web.RequestHandler):
         super().__init__(application, request, **kwargs)
         self.json = {}
         with contextlib.suppress(ValueError):
-            self.json = json.loads(self.request.body)
+            self.json: dict = json.loads(self.request.body)
         self.instance = getattr(self.adapter_module, self.class_name)()
 
     def write_error(self, status_code, **kwargs):
@@ -772,8 +772,8 @@ class NotificationHandler(BaseHandler):
 class UserEmailHandler(BaseHandler):
     class_name = f"UserEmail{adapter}Resource"
 
-    from Mongo import UserEmailResource
-    instance = UserEmailResource()
+    # from Mongo import UserEmailResource
+    # instance = UserEmailResource()
 
     @run_on_executor()
     def verify_email(self):
@@ -785,4 +785,24 @@ class UserEmailHandler(BaseHandler):
     @web.authenticated
     def post(self):
         resp = yield self.verify_email()
+        self.write(resp)
+
+
+class CategoryHandler(BaseHandler):
+    class_name = f"Category{adapter}Resource"
+
+    from Mongo import CategoryResource
+    instance = CategoryResource()
+
+    @run_on_executor()
+    def get_data(self):
+        self.json = {k: self.get_argument(k) for k in self.request.arguments}
+        self.json["size"] = int(self.json.get("size", 15))
+        self.json["page"] = int(self.json.get("page", 1))
+        self.json["douban"] = self.json.get("douban", False)
+        return self.instance.get_category(self.json)
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_data()
         self.write(resp)

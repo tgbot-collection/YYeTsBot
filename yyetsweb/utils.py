@@ -10,7 +10,6 @@ __author__ = "Benny <benny.think@gmail.com>"
 import os
 import smtplib
 import time
-
 from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import formataddr, parseaddr
