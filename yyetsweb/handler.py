@@ -224,6 +224,7 @@ class ResourceHandler(BaseHandler):
         return {}
 
     @gen.coroutine
+    @web.authenticated
     def patch(self):
         resp = yield self.patch_resource()
         self.write(resp)

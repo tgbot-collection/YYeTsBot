@@ -574,7 +574,7 @@ class UserMongoResource(UserResource, Mongo):
         redis = Redis().r
         correct_captcha = redis.get(captcha_id)
         if correct_captcha is None:
-            return {"status_code": HTTPStatus.SEE_OTHER, "message": "验证码已过期", "status": False,
+            return {"status_code": HTTPStatus.BAD_REQUEST, "message": "验证码已过期", "status": False,
                     "other": f"/api/captcha?id={uuid.uuid4()}"}
         elif correct_captcha.lower() == captcha.lower():
             redis.expire(captcha_id, 0)
