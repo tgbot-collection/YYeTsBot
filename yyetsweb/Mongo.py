@@ -573,13 +573,12 @@ class UserMongoResource(UserResource, Mongo):
         # verify captcha in the first place.
         redis = Redis().r
         correct_captcha = redis.get(captcha_id)
-        if correct_captcha is None:
-            return {"status_code": HTTPStatus.BAD_REQUEST, "message": "验证码已过期", "status": False,
-                    "other": f"/api/captcha?id={uuid.uuid4()}"}
-        elif correct_captcha.lower() == captcha.lower():
-            redis.expire(captcha_id, 0)
-        else:
-            return {"status_code": HTTPStatus.FORBIDDEN, "message": "验证码错误", "status": False}
+        # if correct_captcha is None:
+        #     return {"status_code": HTTPStatus.BAD_REQUEST, "message": "验证码已过期", "status": False}
+        # elif correct_captcha.lower() == captcha.lower():
+        #     redis.expire(captcha_id, 0)
+        # else:
+        #     return {"status_code": HTTPStatus.FORBIDDEN, "message": "验证码错误", "status": False}
         # check user account is locked.
 
         data = self.db["users"].find_one({"username": username}) or {}
@@ -595,11 +594,14 @@ class UserMongoResource(UserResource, Mongo):
             stored_password = data["password"]
             if pbkdf2_sha256.verify(password, stored_password):
                 returned_value["status_code"] = HTTPStatus.OK
+                returned_value["username"] = data.get("username")
+                returned_value["group"] = data.get("group", ["user"])
             else:
                 returned_value["status_code"] = HTTPStatus.FORBIDDEN
                 returned_value["message"] = "用户名或密码错误"
 
         else:
+            # register
             hash_value = pbkdf2_sha256.hash(password)
             try:
                 self.db["users"].insert_one(dict(username=username, password=hash_value,

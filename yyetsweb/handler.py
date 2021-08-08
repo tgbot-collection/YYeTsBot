@@ -144,7 +144,7 @@ class UserHandler(BaseHandler):
             data = self.instance.get_user_info(username)
         else:
             self.set_status(HTTPStatus.UNAUTHORIZED)
-            data = {}
+            data = {"message":"Please try to login"}
         return data
 
     @gen.coroutine
@@ -153,7 +153,6 @@ class UserHandler(BaseHandler):
         self.write(resp)
 
     @gen.coroutine
-    @web.authenticated
     def get(self):
         resp = yield self.get_user_info()
         self.write(resp)
