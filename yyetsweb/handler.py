@@ -15,6 +15,7 @@ import os
 import re
 import sys
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from hashlib import sha1
@@ -126,7 +127,7 @@ class UserHandler(BaseHandler):
         if response["status_code"] in (HTTPStatus.CREATED, HTTPStatus.OK):
             self.set_login(username)
         else:
-            self.set_status(HTTPStatus.FORBIDDEN)
+            self.set_status(response["status_code"])
 
         return response
 
@@ -211,6 +212,30 @@ class ResourceHandler(BaseHandler):
         else:
             resp = "error"
         self.write(resp)
+
+    @run_on_executor()
+    def patch_resource(self):
+        for item in self.json["items"].values():
+            for i in item:
+                i["creator"] = self.get_current_user()
+                i["itemid"] = uuid.uuid4().hex
+        self.instance.patch_resource(self.json)
+        self.set_status(HTTPStatus.CREATED)
+        return {}
+
+    @gen.coroutine
+    def patch(self):
+        resp = yield self.patch_resource()
+        self.write(resp)
+
+    # TODO post and delete
+    @gen.coroutine
+    def post(self):
+        self.set_status(HTTPStatus.NOT_IMPLEMENTED)
+
+    @gen.coroutine
+    def delete(self):
+        self.set_status(HTTPStatus.NOT_IMPLEMENTED)
 
 
 class ResourceLatestHandler(BaseHandler):
@@ -370,7 +395,7 @@ class CommentHandler(BaseHandler):
         payload = self.json
         username = self.get_current_user()
         comment_id = payload["comment_id"]
-        verb = payload["verb"]
+        verb = payload["verb"]  # verb is actually emoji or any strings...
         result = self.instance.react_comment(username, comment_id, verb)
         self.set_status(result.get("status_code") or HTTPStatus.IM_A_TEAPOT)
         return result

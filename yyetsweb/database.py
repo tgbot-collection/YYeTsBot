@@ -20,6 +20,7 @@ import fakeredis
 import redis
 from captcha.image import ImageCaptcha
 
+captcha_ex = 60 * 10
 predefined_str = re.sub(r"[1l0oOI]", "", string.ascii_letters + string.digits)
 
 
@@ -181,7 +182,7 @@ class CaptchaResource:
         chars = "".join([random.choice(predefined_str) for _ in range(4)])
         image = ImageCaptcha()
         data = image.generate(chars)
-        self.redis.r.set(captcha_id, chars, ex=60 * 10)
+        self.redis.r.set(captcha_id, chars, ex=captcha_ex)
         return f"data:image/png;base64,{base64.b64encode(data.getvalue()).decode('ascii')}"
 
     def verify_code(self, user_input, captcha_id) -> dict:
@@ -208,6 +209,9 @@ class ResourceResource:
         pass
 
     def search_resource(self, keyword: str) -> dict:
+        pass
+
+    def patch_resource(self, data: dict):
         pass
 
 

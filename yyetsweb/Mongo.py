@@ -17,6 +17,7 @@ import random
 import re
 import sys
 import time
+import uuid
 from datetime import date, timedelta
 from http import HTTPStatus
 from urllib.parse import unquote
@@ -283,6 +284,7 @@ class CommentMongoResource(CommentResource, Mongo):
         return returned
 
     def react_comment(self, username, comment_id, verb):
+        # TODO react to comment
         if verb not in ("like", "dislike"):
             return {"status": False,
                     "message": "verb could only be like or dislike",
@@ -480,6 +482,37 @@ class ResourceMongoResource(ResourceResource, Mongo):
 
         return returned
 
+    def patch_resource(self, new_data: dict):
+        rid = new_data["resource_id"]
+        new_data.pop("resource_id")
+        old_data = self.db["yyets"].find_one(
+            {"data.info.id": rid},
+        )
+        new_data["season_cn"] = self.convert_season(new_data["season_num"])
+        # 1. totally empty resource:
+        if len(old_data["data"]["list"]) == 0:
+            new_data["season_cn"] = self.convert_season(new_data["season_num"])
+            old_data["data"]["list"].append(new_data)
+        else:
+            for season in old_data["data"]["list"]:
+                if new_data["season_num"] in [season["season_num"], int(season["season_num"])]:
+                    user_format = new_data["formats"][0]
+                    for u in new_data["items"][user_format]:
+                        season["items"][user_format].append(u)
+
+        self.db["yyets"].find_one_and_replace(
+            {"data.info.id": rid},
+            old_data
+        )
+
+    @staticmethod
+    def convert_season(number: [int, str]):
+        pass
+        if number in (0, "0"):
+            return "正片"
+        else:
+            return f"第{number}季"
+
 
 class TopMongoResource(TopResource, Mongo):
     projection = {'_id': False, 'data.info': True}
@@ -540,13 +573,16 @@ class UserMongoResource(UserResource, Mongo):
         # verify captcha in the first place.
         redis = Redis().r
         correct_captcha = redis.get(captcha_id)
-        if correct_captcha and correct_captcha.lower() == captcha.lower():
+        if correct_captcha is None:
+            return {"status_code": HTTPStatus.SEE_OTHER, "message": "验证码已过期", "status": False,
+                    "other": f"/api/captcha?id={uuid.uuid4()}"}
+        elif correct_captcha.lower() == captcha.lower():
             redis.expire(captcha_id, 0)
         else:
             return {"status_code": HTTPStatus.FORBIDDEN, "message": "验证码错误", "status": False}
         # check user account is locked.
 
-        data = self.db["users"].find_one({"username": username})
+        data = self.db["users"].find_one({"username": username}) or {}
         if data.get("status", {}).get("disable"):
             return {"status_code": HTTPStatus.FORBIDDEN,
                     "status": False,
@@ -887,4 +923,3 @@ class ResourceLatestMongoResource(ResourceLatestResource, Mongo):
         latest = self.query_db()
         redis.set("latest-resource", json.dumps(latest, ensure_ascii=False))
         logging.info("latest-resource data refreshed.")
-

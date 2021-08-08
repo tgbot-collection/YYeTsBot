@@ -13,6 +13,7 @@
 - [ ] API变更：登录时需要验证码
 - [ ] API变更：like API变更 PATCH `/api/user/` --> PATCH `/api/like/`
 - [ ] 删除评论（admin only）
+- [ ] 添加下载地址到已有资源
 
 # BE
 
@@ -22,8 +23,9 @@
 - [x] 评论通知：站内通知
 - [x] 添加邮箱
 - [x] 邮件通知
+- [x] 添加下载地址到已有资源
 - [ ] 找回密码
-- [ ] 添加资源
+- [ ] 新建资源
 
 # 资源
 
@@ -31,6 +33,8 @@
 
 * GET `/api/resource?id=10004`
   数据结构参考 [sample.json](yyetsweb/js/sample.json)
+
+**对于非官方、由用户提交当资源，与 `files` `dateline` 同级会有一个 `creator` 用于标明是谁创建的**
 
 ## 搜索
 
@@ -121,6 +125,60 @@
   ]
 }
 ```
+
+## 添加下载地址到已有资源
+
+比如更新S01E05
+
+* PATCH `http://127.0.0.1:8888/api/resource`
+
+```json
+{
+  "resource_id": 39894,
+  "season_num": "1，对于电影纪录片等，应该是0",
+  "items": {
+    "MP4": [
+      {
+        "episode": "12",
+        "name": "第五集.mp4",
+        "size": "9.43GB",
+        "dateline": "1628399290 单位秒",
+        "files": [
+          {
+            "way": "1",
+            "way_cn": "电驴",
+            "address": "ed2k://|filszpwzec5|/",
+            "passwd": ""
+          },
+          {
+            "way": "2",
+            "way_cn": "磁力",
+            "address": "magnet:37",
+            "passwd": ""
+          }
+        ]
+      }
+    ]
+  },
+  "formats": [
+    "MP4"
+  ]
+}
+```
+
+返回201
+
+## 创建新资源
+
+TODO...
+
+* POST `http://127.0.0.1:8888/api/resource`
+
+## 删除资源
+
+删除S01E05
+
+* POST `http://127.0.0.1:8888/api/resource`
 
 # Top
 
@@ -220,7 +278,9 @@
 
 ## 登录或注册
 
-* POST `/api/user`，提交json，字段 `username`, `password`
+* POST `/api/user`，提交json，字段 `username`, `password`,`captcha_id` 和 `captcha`
+
+当验证码失效时，会返回303 See Other
 
 返回json
 
