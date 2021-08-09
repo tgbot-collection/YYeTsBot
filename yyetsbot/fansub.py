@@ -174,7 +174,7 @@ class YYeTsOffline(BaseFansub):
         self.mongo = pymongo.MongoClient(host=MONGO)
         self.collection = self.mongo[db][col]
 
-    @Redis.preview_cache()
+    @Redis.preview_cache(60)
     def search_preview(self, search_text: str) -> dict:
         logging.info("[%s] Loading offline data from MongoDB...", self.__class__.__name__)
 
@@ -203,7 +203,7 @@ class YYeTsOffline(BaseFansub):
         results["class"] = self.__class__.__name__
         return results
 
-    @Redis.result_cache()
+    @Redis.result_cache(10 * 60)
     def search_result(self, resource_url) -> dict:
         # yyets offline
         # https://yyets.dmesg.app/resource.html?id=37089
