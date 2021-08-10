@@ -144,7 +144,7 @@ class UserHandler(BaseHandler):
             data = self.instance.get_user_info(username)
         else:
             self.set_status(HTTPStatus.UNAUTHORIZED)
-            data = {"message":"Please try to login"}
+            data = {"message": "Please try to login"}
         return data
 
     @gen.coroutine
@@ -214,6 +214,9 @@ class ResourceHandler(BaseHandler):
 
     @run_on_executor()
     def patch_resource(self):
+        if self.instance.is_admin(self.get_current_user()):
+            # may consider add admin restrictions
+            pass
         for item in self.json["items"].values():
             for i in item:
                 i["creator"] = self.get_current_user()
@@ -222,17 +225,28 @@ class ResourceHandler(BaseHandler):
         self.set_status(HTTPStatus.CREATED)
         return {}
 
+    @run_on_executor()
+    def add_resource(self):
+        # TODO add validation
+        self.json["data"]["list"]=[]
+        self.json["data"]["info"]["creator"] = self.get_current_user()
+        self.set_status(HTTPStatus.CREATED)
+        return self.instance.add_resource(self.json)
+
+    # patch and post are available to every login user
     @gen.coroutine
     @web.authenticated
     def patch(self):
         resp = yield self.patch_resource()
         self.write(resp)
 
-    # TODO post and delete
     @gen.coroutine
+    @web.authenticated
     def post(self):
-        self.set_status(HTTPStatus.NOT_IMPLEMENTED)
+        resp = yield self.add_resource()
+        self.write(resp)
 
+    # TODO delete
     @gen.coroutine
     def delete(self):
         self.set_status(HTTPStatus.NOT_IMPLEMENTED)

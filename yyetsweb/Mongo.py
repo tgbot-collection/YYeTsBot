@@ -505,6 +505,21 @@ class ResourceMongoResource(ResourceResource, Mongo):
             old_data
         )
 
+    def add_resource(self, new_data: dict):
+        rid = self.get_appropriate_id()
+        new_data["data"]["info"]["id"] = rid
+        self.db["yyets"].insert_one(new_data)
+        return {"status": True, "message": "success", "id": rid}
+
+    def get_appropriate_id(self):
+        col = self.db["yyets"]
+        random_id = random.randint(50000, 80000)
+        data = col.find_one({"data.info.id": random_id}, projection={"_id": True})
+        if data:
+            return self.get_appropriate_id()
+        else:
+            return random_id
+
     @staticmethod
     def convert_season(number: [int, str]):
         pass

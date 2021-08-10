@@ -34,7 +34,10 @@
 * GET `/api/resource?id=10004`
   数据结构参考 [sample.json](yyetsweb/js/sample.json)
 
-**对于非官方、由用户提交当资源，与 `files` `dateline` 同级会有一个 `creator` 用于标明是谁创建的**
+**对于非官方、由用户提交的下载，与 `files` `dateline` 同级会有一个 `creator` 用于标明是谁创建的**
+**对于非官方、由用户提交的资源，与 `cnname` `enname` 同级会有一个 `creator` 用于标明是谁创建的**
+
+如果没有，那么就是官方资源
 
 ## 搜索
 
@@ -135,7 +138,7 @@
 ```json
 {
   "resource_id": 39894,
-  "season_num": "1，对于电影纪录片等，应该是0",
+  "season_num": "1，对于电影纪录片等，应该是0或者101",
   "items": {
     "MP4": [
       {
@@ -170,9 +173,42 @@
 
 ## 创建新资源
 
-TODO...
+仅登录用户可用，用于创建新的资源，不包括 `data.list`。
 
 * POST `http://127.0.0.1:8888/api/resource`
+
+```json
+{
+  "status": 1,
+  "info": "OK",
+  "data": {
+    "info": {
+      "id": "设置成任意值即可",
+      "cnname": "中文名",
+      "enname": "英文名",
+      "aliasname": "别名",
+      "channel": "movie/tv",
+      "channel_cn": "电影/美剧",
+      "area": "法国",
+      "show_type": "",
+      "expire": "1610401225",
+      "views": 0
+    },
+    "list": [
+    ]
+  }
+}
+```
+
+返回
+
+```json
+{
+  "status": true,
+  "message": "success",
+  "id": 50623
+}
+```
 
 ## 删除资源
 
