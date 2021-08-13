@@ -23,8 +23,7 @@ function prepare() {
 function prepare_compose() {
   echo "[2/5] 下载docker-compose.yaml"
   curl -o docker-compose.yaml https://raw.githubusercontent.com/tgbot-collection/YYeTsBot/master/docker-compose.yml
-  sed -i '37,59d' docker-compose.yaml
-  sed -i '18,23d' docker-compose.yaml
+  sed -i '18,47d' docker-compose.yaml
   sed -i 's/127.0.0.1/0.0.0.0/' docker-compose.yaml
 }
 
@@ -53,7 +52,7 @@ function import_db() {
 function up() {
   echo "[5/5] 启动中……"
   docker-compose up -d
-  echo "部署成功。您可以访问 http://127.0.0.1:8888 查看"
+  echo "部署成功。您可以访问 http://IP:8888 查看"
 }
 
 function deploy() {

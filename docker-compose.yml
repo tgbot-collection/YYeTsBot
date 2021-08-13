@@ -22,16 +22,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     entrypoint: [ "socat", "tcp-listen:2375,fork,reuseaddr","unix-connect:/var/run/docker.sock" ]
 
-  yyets-web:
-    image: bennythink/yyetsbot
-    restart: unless-stopped
-    environment:
-      - mongo=mongo
-    working_dir: /YYeTsBot/yyetsweb/
-    volumes:
-      - ./data:/YYeTsBot/yyetsweb/data/
-    command: [ "python3","server.py","-h=0.0.0.0" ]
-
   yyets-bot:
     image: bennythink/yyetsbot
     depends_on:
@@ -51,7 +41,19 @@ services:
       - ./certs/:/etc/nginx/certs/
       - ./logs:/var/log/nginx/
     ports:
-      - 80:80
-      - 443:443
+      - "80:80"
+      - "443:443"
     environment:
       TZ: Asia/Shanghai
+
+  yyets-web:
+    image: bennythink/yyetsbot
+    restart: unless-stopped
+    environment:
+      - mongo=mongo
+    working_dir: /YYeTsBot/yyetsweb/
+    volumes:
+      - ./data:/YYeTsBot/yyetsweb/data/
+    command: [ "python3","server.py","-h=0.0.0.0" ]
+    ports:
+      - "127.0.0.1:8888:8888"
