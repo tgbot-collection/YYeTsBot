@@ -30,10 +30,26 @@ mongorestore --gzip --archive=yyets_mongo.gz
 use zimuzu;
 
 db.getCollection('yyets').createIndex({"data.info.id": 1});
-
 db.getCollection('yyets').createIndex({"data.info.views" : -1});
-
 db.getCollection('yyets').createIndex({"data.info.area" : 1});
-
 db.getCollection('yyets').getIndexes();
+
+db.getCollection('douban').createIndex({"resourceId" : 1});
+db.getCollection('douban').getIndexes();
+
+db.getCollection('users').createIndex({"username" : 1}, { unique: true });
+db.getCollection('users').getIndexes();
+
+db.getCollection('comment').createIndex({"resource_id" : 1});
+db.getCollection('comment').getIndexes();
+
+db.getCollection('reactions').createIndex({"comment_id" : 1});
+db.getCollection('reactions').getIndexes();
+
+db.getCollection('metrics').createIndex({"date" : 1});
+db.getCollection('metrics').getIndexes();
+
+db.getCollection('notification').createIndex({"username" : 1});
+db.getCollection('notification').getIndexes();
+
 ```

@@ -18,10 +18,11 @@ from tornado.log import enable_pretty_logging
 
 from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      CategoryHandler, CommentChildHandler, CommentHandler,
-                     CommentNewestHandler, DBDumpHandler, DoubanHandler,
-                     DoubanReportHandler, GrafanaIndexHandler,
-                     GrafanaQueryHandler, GrafanaSearchHandler, IndexHandler,
-                     LikeHandler, MetricsHandler, NameHandler, NotFoundHandler,
+                     CommentNewestHandler, CommentReactionHandler,
+                     DBDumpHandler, DoubanHandler, DoubanReportHandler,
+                     GrafanaIndexHandler, GrafanaQueryHandler,
+                     GrafanaSearchHandler, IndexHandler, LikeHandler,
+                     MetricsHandler, NameHandler, NotFoundHandler,
                      NotificationHandler, ResourceHandler,
                      ResourceLatestHandler, TopHandler, UserEmailHandler,
                      UserHandler)
@@ -47,6 +48,7 @@ class RunServer:
         (r'/api/user/email', UserEmailHandler),
         (r'/api/name', NameHandler),
         (r'/api/comment', CommentHandler),
+        (r'/api/comment/reaction', CommentReactionHandler),
         (r'/api/comment/child', CommentChildHandler),
         (r'/api/comment/newest', CommentNewestHandler),
         (r'/api/captcha', CaptchaHandler),

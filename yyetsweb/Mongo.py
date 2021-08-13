@@ -32,8 +32,8 @@ from tqdm import tqdm
 
 from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
                       CategoryResource, CommentChildResource,
-                      CommentNewestResource, CommentResource,
-                      DoubanReportResource, DoubanResource,
+                      CommentNewestResource, CommentReactionResource,
+                      CommentResource, DoubanReportResource, DoubanResource,
                       GrafanaQueryResource, LikeResource, MetricsResource,
                       NameResource, NotificationResource, OtherResource, Redis,
                       ResourceLatestResource, ResourceResource, TopResource,
@@ -154,6 +154,7 @@ class CommentMongoResource(CommentResource, Mongo):
                 .sort("_id", pymongo.DESCENDING).limit(self.inner_size).skip((self.inner_page - 1) * self.inner_size)
             children_data = list(children_data)
             self.get_user_group(children_data)
+            self.add_reactions(children_data)
 
             item["children"] = []
             if children_data:
@@ -169,6 +170,16 @@ class CommentMongoResource(CommentResource, Mongo):
             group = user.get("group", ["user"])
             comment["group"] = group
 
+    def add_reactions(self, data):
+        for comment in data:
+            cid = comment.get("id") or comment.get("_id")
+            cid = str(cid)
+            reactions = self.db["reactions"].find_one({"comment_id": cid},
+                                                      projection={"_id": False, "comment_id": False}) or {}
+            for verb, users in reactions.items():
+                if users:
+                    comment.setdefault("reactions", []).append({"verb": verb, "users": users})
+
     def get_comment(self, resource_id: int, page: int, size: int, **kwargs) -> dict:
         self.inner_page = kwargs.get("inner_page", 1)
         self.inner_size = kwargs.get("inner_size", 5)
@@ -181,6 +192,8 @@ class CommentMongoResource(CommentResource, Mongo):
         self.find_children(data)
         self.convert_objectid(data)
         self.get_user_group(data)
+        self.add_reactions(data)
+
         return {
             "data": data,
             "count": count,
@@ -283,30 +296,36 @@ class CommentMongoResource(CommentResource, Mongo):
 
         return returned
 
-    def react_comment(self, username, comment_id, verb):
-        # TODO react to comment
-        if verb not in ("like", "dislike"):
-            return {"status": False,
-                    "message": "verb could only be like or dislike",
-                    "status_code": HTTPStatus.BAD_REQUEST}
 
-        result = self.db["users"].find_one({"username": username, f"comments_{verb}": {"$in": [comment_id]}})
-        if result:
-            return {"status": False, "message": "too many reactions", "status_code": HTTPStatus.UNPROCESSABLE_ENTITY}
+class CommentReactionMongoResource(CommentReactionResource, Mongo):
 
+    def react_comment(self, username, data):
+        # {"comment_id":"da23","😊":["user1","user2"]}
+        comment_id = data["comment_id"]
+        verb = data["verb"]
+        method = data["method"]
         if not self.db["comment"].find_one({"_id": ObjectId(comment_id)}):
             return {"status": False, "message": "Where is your comments?", "status_code": HTTPStatus.NOT_FOUND}
 
-        self.db["users"].update_one({"username": username},
-                                    {"$push": {f"comments_{verb}": comment_id}}
-                                    )
-
-        self.db["comment"].update_one({"_id": ObjectId(comment_id)},
-                                      {"$inc": {verb: 1}}
-                                      )
-
+        if method == "POST":
+            self.db["reactions"].update_one({"comment_id": comment_id},
+                                            {
+                                                "$addToSet": {verb: username}
+                                            },
+                                            upsert=True
+                                            )
+            code = HTTPStatus.CREATED
+        elif method == "DELETE":
+            self.db["reactions"].update_one({"comment_id": comment_id},
+                                            {
+                                                "$pull": {verb: username}
+                                            }
+                                            )
+            code = HTTPStatus.ACCEPTED
+        else:
+            code = HTTPStatus.BAD_REQUEST
         return {"status": True, "message": "success",
-                "status_code": HTTPStatus.CREATED}
+                "status_code": code}
 
 
 class CommentChildMongoResource(CommentChildResource, CommentMongoResource, Mongo):

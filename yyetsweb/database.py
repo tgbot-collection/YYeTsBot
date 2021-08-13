@@ -161,7 +161,10 @@ class CommentResource:
     def delete_comment(self, comment_id: str):
         pass
 
-    def react_comment(self, username, comment_id, verb):
+
+class CommentReactionResource:
+
+    def react_comment(self, username, data):
         pass
 
 

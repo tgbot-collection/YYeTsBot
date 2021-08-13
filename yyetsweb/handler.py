@@ -399,16 +399,6 @@ class CommentHandler(BaseHandler):
             self.set_status(HTTPStatus.UNAUTHORIZED)
             return {"count": 0, "message": "You're unauthorized to delete comment."}
 
-    @run_on_executor()
-    def comment_reaction(self):
-        payload = self.json
-        username = self.get_current_user()
-        comment_id = payload["comment_id"]
-        verb = payload["verb"]  # verb is actually emoji or any strings...
-        result = self.instance.react_comment(username, comment_id, verb)
-        self.set_status(result.get("status_code") or HTTPStatus.IM_A_TEAPOT)
-        return result
-
     @gen.coroutine
     def get(self):
         resp = yield self.get_comment()
@@ -426,9 +416,30 @@ class CommentHandler(BaseHandler):
         resp = yield self.delete_comment()
         self.write(resp)
 
+
+class CommentReactionHandler(BaseHandler):
+    class_name = f"CommentReaction{adapter}Resource"
+
+    # from Mongo import CommentReactionMongoResource
+    # instance = CommentReactionMongoResource()
+
+    @run_on_executor()
+    def comment_reaction(self):
+        self.json.update(method=self.request.method)
+        username = self.get_current_user()
+        result = self.instance.react_comment(username, self.json)
+        self.set_status(result.get("status_code"))
+        return result
+
     @gen.coroutine
     @web.authenticated
-    def patch(self):
+    def post(self):
+        resp = yield self.comment_reaction()
+        self.write(resp)
+
+    @gen.coroutine
+    @web.authenticated
+    def delete(self):
         resp = yield self.comment_reaction()
         self.write(resp)
 
