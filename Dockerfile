@@ -20,10 +20,8 @@ COPY YYeTsFE/package.json /YYeTsBot/YYeTsFE/
 COPY YYeTsFE/yarn.lock /YYeTsBot/YYeTsFE/
 RUN yarn --network-timeout 1000000
 COPY YYeTsFE /YYeTsBot/YYeTsFE/
-COPY .git/modules /YYeTsBot/.git/modules/
-COPY hooks/dev_robots.sh /tmp/
-RUN echo "gitdir: ../.git/modules/YYeTsFE" > .git
-RUN if [ "$env" = "dev" ]; then echo "dev build"; yarn build; sh /tmp/dev_robots.sh; rm /tmp/dev_robots.sh; else echo "prod build"; yarn run release; fi
+COPY scripts/dev_robots.sh /tmp/
+RUN if [ "$env" = "dev" ]; then echo "dev build"; yarn build; sh /tmp/dev_robots.sh; else echo "prod build"; yarn run release; fi
 
 
 FROM runner
@@ -32,7 +30,7 @@ COPY --from=pybuilder /root/.local /usr/local
 COPY --from=pybuilder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=pybuilder /usr/share/zoneinfo /usr/share/zoneinfo
 RUN true
-COPY --from=nodebuilder /YYeTsBot/YYeTsFE/build /YYeTsBot/yyetsweb
+COPY --from=nodebuilder /YYeTsBot/YYeTsFE/build /YYeTsBot/yyetsweb/templates/
 
 ENV TZ=Asia/Shanghai
 WORKDIR /YYeTsBot/yyetsbot
