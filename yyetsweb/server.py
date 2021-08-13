@@ -36,7 +36,7 @@ if os.getenv("debug"):
 
 class RunServer:
     root_path = os.path.dirname(__file__)
-    static_path = os.path.join(root_path, '')
+    static_path = os.path.join(root_path, 'templates')
     handlers = [
         (r'/', IndexHandler),
         (r'/api/resource', ResourceHandler),

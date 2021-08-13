@@ -8,7 +8,8 @@ default:
 
 
 asset:
-	go-bindata  -o assets.go resource.html index.html search.html js/... css/... fonts/... img/...
+	cd templates; go-bindata  -o assets.go resource.html index.html search.html js/... css/... fonts/... img/...
+	mv templates/assets.go ./
 
 dev:
 	go-bindata  -o assets.go index.html

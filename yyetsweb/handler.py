@@ -37,6 +37,9 @@ else:
 
 logging.info("%s Running with %s. %s", "#" * 10, adapter, "#" * 10)
 
+static_path = os.path.join(os.path.dirname(__file__), 'templates')
+index = os.path.join(static_path, "index.html")
+
 
 class BaseHandler(web.RequestHandler):
     executor = ThreadPoolExecutor(200)
@@ -92,8 +95,6 @@ class IndexHandler(BaseHandler):
 
     @run_on_executor()
     def send_index(self):
-        root_path = os.path.dirname(__file__)
-        index = os.path.join(root_path, "index.html")
         with open(index, encoding="u8") as f:
             html = f.read()
         return html
@@ -228,7 +229,7 @@ class ResourceHandler(BaseHandler):
     @run_on_executor()
     def add_resource(self):
         # TODO add validation
-        self.json["data"]["list"]=[]
+        self.json["data"]["list"] = []
         self.json["data"]["info"]["creator"] = self.get_current_user()
         self.set_status(HTTPStatus.CREATED)
         return self.instance.add_resource(self.json)
@@ -680,7 +681,7 @@ class BlacklistHandler(BaseHandler):
 
 class NotFoundHandler(BaseHandler):
     def get(self):  # for react app
-        self.render("index.html")
+        self.render(index)
 
 
 class DBDumpHandler(BaseHandler):
