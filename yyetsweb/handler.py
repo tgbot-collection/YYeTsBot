@@ -213,8 +213,10 @@ class ResourceHandler(BaseHandler):
             resp = "error"
         self.write(resp)
 
-    @run_on_executor()
-    def patch_resource(self):
+    # patch and post are available to every login user
+    # these are rare operations, so no gen.coroutine and run_on_executor
+    @web.authenticated
+    def patch(self):
         if self.instance.is_admin(self.get_current_user()):
             # may consider add admin restrictions
             pass
@@ -224,33 +226,25 @@ class ResourceHandler(BaseHandler):
                 i["itemid"] = uuid.uuid4().hex
         self.instance.patch_resource(self.json)
         self.set_status(HTTPStatus.CREATED)
-        return {}
+        self.write({})
 
-    @run_on_executor()
-    def add_resource(self):
-        # TODO add validation
+    @web.authenticated
+    def post(self):
         self.json["data"]["list"] = []
         self.json["data"]["info"]["creator"] = self.get_current_user()
         self.set_status(HTTPStatus.CREATED)
-        return self.instance.add_resource(self.json)
-
-    # patch and post are available to every login user
-    @gen.coroutine
-    @web.authenticated
-    def patch(self):
-        resp = yield self.patch_resource()
+        resp = self.instance.add_resource(self.json)
         self.write(resp)
 
-    @gen.coroutine
     @web.authenticated
-    def post(self):
-        resp = yield self.add_resource()
-        self.write(resp)
-
-    # TODO delete
-    @gen.coroutine
     def delete(self):
-        self.set_status(HTTPStatus.NOT_IMPLEMENTED)
+        if not self.instance.is_admin(self.get_current_user()):
+            self.set_status(HTTPStatus.FORBIDDEN)
+            self.write({"status": False, "message": "admin only"})
+            return
+        self.instance.delete_resource(self.json)
+        self.set_status(HTTPStatus.ACCEPTED)
+        self.write({})
 
 
 class ResourceLatestHandler(BaseHandler):

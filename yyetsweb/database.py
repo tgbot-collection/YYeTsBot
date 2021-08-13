@@ -217,6 +217,9 @@ class ResourceResource:
     def add_resource(self, data: dict):
         pass
 
+    def delete_resource(self, data: dict):
+        pass
+
 
 class GrafanaQueryResource:
     def get_grafana_data(self, date_series) -> str:

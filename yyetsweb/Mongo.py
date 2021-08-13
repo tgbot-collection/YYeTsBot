@@ -511,6 +511,23 @@ class ResourceMongoResource(ResourceResource, Mongo):
         self.db["yyets"].insert_one(new_data)
         return {"status": True, "message": "success", "id": rid}
 
+    def delete_resource(self, data: dict):
+        rid = data["resource_id"]
+        meta = data.get("meta")
+        if meta:
+            db_data = self.db["yyets"].find_one({"data.info.id": rid})
+            for season in db_data["data"]["list"]:
+                for episode in season["items"].values():
+                    for v in episode:
+                        if v["episode"] == meta["episode"] and v["name"] == meta["name"] and \
+                                v["size"] == meta["size"] and v["dateline"] == meta["dateline"]:
+                            episode.remove(v)
+            # replace it
+            self.db["yyets"].find_one_and_replace({"data.info.id": rid}, db_data)
+
+        else:
+            self.db["yyets"].delete_one({"data.info.id": rid})
+
     def get_appropriate_id(self):
         col = self.db["yyets"]
         random_id = random.randint(50000, 80000)
