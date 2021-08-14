@@ -969,34 +969,47 @@ verb 为任意字符串，包括emoji
 
 * GET `http://127.0.0.1:8888/api/notification`
 
-支持URL参数page和size，默认1和5
+支持URL参数page和size，默认1和5，size是已读和未读共享的，优先返回未读数据
 
 ```json
 {
-  "_id": "61013c0f89c9cd0c75460184",
   "username": "user1",
   "unread_item": [
     {
-      "_id": "61013c839633a80254ef2e38",
       "username": "user3",
-      "date": "2021-07-28 19:16:19",
-      "browser": "Mozilla/5.0 (Windows NT 6.3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.123 Safari/537.36",
-      "content": "<reply value=\"61013c0f9633a80254ef2e30\">@user2</reply>user3",
+      "date": "2021-08-14 20:23:02",
+      "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:86.1) Gecko/20100101 Firefox/86.1",
+      "content": "<reply value=\"6117b2a59195e6b1ab86eb30\">@user2</reply>u3 to u2",
       "resource_id": 233,
-      "type": "child"
+      "type": "child",
+      "id": "6117b5a6598f80ca3ebb13ed",
+      "reply_to_content": "<reply value=\"610135c9d1f873388feb5c78\">@user1</reply>ajnkwa"
+    },
+    {
+      "username": "user3",
+      "date": "2021-08-14 20:22:37",
+      "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:86.1) Gecko/20100101 Firefox/86.1",
+      "content": "<reply value=\"610135c9d1f873388feb5c78\">@user1</reply>u3",
+      "resource_id": 233,
+      "type": "child",
+      "id": "6117b58dce422260bcbb13ec",
+      "reply_to_content": "hello"
     }
   ],
   "read_item": [
     {
-      "_id": "61013c0f9633a80254ef2e30",
       "username": "user2",
-      "date": "2021-07-28 19:14:23",
-      "browser": "Mozilla/5.0 (X11; Gentoo; rv:82.0) Gecko/20100101 Firefox/82.0",
-      "content": "<reply value=\"610135c9d1f873388feb5c78\">@user1</reply>okkk",
+      "date": "2021-08-14 20:10:13",
+      "browser": "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:86.1) Gecko/20100101 Firefox/86.1",
+      "content": "<reply value=\"610135c9d1f873388feb5c78\">@user1</reply>ajnkwa",
       "resource_id": 233,
-      "type": "child"
+      "type": "child",
+      "id": "6117b2a59195e6b1ab86eb30",
+      "reply_to_content": "hello"
     }
-  ]
+  ],
+  "unread_count": 2,
+  "read_count": 1
 }
 ```
 

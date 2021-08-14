@@ -269,7 +269,7 @@ class CommentMongoResource(CommentResource, Mongo):
                 subject = "[人人影视下载分享站] 你的评论有了新的回复"
                 pt_content = content.split("</reply>")[-1]
                 body = f"{username} 您好，<br>你的评论 {parent_comment['content']} 有了新的回复：<br>{pt_content}" \
-                       f"\n你可以<a href='{link}'>点此链接</a>查看"
+                       f"<br>你可以<a href='{link}'>点此链接</a>查看<br><br>请勿回复此邮件"
                 send_mail(user_info["email"]["address"], subject, body)
         return returned
 
@@ -624,12 +624,12 @@ class UserMongoResource(UserResource, Mongo):
         # verify captcha in the first place.
         redis = Redis().r
         correct_captcha = redis.get(captcha_id)
-        # if correct_captcha is None:
-        #     return {"status_code": HTTPStatus.BAD_REQUEST, "message": "验证码已过期", "status": False}
-        # elif correct_captcha.lower() == captcha.lower():
-        #     redis.expire(captcha_id, 0)
-        # else:
-        #     return {"status_code": HTTPStatus.FORBIDDEN, "message": "验证码错误", "status": False}
+        if correct_captcha is None:
+            return {"status_code": HTTPStatus.BAD_REQUEST, "message": "验证码已过期", "status": False}
+        elif correct_captcha.lower() == captcha.lower():
+            redis.expire(captcha_id, 0)
+        else:
+            return {"status_code": HTTPStatus.FORBIDDEN, "message": "验证码错误", "status": False}
         # check user account is locked.
 
         data = self.db["users"].find_one({"username": username}) or {}
@@ -838,26 +838,44 @@ class DoubanReportMongoResource(DoubanReportResource, Mongo):
 class NotificationMongoResource(NotificationResource, Mongo):
     def get_notification(self, username, page, size):
         # .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
-        notify = self.db["notification"].find_one({"username": username})
-        notify["unread_item"] = []
-        notify["read_item"] = []
+        notify = self.db["notification"].find_one({"username": username}, projection={"_id": False})
+        if not notify:
+            return {}
 
+        # size is shared
         unread = notify.get("unread", [])
+        id_list = []
         for item in unread[(page - 1) * size:size * page]:
-            comment = self.db["comment"].find_one({"_id": item}, projection={"ip": False, "parent_id": False})
-            comment["_id"] = str(comment["_id"])
-            notify["unread_item"].append(comment)
+            id_list.append(item)
+        notify["unread_item"] = self.get_content(id_list)
 
+        size = size - len(unread)
         read = notify.get("read", [])
+        id_list = []
         for item in read[(page - 1) * size:size * page]:
-            comment = self.db["comment"].find_one({"_id": item}, projection={"ip": False, "parent_id": False})
-            comment["_id"] = str(comment["_id"])
-            notify["read_item"].append(comment)
+            id_list.append(item)
+        notify["read_item"] = self.get_content(id_list)
 
-        notify["_id"] = str(notify["_id"])
         notify.pop("unread", None)
         notify.pop("read", None)
+        notify["unread_count"] = len(unread)
+        notify["read_count"] = len(read)
         return notify
+
+    def get_content(self, id_list):
+        comments = self.db["comment"].find({"_id": {"$in": id_list}},
+                                           projection={"ip": False, "parent_id": False}
+                                           ).sort("_id", pymongo.DESCENDING)
+        comments = list(comments)
+        for comment in comments:
+            comment["id"] = str(comment["_id"])
+            comment.pop("_id")
+            reply_to_id = re.findall(r'"(.*)"', comment["content"])[0]
+            rtc = self.db["comment"].find_one({"_id": ObjectId(reply_to_id)},
+                                              projection={"content": True, "_id": False})
+            comment["reply_to_content"] = rtc["content"]
+
+        return comments
 
     def update_notification(self, username, verb, comment_id):
         if verb == "read":

@@ -119,8 +119,8 @@ class UserHandler(BaseHandler):
         data = self.json
         username = data["username"]
         password = data["password"]
-        captcha = data["captcha"]
-        captcha_id = data["captcha_id"]
+        captcha = data.get("captcha")
+        captcha_id = data.get("captcha_id", "")
         ip = AntiCrawler(self).get_real_ip()
         browser = self.request.headers['user-agent']
 
