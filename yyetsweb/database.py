@@ -20,6 +20,7 @@ import fakeredis
 import redis
 from captcha.image import ImageCaptcha
 
+captcha_ex = 60 * 10
 predefined_str = re.sub(r"[1l0oOI]", "", string.ascii_letters + string.digits)
 
 
@@ -114,16 +115,16 @@ class OtherResource():
 
 
 class UserResource:
-    def login_user(self, username: str, password: str, ip: str, browser: str) -> dict:
-        pass
-
-    def add_remove_fav(self, resource_id: int, username: str) -> str:
+    def login_user(self, username: str, password: str, captcha: str, captcha_id: str, ip: str, browser: str) -> dict:
         pass
 
     def get_user_info(self, username: str) -> dict:
         pass
 
     def update_user_last(self, username: str, now_ip: str) -> None:
+        pass
+
+    def update_user_info(self, username: str, data: dict) -> dict:
         pass
 
 
@@ -136,8 +137,11 @@ class TopResource:
         pass
 
 
-class UserLikeResource:
+class LikeResource:
     def get_user_like(self, username: str) -> list:
+        pass
+
+    def add_remove_fav(self, resource_id: int, username: str) -> str:
         pass
 
 
@@ -157,7 +161,10 @@ class CommentResource:
     def delete_comment(self, comment_id: str):
         pass
 
-    def react_comment(self, username, comment_id, verb):
+
+class CommentReactionResource:
+
+    def react_comment(self, username, data):
         pass
 
 
@@ -178,7 +185,7 @@ class CaptchaResource:
         chars = "".join([random.choice(predefined_str) for _ in range(4)])
         image = ImageCaptcha()
         data = image.generate(chars)
-        self.redis.r.set(captcha_id, chars, ex=60 * 10)
+        self.redis.r.set(captcha_id, chars, ex=captcha_ex)
         return f"data:image/png;base64,{base64.b64encode(data.getvalue()).decode('ascii')}"
 
     def verify_code(self, user_input, captcha_id) -> dict:
@@ -205,6 +212,15 @@ class ResourceResource:
         pass
 
     def search_resource(self, keyword: str) -> dict:
+        pass
+
+    def patch_resource(self, data: dict):
+        pass
+
+    def add_resource(self, data: dict):
+        pass
+
+    def delete_resource(self, data: dict):
         pass
 
 
@@ -241,4 +257,31 @@ class DoubanReportResource:
         pass
 
     def get_error(self) -> dict:
+        pass
+
+
+class NotificationResource:
+
+    def get_notification(self, username, page, size):
+        pass
+
+    def update_notification(self, username, verb, comment_id):
+        pass
+
+
+class UserEmailResource:
+
+    def verify_email(self, username, code):
+        pass
+
+
+class CategoryResource:
+
+    def get_category(self, query: dict):
+        pass
+
+
+class ResourceLatestResource:
+    @staticmethod
+    def get_latest_resource() -> dict:
         pass

@@ -7,6 +7,7 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
+import contextlib
 import importlib
 import json
 import logging
@@ -14,6 +15,7 @@ import os
 import re
 import sys
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from hashlib import sha1
@@ -35,6 +37,9 @@ else:
 
 logging.info("%s Running with %s. %s", "#" * 10, adapter, "#" * 10)
 
+static_path = os.path.join(os.path.dirname(__file__), 'templates')
+index = os.path.join(static_path, "index.html")
+
 
 class BaseHandler(web.RequestHandler):
     executor = ThreadPoolExecutor(200)
@@ -43,6 +48,9 @@ class BaseHandler(web.RequestHandler):
 
     def __init__(self, application, request, **kwargs):
         super().__init__(application, request, **kwargs)
+        self.json = {}
+        with contextlib.suppress(ValueError):
+            self.json: dict = json.loads(self.request.body)
         self.instance = getattr(self.adapter_module, self.class_name)()
 
     def write_error(self, status_code, **kwargs):
@@ -87,8 +95,6 @@ class IndexHandler(BaseHandler):
 
     @run_on_executor()
     def send_index(self):
-        root_path = os.path.dirname(__file__)
-        index = os.path.join(root_path, "index.html")
         with open(index, encoding="u8") as f:
             html = f.read()
         return html
@@ -110,35 +116,27 @@ class UserHandler(BaseHandler):
 
     @run_on_executor()
     def login_user(self):
-        data = json.loads(self.request.body)
+        data = self.json
         username = data["username"]
         password = data["password"]
+        captcha = data.get("captcha")
+        captcha_id = data.get("captcha_id", "")
         ip = AntiCrawler(self).get_real_ip()
         browser = self.request.headers['user-agent']
 
-        response = self.instance.login_user(username, password, ip, browser)
+        response = self.instance.login_user(username, password, captcha, captcha_id, ip, browser)
         if response["status_code"] in (HTTPStatus.CREATED, HTTPStatus.OK):
             self.set_login(username)
-            returned_value = ""
         else:
-            self.set_status(HTTPStatus.FORBIDDEN)
-            returned_value = response["message"]
+            self.set_status(response["status_code"])
 
-        return returned_value
+        return response
 
     @run_on_executor()
-    def add_remove_fav(self):
-        data = json.loads(self.request.body)
-        resource_id = int(data["resource_id"])
-        username = self.get_current_user()
-        if username:
-            response = self.instance.add_remove_fav(resource_id, username)
-            self.set_status(response["status_code"])
-        else:
-            response = {"message": "请先登录"}
-            self.set_status(HTTPStatus.UNAUTHORIZED)
-
-        return response["message"]
+    def update_info(self):
+        result = self.instance.update_user_info(self.current_user, self.json)
+        self.set_status(result.get("status_code", HTTPStatus.IM_A_TEAPOT))
+        return result
 
     @run_on_executor()
     def get_user_info(self) -> dict:
@@ -147,7 +145,7 @@ class UserHandler(BaseHandler):
             data = self.instance.get_user_info(username)
         else:
             self.set_status(HTTPStatus.UNAUTHORIZED)
-            data = {}
+            data = {"message": "Please try to login"}
         return data
 
     @gen.coroutine
@@ -156,13 +154,6 @@ class UserHandler(BaseHandler):
         self.write(resp)
 
     @gen.coroutine
-    @web.authenticated
-    def patch(self):
-        resp = yield self.add_remove_fav()
-        self.write(resp)
-
-    @gen.coroutine
-    @web.authenticated
     def get(self):
         resp = yield self.get_user_info()
         self.write(resp)
@@ -172,6 +163,12 @@ class UserHandler(BaseHandler):
         if username:
             now_ip = AntiCrawler(self).get_real_ip()
             self.instance.update_user_last(username, now_ip)
+
+    @gen.coroutine
+    @web.authenticated
+    def patch(self):
+        resp = yield self.update_info()
+        self.write(resp)
 
 
 class ResourceHandler(BaseHandler):
@@ -216,11 +213,80 @@ class ResourceHandler(BaseHandler):
             resp = "error"
         self.write(resp)
 
+    # patch and post are available to every login user
+    # these are rare operations, so no gen.coroutine and run_on_executor
+    @web.authenticated
+    def patch(self):
+        if self.instance.is_admin(self.get_current_user()):
+            # may consider add admin restrictions
+            pass
+        for item in self.json["items"].values():
+            for i in item:
+                i["creator"] = self.get_current_user()
+                i["itemid"] = uuid.uuid4().hex
+        self.instance.patch_resource(self.json)
+        self.set_status(HTTPStatus.CREATED)
+        self.write({})
 
-class UserLikeHandler(BaseHandler):
-    class_name = f"UserLike{adapter}Resource"
+    @web.authenticated
+    def post(self):
+        self.json["data"]["list"] = []
+        self.json["data"]["info"]["creator"] = self.get_current_user()
+        self.set_status(HTTPStatus.CREATED)
+        resp = self.instance.add_resource(self.json)
+        self.write(resp)
 
-    # from Mongo import UserLikeMongoResource
+    @web.authenticated
+    def delete(self):
+        if not self.instance.is_admin(self.get_current_user()):
+            self.set_status(HTTPStatus.FORBIDDEN)
+            self.write({"status": False, "message": "admin only"})
+            return
+        self.instance.delete_resource(self.json)
+        self.set_status(HTTPStatus.ACCEPTED)
+        self.write({})
+
+
+class ResourceLatestHandler(BaseHandler):
+    class_name = f"ResourceLatest{adapter}Resource"
+
+    # from Mongo import ResourceLatestMongoResource
+    # instance = ResourceLatestMongoResource()
+    @run_on_executor()
+    def get_latest(self):
+        size = int(self.get_query_argument("size", "100"))
+        result = self.instance.get_latest_resource()
+        result["data"] = result["data"][:size]
+        return result
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_latest()
+        self.write(resp)
+
+
+#
+# class ResourceLatestHandler(BaseHandler):
+#     from concurrent.futures import ProcessPoolExecutor
+#
+#     class_name = f"ResourceLatest{adapter}Resource"
+#     executor = ProcessPoolExecutor(200)
+#
+#     # from Mongo import ResourceLatestMongoResource
+#     # instance = ResourceLatestMongoResource()
+#
+#     @gen.coroutine
+#     def get(self):
+#         # This returns a concurrent.futures.Future
+#         fut = self.executor.submit(self.instance.get_latest_resource)
+#         ret = yield fut
+#         self.write(ret)
+
+
+class LikeHandler(BaseHandler):
+    class_name = f"Like{adapter}Resource"
+
+    # from Mongo import LikeMongoResource
     # instance = UserLikeMongoResource()
 
     @run_on_executor()
@@ -232,6 +298,26 @@ class UserLikeHandler(BaseHandler):
     @web.authenticated
     def get(self):
         resp = yield self.like_data()
+        self.write(resp)
+
+    @run_on_executor()
+    def add_remove_fav(self):
+        data = self.json
+        resource_id = int(data["resource_id"])
+        username = self.get_current_user()
+        if username:
+            response = self.instance.add_remove_fav(resource_id, username)
+            self.set_status(response["status_code"])
+        else:
+            response = {"message": "请先登录"}
+            self.set_status(HTTPStatus.UNAUTHORIZED)
+
+        return response["message"]
+
+    @gen.coroutine
+    @web.authenticated
+    def patch(self):
+        resp = yield self.add_remove_fav()
         self.write(resp)
 
 
@@ -281,7 +367,7 @@ class CommentHandler(BaseHandler):
 
     @run_on_executor()
     def add_comment(self):
-        payload = json.loads(self.request.body)
+        payload = self.json
         captcha = payload["captcha"]
         captcha_id = payload["id"]
         content = payload["content"]
@@ -301,7 +387,7 @@ class CommentHandler(BaseHandler):
     def delete_comment(self):
         # need resource_id & id
         # payload = {"id":  "obj_id"}
-        payload = json.loads(self.request.body)
+        payload = self.json
         username = self.get_current_user()
         comment_id = payload["comment_id"]
 
@@ -312,16 +398,6 @@ class CommentHandler(BaseHandler):
         else:
             self.set_status(HTTPStatus.UNAUTHORIZED)
             return {"count": 0, "message": "You're unauthorized to delete comment."}
-
-    @run_on_executor()
-    def comment_reaction(self):
-        payload = json.loads(self.request.body)
-        username = self.get_current_user()
-        comment_id = payload["comment_id"]
-        verb = payload["verb"]
-        result = self.instance.react_comment(username, comment_id, verb)
-        self.set_status(result.get("status_code") or HTTPStatus.IM_A_TEAPOT)
-        return result
 
     @gen.coroutine
     def get(self):
@@ -340,9 +416,30 @@ class CommentHandler(BaseHandler):
         resp = yield self.delete_comment()
         self.write(resp)
 
+
+class CommentReactionHandler(BaseHandler):
+    class_name = f"CommentReaction{adapter}Resource"
+
+    # from Mongo import CommentReactionMongoResource
+    # instance = CommentReactionMongoResource()
+
+    @run_on_executor()
+    def comment_reaction(self):
+        self.json.update(method=self.request.method)
+        username = self.get_current_user()
+        result = self.instance.react_comment(username, self.json)
+        self.set_status(result.get("status_code"))
+        return result
+
     @gen.coroutine
     @web.authenticated
-    def patch(self):
+    def post(self):
+        resp = yield self.comment_reaction()
+        self.write(resp)
+
+    @gen.coroutine
+    @web.authenticated
+    def delete(self):
         resp = yield self.comment_reaction()
         self.write(resp)
 
@@ -412,7 +509,7 @@ class AnnouncementHandler(BaseHandler):
             self.set_status(HTTPStatus.FORBIDDEN)
             return {"message": "只有管理员可以设置公告"}
 
-        payload = json.loads(self.request.body)
+        payload = self.json
         content = payload["content"]
         real_ip = AntiCrawler(self).get_real_ip()
         browser = self.request.headers['user-agent']
@@ -437,7 +534,7 @@ class CaptchaHandler(BaseHandler, CaptchaResource):
 
     @run_on_executor()
     def verify_captcha(self):
-        data = json.loads(self.request.body)
+        data = self.json
         captcha_id = data.get("id", None)
         userinput = data.get("captcha", None)
         if captcha_id is None or userinput is None:
@@ -477,7 +574,7 @@ class MetricsHandler(BaseHandler):
 
     @run_on_executor()
     def set_metrics(self):
-        payload = json.loads(self.request.body)
+        payload = self.json
         metrics_type = payload["type"]
 
         self.instance.set_metrics(metrics_type)
@@ -550,7 +647,7 @@ class GrafanaQueryHandler(BaseHandler):
         return time.mktime(time.strptime(text, "%Y-%m-%d"))
 
     def post(self):
-        payload = json.loads(self.request.body)
+        payload = self.json
         start = payload["range"]["from"].split("T")[0]
         end = payload["range"]["to"].split("T")[0]
         date_series = self.generate_date_series(start, end)
@@ -589,7 +686,7 @@ class BlacklistHandler(BaseHandler):
 
 class NotFoundHandler(BaseHandler):
     def get(self):  # for react app
-        self.render("index.html")
+        self.render(index)
 
 
 class DBDumpHandler(BaseHandler):
@@ -694,7 +791,7 @@ class DoubanReportHandler(BaseHandler):
 
     @run_on_executor()
     def report_error(self):
-        data = json.loads(self.request.body)
+        data = self.json
         user_captcha = data["captcha_id"]
         captcha_id = data["id"]
         content = data["content"]
@@ -712,4 +809,81 @@ class DoubanReportHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         resp = yield self.get_error()
+        self.write(resp)
+
+
+class NotificationHandler(BaseHandler):
+    class_name = f"Notification{adapter}Resource"
+
+    # from Mongo import NotificationResource
+    # instance = NotificationResource()
+
+    @run_on_executor()
+    def get_notification(self):
+        username = self.get_current_user()
+        size = int(self.get_argument("size", "5"))
+        page = int(self.get_argument("page", "1"))
+
+        return self.instance.get_notification(username, page, size)
+
+    @run_on_executor()
+    def update_notification(self):
+        username = self.get_current_user()
+        verb = self.json["verb"]
+        comment_id = self.json["comment_id"]
+        if verb not in ["read", "unread"]:
+            self.set_status(HTTPStatus.BAD_REQUEST)
+            return {"status": False, "message": "verb: read or unread"}
+        self.set_status(HTTPStatus.CREATED)
+        return self.instance.update_notification(username, verb, comment_id)
+
+    @gen.coroutine
+    @web.authenticated
+    def get(self):
+        resp = yield self.get_notification()
+        self.write(resp)
+
+    @gen.coroutine
+    @web.authenticated
+    def patch(self):
+        resp = yield self.update_notification()
+        self.write(resp)
+
+
+class UserEmailHandler(BaseHandler):
+    class_name = f"UserEmail{adapter}Resource"
+
+    # from Mongo import UserEmailResource
+    # instance = UserEmailResource()
+
+    @run_on_executor()
+    def verify_email(self):
+        result = self.instance.verify_email(self.get_current_user(), self.json["code"])
+        self.set_status(result.get("status_code"))
+        return result
+
+    @gen.coroutine
+    @web.authenticated
+    def post(self):
+        resp = yield self.verify_email()
+        self.write(resp)
+
+
+class CategoryHandler(BaseHandler):
+    class_name = f"Category{adapter}Resource"
+
+    from Mongo import CategoryResource
+    instance = CategoryResource()
+
+    @run_on_executor()
+    def get_data(self):
+        self.json = {k: self.get_argument(k) for k in self.request.arguments}
+        self.json["size"] = int(self.json.get("size", 15))
+        self.json["page"] = int(self.json.get("page", 1))
+        self.json["douban"] = self.json.get("douban", False)
+        return self.instance.get_category(self.json)
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_data()
         self.write(resp)

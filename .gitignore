@@ -127,3 +127,11 @@ logs/*
 /yyetsweb/yyets.sqlite
 /yyetsweb/yyetsweb
 /yyetsweb/assets.go
+/yyetsweb/templates/static/*
+/yyetsweb/templates/sponsor/*
+/yyetsweb/templates/svg/*
+/yyetsweb/templates/index.css
+/yyetsweb/templates/logo*
+/yyetsweb/templates/*.json
+
+

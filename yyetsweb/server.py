@@ -17,14 +17,17 @@ from tornado import httpserver, ioloop, options, web
 from tornado.log import enable_pretty_logging
 
 from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
-                     CommentChildHandler, CommentHandler, CommentNewestHandler,
+                     CategoryHandler, CommentChildHandler, CommentHandler,
+                     CommentNewestHandler, CommentReactionHandler,
                      DBDumpHandler, DoubanHandler, DoubanReportHandler,
                      GrafanaIndexHandler, GrafanaQueryHandler,
-                     GrafanaSearchHandler, IndexHandler, MetricsHandler,
-                     NameHandler, NotFoundHandler, ResourceHandler, TopHandler,
-                     UserHandler, UserLikeHandler)
+                     GrafanaSearchHandler, IndexHandler, LikeHandler,
+                     MetricsHandler, NameHandler, NotFoundHandler,
+                     NotificationHandler, ResourceHandler,
+                     ResourceLatestHandler, TopHandler, UserEmailHandler,
+                     UserHandler)
 from migration.douban_sync import sync_douban
-from Mongo import OtherMongoResource
+from Mongo import OtherMongoResource, ResourceLatestMongoResource
 
 enable_pretty_logging()
 
@@ -34,14 +37,18 @@ if os.getenv("debug"):
 
 class RunServer:
     root_path = os.path.dirname(__file__)
-    static_path = os.path.join(root_path, '')
+    static_path = os.path.join(root_path, 'templates')
     handlers = [
+        (r'/', IndexHandler),
         (r'/api/resource', ResourceHandler),
+        (r'/api/resource/latest', ResourceLatestHandler),
         (r'/api/top', TopHandler),
-        (r'/api/like', UserLikeHandler),
+        (r'/api/like', LikeHandler),
         (r'/api/user', UserHandler),
+        (r'/api/user/email', UserEmailHandler),
         (r'/api/name', NameHandler),
         (r'/api/comment', CommentHandler),
+        (r'/api/comment/reaction', CommentReactionHandler),
         (r'/api/comment/child', CommentChildHandler),
         (r'/api/comment/newest', CommentNewestHandler),
         (r'/api/captcha', CaptchaHandler),
@@ -52,9 +59,11 @@ class RunServer:
         (r'/api/blacklist', BlacklistHandler),
         (r'/api/db_dump', DBDumpHandler),
         (r'/api/announcement', AnnouncementHandler),
-        (r'/', IndexHandler),
         (r'/api/douban', DoubanHandler),
         (r'/api/douban/report', DoubanReportHandler),
+        (r'/api/notification', NotificationHandler),
+        (r'/api/category', CategoryHandler),
+
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|'
          r'.*\.svg|.*\.json|.*\.txt)',
          web.StaticFileHandler,
@@ -89,6 +98,7 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler(timezone=timez)
     scheduler.add_job(OtherMongoResource().reset_top, 'cron', hour=0, minute=0, day=1)
     scheduler.add_job(sync_douban, 'cron', hour=0, minute=0, day=1)
+    scheduler.add_job(ResourceLatestMongoResource().refresh_latest_resource, 'cron', minute=0)
     scheduler.start()
     options.define("p", default=8888, help="running port", type=int)
     options.define("h", default='127.0.0.1', help="listen address", type=str)

@@ -23,7 +23,7 @@ function prepare() {
 function prepare_compose() {
   echo "[2/5] 下载docker-compose.yaml"
   curl -o docker-compose.yaml https://raw.githubusercontent.com/tgbot-collection/YYeTsBot/master/docker-compose.yml
-  sed -i '18,47d' docker-compose.yaml
+  sed -i '31,67d' docker-compose.yaml
   sed -i 's/127.0.0.1/0.0.0.0/' docker-compose.yaml
 }
 

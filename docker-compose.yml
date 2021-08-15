@@ -15,6 +15,19 @@ services:
     logging:
       driver: none
 
+  yyets-web:
+    image: bennythink/yyetsbot
+    restart: unless-stopped
+    environment:
+      - mongo=mongo
+      - redis=redis
+    working_dir: /YYeTsBot/yyetsweb/
+    volumes:
+      - ./data:/YYeTsBot/yyetsweb/data/
+    command: [ "python3","server.py","-h=0.0.0.0" ]
+    ports:
+      - "127.0.0.1:8888:8888"
+
   socat:
     image: alpine/socat
     restart: always
@@ -32,6 +45,12 @@ services:
     env_file:
       - env/yyets.env
 
+  mailhog:
+    image: cd2team/mailhog
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+
   nginx:
     restart: always
     image: nginx:alpine
@@ -45,15 +64,3 @@ services:
       - "443:443"
     environment:
       TZ: Asia/Shanghai
-
-  yyets-web:
-    image: bennythink/yyetsbot
-    restart: unless-stopped
-    environment:
-      - mongo=mongo
-    working_dir: /YYeTsBot/yyetsweb/
-    volumes:
-      - ./data:/YYeTsBot/yyetsweb/data/
-    command: [ "python3","server.py","-h=0.0.0.0" ]
-    ports:
-      - "127.0.0.1:8888:8888"
