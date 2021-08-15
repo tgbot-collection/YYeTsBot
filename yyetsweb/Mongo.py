@@ -645,8 +645,6 @@ class UserMongoResource(UserResource, Mongo):
             stored_password = data["password"]
             if pbkdf2_sha256.verify(password, stored_password):
                 returned_value["status_code"] = HTTPStatus.OK
-                returned_value["username"] = data.get("username")
-                returned_value["group"] = data.get("group", ["user"])
             else:
                 returned_value["status_code"] = HTTPStatus.FORBIDDEN
                 returned_value["message"] = "用户名或密码错误"
@@ -664,11 +662,14 @@ class UserMongoResource(UserResource, Mongo):
                 returned_value["status_code"] = HTTPStatus.INTERNAL_SERVER_ERROR
                 returned_value["message"] = str(e)
 
+        returned_value["username"] = data.get("username")
+        returned_value["group"] = data.get("group", ["user"])
         return returned_value
 
     def get_user_info(self, username: str) -> dict:
         projection = {"_id": False, "password": False}
         data = self.db["users"].find_one({"username": username}, projection)
+        data.update(group=data.get("group", ["user"]))
         return data
 
     def update_user_last(self, username: str, now_ip: str) -> None:
