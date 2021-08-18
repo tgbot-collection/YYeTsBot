@@ -210,14 +210,20 @@ def base_send_search(message, instance=None):
 
     source = result.get("class")
     result.pop("class")
+    count, MAX, warning = 0, 20, ""
     for url_hash, detail in result.items():
+        if count > MAX:
+            warning = f"*结果太多啦，目前只显示前{MAX}个。关键词再精准一下吧！*\n\n"
+            break
         btn = types.InlineKeyboardButton(detail["name"], callback_data="choose%s" % url_hash)
         markup.add(btn)
+        count += 1
 
     if result:
         logging.info("🎉 Resource match.")
         today_request("success")
-        bot.reply_to(message, "呐🌹，一共%d个结果，选一个呀！来源：%s" % (len(result), source), reply_markup=markup)
+        bot.reply_to(message, f"{warning}呐🌹，一共%d个结果，选一个呀！来源：%s" % (len(result), source),
+                     reply_markup=markup, parse_mode="markdown")
     else:
         logging.warning("⚠️️ Resource not found")
         today_request("fail")
