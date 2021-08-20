@@ -17,7 +17,6 @@ import random
 import re
 import sys
 import time
-import uuid
 from datetime import date, timedelta
 from http import HTTPStatus
 from urllib.parse import unquote
@@ -203,11 +202,17 @@ class CommentMongoResource(CommentResource, Mongo):
     def add_comment(self, captcha: str, captcha_id: int, content: str, resource_id: int,
                     ip: str, username: str, browser: str, parent_comment_id=None) -> dict:
         returned = {"status_code": 0, "message": ""}
-        verify_result = CaptchaResource().verify_code(captcha, captcha_id)
-        if not verify_result["status"]:
-            returned["status_code"] = HTTPStatus.BAD_REQUEST
-            returned["message"] = verify_result["message"]
-            return returned
+        user_group = self.db["users"].find_one(
+            {"username": username},
+            projection={"group": True, "_id": False}
+        )
+        if not user_group:
+            # admin don't have to verify code
+            verify_result = CaptchaResource().verify_code(captcha, captcha_id)
+            if not verify_result["status"]:
+                returned["status_code"] = HTTPStatus.BAD_REQUEST
+                returned["message"] = verify_result["message"]
+                return returned
 
         exists = self.db["yyets"].find_one({"data.info.id": resource_id})
         if not exists:
