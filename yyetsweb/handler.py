@@ -705,15 +705,14 @@ class DBDumpHandler(BaseHandler):
 
     def file_info(self, file_path) -> dict:
         result = {}
-        if iter(file_path):
-            for fp in file_path:
-                try:
-                    checksum = self.checksum(fp)
-                    creation = self.ts_date(os.stat(fp).st_ctime)
-                    size = self.sizeof_fmt(os.stat(fp).st_size)
-                    result[fp] = [checksum, creation, size]
-                except Exception as e:
-                    result[fp] = str(e), "", ""
+        for fp in file_path:
+            try:
+                checksum = self.checksum(fp)
+                creation = self.ts_date(os.stat(fp).st_ctime)
+                size = self.sizeof_fmt(os.stat(fp).st_size)
+                result[fp] = [checksum, creation, size]
+            except Exception as e:
+                result[fp] = str(e), "", ""
         return result
 
     @staticmethod
@@ -731,7 +730,11 @@ class DBDumpHandler(BaseHandler):
     @run_on_executor()
     @Redis.cache(3600)
     def get_hash(self):
-        file_list = ["data/yyets_mongo.gz", "data/yyets_mysql.zip", "data/yyets_sqlite.zip"]
+        file_list = [
+            "templates/data/yyets_mongo.gz",
+            "templates/data/yyets_mysql.zip",
+            "templates/data/yyets_sqlite.zip"
+        ]
         result = {}
         data = self.file_info(file_list)
         for file, value in data.items():
