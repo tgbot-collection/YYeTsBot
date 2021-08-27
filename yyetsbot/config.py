@@ -19,8 +19,8 @@ SHARE_WEB = "http://got002.com/resource.html?code={code}"
 SHARE_API = "http://got002.com/api/v1/static/resource/detail?code={code}"
 
 # fix zimuxia
-FIX_RESOURCE = "https://www.zimuxia.cn/portfolio/{name}"
-FIX_SEARCH = "https://www.zimuxia.cn/?s={kw}"
+FIX_RESOURCE = "http://www.zimuxia.cn/portfolio/{name}"
+FIX_SEARCH = "http://www.zimuxia.cn/?s={kw}"
 
 # zhuixinfan
 ZHUIXINFAN_SEARCH = "http://www.fanxinzhui.com/list?k={}"
