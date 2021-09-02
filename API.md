@@ -37,7 +37,7 @@
 ## 获取指定id的资源
 
 * GET `/api/resource?id=10004`
-  数据结构参考 [sample.json](yyetsweb/js/sample.json)
+  数据结构参考 [sample.json](yyetsweb/templates/js/sample.json)
 
 **对于非官方、由用户提交的下载，与 `files` `dateline` 同级会有一个 `creator` 用于标明是谁创建的**
 **对于非官方、由用户提交的资源，与 `cnname` `enname` 同级会有一个 `creator` 用于标明是谁创建的**
