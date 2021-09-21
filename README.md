@@ -98,7 +98,39 @@ yyets_offline - 人人影视离线数据
 
 # 开发
 
+## 网站开发
+
 如何部署、参与开发、具体API接口，可以 [参考这个文档](DEVELOPMENT.md)
+
+## Python Library
+
+也可以作为Python Library去调用
+
+`pip3 install yyets`
+
+```
+>>> from yyets import YYeTs
+>>> yy=YYeTs("逃避")
+[2021-09-21 19:22:32 __init__.py:54 I] Fetching 逃避可耻却有用...https://yyets.dmesg.app/api/resource?id=34812
+[2021-09-21 19:22:33 __init__.py:54 I] Fetching 无法逃避...https://yyets.dmesg.app/api/resource?id=29540
+[2021-09-21 19:22:35 __init__.py:54 I] Fetching 逃避者...https://yyets.dmesg.app/api/resource?id=37089
+
+>>> yy.result
+[<yyets.Resource object at 0x10cc7b130>, <yyets.Resource object at 0x10ca0e880>, <yyets.Resource object at 0x10cc7b040>]
+
+>>> for y in yy.result:
+        print(y)
+    
+逃避可耻却有用 - NIGERUHA HAJIDAGA YAKUNITATSU
+无法逃避 - Inescapable
+逃避者 - Shirkers
+
+>>> yy.result[0].cnname
+'逃避可耻却有用'
+
+>>> yy.result[0].list
+[{'season_num': '101', 'season_cn': '单剧', 'items': {'APP': [{'ite
+```
 
 # Credits
 

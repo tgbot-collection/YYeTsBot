@@ -1,10 +1,10 @@
-tools/worker/public/css/** linguist-vendored
-tools/worker/public/fonts/* linguist-vendored
-tools/worker/public/img/* linguist-vendored
-tools/worker/public/js/* linguist-vendored
-tools/worker/public/js/search.js -linguist-vendored
-tools/worker/public/404.html linguist-vendored
-tools/worker/public/resource.html linguist-vendored
+yyets/worker/public/css/** linguist-vendored
+yyets/worker/public/fonts/* linguist-vendored
+yyets/worker/public/img/* linguist-vendored
+yyets/worker/public/js/* linguist-vendored
+yyets/worker/public/js/search.js -linguist-vendored
+yyets/worker/public/404.html linguist-vendored
+yyets/worker/public/resource.html linguist-vendored
 
 yyetsweb/templates/css/** linguist-vendored
 yyetsweb/templates/fonts/* linguist-vendored
