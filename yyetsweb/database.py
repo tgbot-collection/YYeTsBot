@@ -174,7 +174,7 @@ class CommentChildResource:
 
 
 class CommentNewestResource:
-    def get_comment(self, page: int, size: int) -> dict:
+    def get_comment(self, page: int, size: int, keyword=None) -> dict:
         pass
 
 

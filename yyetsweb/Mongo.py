@@ -182,7 +182,11 @@ class CommentMongoResource(CommentResource, Mongo):
     def get_comment(self, resource_id: int, page: int, size: int, **kwargs) -> dict:
         self.inner_page = kwargs.get("inner_page", 1)
         self.inner_size = kwargs.get("inner_size", 5)
+        comment_id = kwargs.get("comment_id")
+
         condition = {"resource_id": resource_id, "deleted_at": {"$exists": False}, "type": {"$ne": "child"}}
+        if comment_id:
+            condition.update(_id=ObjectId(comment_id))
 
         count = self.db["comment"].count_documents(condition)
         data = self.db["comment"].find(condition, self.projection) \
@@ -361,25 +365,38 @@ class CommentNewestMongoResource(CommentNewestResource, CommentMongoResource, Mo
         self.page = 1
         self.size = 5
         self.projection = {"ip": False, "parent_id": False, "children": False}
-        self.condition = {"deleted_at": {"$exists": False}}
+        self.condition: "dict" = {"deleted_at": {"$exists": False}}
 
-    def get_comment(self, page: int, size: int) -> dict:
+    def get_comment(self, page: int, size: int, keyword="") -> dict:
         # ID，时间，用户名，用户组，资源名，资源id
-        condition = {"deleted_at": {"$exists": False}}
-        count = self.db["comment"].count_documents(condition)
-        data = self.db["comment"].find(condition, self.projection) \
+        count = self.db["comment"].count_documents(self.condition)
+        data = self.db["comment"].find(self.condition, self.projection) \
             .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
         data = list(data)
         self.convert_objectid(data)
         self.get_user_group(data)
-        for i in data:
-            resource_id = i.get("resource_id", 233)
-            res = self.db["yyets"].find_one({"data.info.id": resource_id})
-            i["cnname"] = res["data"]["info"]["cnname"]
+        self.extra_info(data)
         return {
             "data": data,
             "count": count,
         }
+
+    def extra_info(self, data):
+        for i in data:
+            resource_id = i.get("resource_id", 233)
+            res = self.db["yyets"].find_one({"data.info.id": resource_id})
+            if res:
+                i["cnname"] = res["data"]["info"]["cnname"]
+
+
+class CommentSearchMongoResource(CommentNewestMongoResource):
+
+    def get_comment(self, page: int, size: int, keyword="") -> dict:
+        self.condition.update(content={'$regex': f'.*{keyword}.*', "$options": "-i"})
+        return super(CommentSearchMongoResource, self).get_comment(page, size, keyword)
+
+    def extra_info(self, data):
+        pass
 
 
 class GrafanaQueryMongoResource(GrafanaQueryResource, Mongo):
@@ -477,11 +494,14 @@ class ResourceMongoResource(ResourceResource, Mongo):
         return data
 
     def search_resource(self, keyword: str) -> dict:
+        final = []
+        returned = {}
+
         projection = {'_id': False,
                       'data.info': True,
                       }
 
-        data = self.db["yyets"].find({
+        resource_data = self.db["yyets"].find({
             "$or": [
                 {"data.info.cnname": {'$regex': f'.*{keyword}.*', "$options": "-i"}},
                 {"data.info.enname": {'$regex': f'.*{keyword}.*', "$options": "-i"}},
@@ -489,10 +509,30 @@ class ResourceMongoResource(ResourceResource, Mongo):
             ]},
             projection
         )
-        data = list(data)
-        returned = {}
-        if data:
-            returned = dict(data=data)
+
+        for item in resource_data:
+            item["data"]["info"]["type"] = "🎦"
+            final.append(item["data"]["info"])
+
+        # get comment
+        r = CommentSearchMongoResource().get_comment(1, 100, keyword)
+        c_search = []
+        for c in r.get("data", []):
+            cnname = c["content"][:30] + "......"
+            enname = f'👉︎👉︎👉︎ {c["username"]}'
+            channel_cn = c["username"]
+            aliasname = c["content"]
+            resource_id = c["resource_id"]
+            c_search.append(
+                dict(
+                    cnname=cnname, enname=enname, aliasname=aliasname, channel_cn=channel_cn,
+                    type="💬", id=resource_id, comment_id=c["id"]
+                )
+            )
+        final.extend(c_search)
+
+        if final:
+            returned = dict(data=final)
             returned["extra"] = []
         else:
             extra = self.fansub_search(ZimuxiaOnline.__name__, keyword) or \
@@ -975,7 +1015,7 @@ class ResourceLatestMongoResource(ResourceLatestResource, Mongo):
         projection = {"_id": False, "status": False, "info": False}
         episode_data = {}
         for res in tqdm(col.find(projection=projection), total=col.count()):
-            for season in res["data"]["list"]:
+            for season in res["data"].get("list",[]):
                 for item in season["items"].values():
                     for single in item:
                         ts = single["dateline"]
