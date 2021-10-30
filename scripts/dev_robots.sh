@@ -1,4 +1,4 @@
-cat << EOF > /YYeTsBot/YYeTsFE/build/robots.txt
+cat << EOF > /build/build/robots.txt
 User-agent: *
 Disallow: /
 EOF

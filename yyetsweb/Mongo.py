@@ -511,25 +511,26 @@ class ResourceMongoResource(ResourceResource, Mongo):
         )
 
         for item in resource_data:
-            item["data"]["info"]["type"] = "🎦"
+            item["data"]["info"]["origin"] = "yyets"
             final.append(item["data"]["info"])
 
         # get comment
-        r = CommentSearchMongoResource().get_comment(1, 100, keyword)
+        r = CommentSearchMongoResource().get_comment(1, 2 ** 10, keyword)
         c_search = []
         for c in r.get("data", []):
-            cnname = c["content"][:30] + "......"
-            enname = f'👉︎👉︎👉︎ {c["username"]}'
-            channel_cn = c["username"]
-            aliasname = c["content"]
-            resource_id = c["resource_id"]
+            comment_rid = c["resource_id"]
+            d = self.db["yyets"].find_one({"data.info.id": comment_rid}, projection={"data.info": True})
             c_search.append(
-                dict(
-                    cnname=cnname, enname=enname, aliasname=aliasname, channel_cn=channel_cn,
-                    type="💬", id=resource_id, comment_id=c["id"]
-                )
+                {
+                    "username": c["username"],
+                    "date": c["date"],
+                    "comment": c["content"],
+                    "commentID": c["id"],
+                    "resourceID": comment_rid,
+                    "resourceName": d["data"]["info"]["cnname"],
+                    "origin": "comment"
+                }
             )
-        final.extend(c_search)
 
         if final:
             returned = dict(data=final)
@@ -543,7 +544,8 @@ class ResourceMongoResource(ResourceResource, Mongo):
 
             returned["data"] = []
             returned["extra"] = extra
-
+        # add comment data here
+        returned["comment"] = c_search
         return returned
 
     def patch_resource(self, new_data: dict):
@@ -1015,7 +1017,7 @@ class ResourceLatestMongoResource(ResourceLatestResource, Mongo):
         projection = {"_id": False, "status": False, "info": False}
         episode_data = {}
         for res in tqdm(col.find(projection=projection), total=col.count()):
-            for season in res["data"].get("list",[]):
+            for season in res["data"].get("list", []):
                 for item in season["items"].values():
                     for single in item:
                         ts = single["dateline"]
