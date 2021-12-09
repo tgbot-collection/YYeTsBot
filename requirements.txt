@@ -16,3 +16,4 @@ requests[socks]
 tqdm==4.61.1
 retry==0.9.2
 pymysql
+git+https://github.com/tgbot-collection/python-akismet

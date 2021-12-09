@@ -37,7 +37,7 @@ from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
                       NameResource, NotificationResource, OtherResource, Redis,
                       ResourceLatestResource, ResourceResource, TopResource,
                       UserEmailResource, UserResource)
-from utils import send_mail, ts_date
+from utils import check_spam, send_mail, ts_date
 
 lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().as_posix()
 sys.path.append(lib_path)
@@ -61,6 +61,11 @@ class Mongo:
         data = self.db["users"].find_one({"username": username, "group": {"$in": ["admin"]}})
         if data:
             return True
+
+    def is_user_blocked(self, username: str) -> str:
+        r = self.db["users"].find_one({"username": username, "status.disable": True})
+        if r:
+            return r["status"]["reason"]
 
 
 class FakeMongoResource:
@@ -206,6 +211,21 @@ class CommentMongoResource(CommentResource, Mongo):
     def add_comment(self, captcha: str, captcha_id: int, content: str, resource_id: int,
                     ip: str, username: str, browser: str, parent_comment_id=None) -> dict:
         returned = {"status_code": 0, "message": ""}
+        # check if this user is blocked
+        reason = self.is_user_blocked(username)
+        if reason:
+            return {"status_code": HTTPStatus.FORBIDDEN, "message": reason}
+        if check_spam(ip, browser, username, content) != 0:
+            inserted_id = self.db["spam"].insert_one({
+                "username": username,
+                "ip": ip,
+                "date": ts_date(),
+                "browser": browser,
+                "content": content,
+                "resource_id": resource_id
+            }).inserted_id
+            return {"status_code": HTTPStatus.FORBIDDEN, "message": f"possible spam, reference id: {inserted_id}"}
+
         user_group = self.db["users"].find_one(
             {"username": username},
             projection={"group": True, "_id": False}
