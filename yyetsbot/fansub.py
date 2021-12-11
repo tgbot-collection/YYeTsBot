@@ -172,7 +172,8 @@ class YYeTsOffline(BaseFansub):
     def __init__(self, db="zimuzu", col="yyets"):
         super().__init__()
         self.mongo = pymongo.MongoClient(host=MONGO)
-        self.collection = self.mongo[db][col]
+        self.db = self.mongo[db]
+        self.collection = self.db[col]
 
     @Redis.preview_cache(60)
     def search_preview(self, search_text: str) -> dict:
@@ -199,7 +200,20 @@ class YYeTsOffline(BaseFansub):
                 "class": self.__class__.__name__
             }
 
-        logging.info("[%s] Offline search complete", self.__class__.__name__)
+        logging.info("[%s] Offline resource search complete", self.__class__.__name__)
+
+        comments = self.db["comment"].find({"content": {"$regex": f".*{search_text}.*", "$options": "-i"}})
+        for c in comments:
+            url = "https://yyets.dmesg.app/resource.html?id={}#{}".format(c["resource_id"], str(c["_id"]))
+            url_hash = hashlib.sha1(url.encode('u8')).hexdigest()
+            all_name = c["content"]
+            results[url_hash] = {
+                "name": all_name,
+                "url": url,
+                "class": self.__class__.__name__
+            }
+        logging.info("[%s] Offline comment search complete", self.__class__.__name__)
+
         results["class"] = self.__class__.__name__
         return results
 
