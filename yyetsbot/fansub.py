@@ -22,6 +22,7 @@ from bs4 import BeautifulSoup
 from config import (BD2020_SEARCH, FANSUB_ORDER, FIX_SEARCH, MONGO,
                     NEWZMZ_RESOURCE, NEWZMZ_SEARCH, REDIS, WORKERS,
                     XL720_SEARCH, ZHUIXINFAN_RESOURCE, ZHUIXINFAN_SEARCH)
+from bson.objectid import ObjectId
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 
@@ -220,11 +221,26 @@ class YYeTsOffline(BaseFansub):
     @Redis.result_cache(10 * 60)
     def search_result(self, resource_url) -> dict:
         # yyets offline
-        # https://yyets.dmesg.app/resource.html?id=37089
-        rid = resource_url.split("id=")[1]
-        data: dict = self.collection.find_one({"data.info.id": int(rid)}, {'_id': False})
-        name = data["data"]["info"]["cnname"]
-        return {"all": json.dumps(data, ensure_ascii=False), "share": WORKERS.format(id=rid), "cnname": name}
+
+        # resource: https://yyets.dmesg.app/resource.html?id=37089
+        # comment: 'https://yyets.dmesg.app/resource.html?id=233#61893ae51e9152e43fa24124'
+        if "#" in resource_url:
+            cid = resource_url.split("#")[1]
+            data: dict = self.db["comment"].find_one(
+                {"_id": ObjectId(cid)},
+                {'_id': False, "ip": False, "type": False, "children": False, "browser": False}
+            )
+            share = resource_url
+            name = f"{data['username']} 的分享"
+            t = "comment"
+        else:
+            rid = resource_url.split("id=")[1]
+            data: dict = self.collection.find_one({"data.info.id": int(rid)}, {'_id': False})
+            name = data["data"]["info"]["cnname"]
+            share = WORKERS.format(id=rid)
+            t = "resource"
+
+        return {"all": json.dumps(data, ensure_ascii=False, indent=4), "share": share, "cnname": name, "type": t}
 
     def __del__(self):
         self.mongo.close()

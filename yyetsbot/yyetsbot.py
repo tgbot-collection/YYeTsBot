@@ -269,48 +269,18 @@ def choose_link(call):
     if magic_recycle(fan, call, resource_url_hash):
         return
 
-    markup = types.InlineKeyboardMarkup()
-    # add class
-    btn1 = types.InlineKeyboardButton("分享页面", callback_data="share%s" % resource_url_hash)
-    btn2 = types.InlineKeyboardButton("我全都要", callback_data="all%s" % resource_url_hash)
-    markup.add(btn1, btn2)
-
-    text = "想要分享页面，还是我全都要？\n\n" \
-           "名词解释：“分享页面”会返回给你一个网站，从那里可以看到全部的下载链接。\n" \
-           "“我全都要”会给你发送一个txt文件，文件里包含全部下载连接\n"
-    bot.reply_to(call.message, text, reply_markup=markup)
-
-
-@bot.callback_query_handler(func=lambda call: re.findall(r"share(\S*)", call.data))
-def share_page(call):
-    fan = fansub.FansubEntrance()
-    # need class name as str
-    bot.send_chat_action(call.message.chat.id, 'typing')
-    resource_url_hash = re.findall(r"share(\S*)", call.data)[0]
-    if magic_recycle(fan, call, resource_url_hash):
-        return
-
-    result = fan.search_result(resource_url_hash)
-    bot.send_message(call.message.chat.id, "{}  {}".format(result['cnname'], result['share']))
-
-
-@bot.callback_query_handler(func=lambda call: re.findall(r"all(\S*)", call.data))
-def all_episode(call):
-    # just send a file
-    fan = fansub.FansubEntrance()
-    bot.send_chat_action(call.message.chat.id, 'typing')
-    resource_url_hash = re.findall(r"all(\S*)", call.data)[0]
-    if magic_recycle(fan, call, resource_url_hash):
-        return
-
     result = fan.search_result(resource_url_hash)
     with tempfile.NamedTemporaryFile(mode='wb+', prefix=result["cnname"], suffix=".txt") as tmp:
         bytes_data = json.dumps(result["all"], ensure_ascii=False, indent=4).encode('u8')
         tmp.write(bytes_data)
         tmp.flush()
         with open(tmp.name, "rb") as f:
+            if result.get("type") == "resource":
+                caption = "{}\n\n{}".format(result["cnname"], result["share"])
+            else:
+                caption = result["all"]
             bot.send_chat_action(call.message.chat.id, 'upload_document')
-            bot.send_document(call.message.chat.id, f, caption="%s" % result["cnname"])
+            bot.send_document(call.message.chat.id, f, caption=caption)
 
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"unwelcome(\d*)", call.data))
