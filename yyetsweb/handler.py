@@ -22,6 +22,7 @@ from hashlib import sha1
 from http import HTTPStatus
 
 import filetype
+import requests
 from tornado import escape, gen, web
 from tornado.concurrent import run_on_executor
 
@@ -902,8 +903,8 @@ class UserEmailHandler(BaseHandler):
 class CategoryHandler(BaseHandler):
     class_name = f"Category{adapter}Resource"
 
-    from Mongo import CategoryResource
-    instance = CategoryResource()
+    # from Mongo import CategoryResource
+    # instance = CategoryResource()
 
     @run_on_executor()
     def get_data(self):
@@ -917,3 +918,30 @@ class CategoryHandler(BaseHandler):
     def get(self):
         resp = yield self.get_data()
         self.write(resp)
+
+
+class SpamProcessHandler(BaseHandler):
+    class_name = f"SpamProcess{adapter}Resource"
+
+    from Mongo import SpamProcessMongoResource
+    instance = SpamProcessMongoResource()
+
+    def process(self, method):
+        obj_id = self.json.get("obj_id")
+        token = self.json.get("token")
+        ua = self.request.headers['user-agent']
+        ip = AntiCrawler(self).get_real_ip()
+        logging.info("Authentication %s(%s) for spam API now...", ua, ip)
+        if token == os.getenv("TOKEN"):
+            return getattr(self.instance, method)(obj_id)
+        else:
+            self.set_status(HTTPStatus.FORBIDDEN)
+            return {"status": False, "message": "this token is not allowed to access this API"}
+
+    @gen.coroutine
+    def post(self):
+        self.write(self.process("restore_spam"))
+
+    @gen.coroutine
+    def delete(self):
+        self.write(self.process("delete_spam"))

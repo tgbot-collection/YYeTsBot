@@ -18,11 +18,11 @@ import pymongo
 import redis
 import requests
 from bs4 import BeautifulSoup
+from bson.objectid import ObjectId
 
 from config import (BD2020_SEARCH, FANSUB_ORDER, FIX_SEARCH, MONGO,
                     NEWZMZ_RESOURCE, NEWZMZ_SEARCH, REDIS, WORKERS,
                     XL720_SEARCH, ZHUIXINFAN_RESOURCE, ZHUIXINFAN_SEARCH)
-from bson.objectid import ObjectId
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s [%(levelname)s]: %(message)s')
 

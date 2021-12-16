@@ -216,14 +216,17 @@ class CommentMongoResource(CommentResource, Mongo):
         if reason:
             return {"status_code": HTTPStatus.FORBIDDEN, "message": reason}
         if check_spam(ip, browser, username, content) != 0:
-            inserted_id = self.db["spam"].insert_one({
+            document = {
                 "username": username,
                 "ip": ip,
                 "date": ts_date(),
                 "browser": browser,
                 "content": content,
                 "resource_id": resource_id
-            }).inserted_id
+            }
+            inserted_id = self.db["spam"].insert_one(document).inserted_id
+            document["_id"] = str(inserted_id)
+            SpamProcessMongoResource.request_approval(document)
             return {"status_code": HTTPStatus.FORBIDDEN, "message": f"possible spam, reference id: {inserted_id}"}
 
         user_group = self.db["users"].find_one(
@@ -1062,3 +1065,47 @@ class ResourceLatestMongoResource(ResourceLatestResource, Mongo):
         latest = self.query_db()
         redis.set("latest-resource", json.dumps(latest, ensure_ascii=False))
         logging.info("latest-resource data refreshed.")
+
+
+class SpamProcessMongoResource(Mongo):
+
+    def delete_spam(self, obj_id: "str"):
+        obj_id = ObjectId(obj_id)
+        logging.info("Deleting spam %s", obj_id)
+        self.db["spam"].delete_one({"_id": obj_id})
+        return {"status": True}
+
+    def restore_spam(self, obj_id: "str"):
+        obj_id = ObjectId(obj_id)
+        spam = self.db["spam"].find_one({"_id": obj_id}, projection={"_id": False})
+        logging.info("Restoring spam %s", spam)
+        self.db["comment"].insert_one(spam)
+        self.db["spam"].delete_one({"_id": obj_id})
+        return {"status": True}
+
+    @staticmethod
+    def request_approval(document: "dict"):
+        token = os.getenv("TOKEN")
+        owner = os.getenv("OWNER")
+        obj_id = document["_id"]
+        data = {
+            "text": json.dumps(document, ensure_ascii=False, indent=4),
+            "chat_id": owner,
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "approve",
+                            "callback_data": f"approve{obj_id}"
+                        },
+                        {
+                            "text": "deny",
+                            "callback_data": f"deny{obj_id}"
+                        }
+                    ]
+                ]
+            }
+        }
+        api = f"https://api.telegram.org/bot{token}/sendMessage"
+        resp = requests.post(api, json=data).json()
+        logging.info("Telegram response: %s", resp)

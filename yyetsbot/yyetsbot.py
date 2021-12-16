@@ -12,13 +12,14 @@ import tempfile
 import time
 from urllib.parse import quote_plus
 
+import requests
 import telebot
 from apscheduler.schedulers.background import BackgroundScheduler
 from telebot import apihelper, types
 from tgbot_ping import get_runtime
 
 import fansub
-from config import (FANSUB_ORDER, MAINTAINER, PROXY, REPORT, TOKEN,
+from config import (DOMAIN, FANSUB_ORDER, MAINTAINER, PROXY, REPORT, TOKEN,
                     YYETS_SEARCH_URL)
 from utils import (get_error_dump, redis_announcement, reset_request,
                    save_error_dump, show_usage, today_request)
@@ -281,6 +282,29 @@ def choose_link(call):
                 caption = result["all"]
             bot.send_chat_action(call.message.chat.id, 'upload_document')
             bot.send_document(call.message.chat.id, f, caption=caption)
+
+
+@bot.callback_query_handler(func=lambda call: re.findall(r"approve", call.data))
+def approve_spam(call):
+    obj_id = re.findall(r"approve(\S*)", call.data)[0]
+    data = {
+        "obj_id": obj_id,
+        "token": TOKEN
+    }
+    requests.post(f"{DOMAIN}api/admin/spam", json=data)
+    bot.send_chat_action(call.message.chat.id, 'typing')
+    bot.answer_callback_query(call.id, 'Approved')
+
+
+@bot.callback_query_handler(func=lambda call: re.findall(r"deny", call.data))
+def deny_spam(call):
+    obj_id = re.findall(r"deny(\S*)", call.data)[0]
+    data = {
+        "obj_id": obj_id,
+        "token": TOKEN
+    }
+    requests.delete(f"{DOMAIN}api/admin/spam", json=data)
+    bot.answer_callback_query(call.id, 'Denied')
 
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"unwelcome(\d*)", call.data))

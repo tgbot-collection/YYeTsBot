@@ -25,8 +25,8 @@ from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      GrafanaSearchHandler, IndexHandler, LikeHandler,
                      MetricsHandler, NameHandler, NotFoundHandler,
                      NotificationHandler, ResourceHandler,
-                     ResourceLatestHandler, TopHandler, UserEmailHandler,
-                     UserHandler)
+                     ResourceLatestHandler, SpamProcessHandler, TopHandler,
+                     UserEmailHandler, UserHandler)
 from migration.douban_sync import sync_douban
 from Mongo import OtherMongoResource, ResourceLatestMongoResource
 
@@ -64,6 +64,7 @@ class RunServer:
         (r'/api/douban/report', DoubanReportHandler),
         (r'/api/notification', NotificationHandler),
         (r'/api/category', CategoryHandler),
+        (r'/api/admin/spam', SpamProcessHandler),
 
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|'
          r'.*\.svg|.*\.json|.*\.txt)',
