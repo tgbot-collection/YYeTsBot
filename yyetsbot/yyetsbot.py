@@ -270,7 +270,7 @@ def choose_link(call):
         return
 
     result = fan.search_result(resource_url_hash)
-    with tempfile.NamedTemporaryFile(mode='wb+', prefix=result["cnname"], suffix=".txt") as tmp:
+    with tempfile.NamedTemporaryFile(mode='wb+', prefix=result["cnname"].replace("/", " "), suffix=".txt") as tmp:
         bytes_data = json.dumps(result["all"], ensure_ascii=False, indent=4).encode('u8')
         tmp.write(bytes_data)
         tmp.flush()
