@@ -237,7 +237,7 @@ class YYeTsOffline(BaseFansub):
             rid = resource_url.split("id=")[1]
             data: dict = self.collection.find_one({"data.info.id": int(rid)}, {'_id': False})
             name = data["data"]["info"]["cnname"]
-            share = WORKERS.format(id=rid)
+            share = WORKERS % rid
             t = "resource"
 
         return {"all": json.dumps(data, ensure_ascii=False, indent=4), "share": share, "cnname": name, "type": t}
