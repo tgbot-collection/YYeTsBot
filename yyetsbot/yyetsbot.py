@@ -292,8 +292,8 @@ def approve_spam(call):
         "token": TOKEN
     }
     requests.post(f"{DOMAIN}api/admin/spam", json=data)
-    bot.send_chat_action(call.message.chat.id, 'typing')
     bot.answer_callback_query(call.id, 'Approved')
+    bot.delete_message(call.message.chat.id, call.message.message_id)
 
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"deny", call.data))
@@ -305,6 +305,7 @@ def deny_spam(call):
     }
     requests.delete(f"{DOMAIN}api/admin/spam", json=data)
     bot.answer_callback_query(call.id, 'Denied')
+    bot.delete_message(call.message.chat.id, call.message.message_id)
 
 
 @bot.callback_query_handler(func=lambda call: re.findall(r"unwelcome(\d*)", call.data))

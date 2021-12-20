@@ -923,8 +923,8 @@ class CategoryHandler(BaseHandler):
 class SpamProcessHandler(BaseHandler):
     class_name = f"SpamProcess{adapter}Resource"
 
-    from Mongo import SpamProcessMongoResource
-    instance = SpamProcessMongoResource()
+    # from Mongo import SpamProcessMongoResource
+    # instance = SpamProcessMongoResource()
 
     def process(self, method):
         obj_id = self.json.get("obj_id")
