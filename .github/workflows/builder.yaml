@@ -33,6 +33,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run hooks
         env:
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -44,11 +51,17 @@ jobs:
           GENERATE_SOURCEMAP: ${{ secrets.GENERATE_SOURCEMAP }}
         run: bash scripts/pre_build.sh
 
-      - name: Lower case
-        id: string
+      - name: Lower case for Docker Hub
+        id: dh_string
         uses: ASzc/change-string-case-action@v1
         with:
           string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
+
+      - name: Lower case for ghcr
+        id: ghcr_string
+        uses: ASzc/change-string-case-action@v1
+        with:
+          string: ${{ github.event.repository.full_name }}
 
       - name: Build and push
         uses: docker/build-push-action@v2
@@ -56,7 +69,9 @@ jobs:
           context: .
           platforms: linux/amd64, linux/arm64
           push: true
-          tags: ${{ steps.string.outputs.lowercase }}
+          tags: |
+            ${{ steps.dh_string.outputs.lowercase }}
+            ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
