@@ -1,4 +1,4 @@
-requests==2.24.0
+requests==2.27.0
 pytelegrambotapi==4.2.2
 beautifulsoup4==4.9.1
 tgbot-ping
