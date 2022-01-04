@@ -559,6 +559,7 @@ class ResourceMongoResource(ResourceResource, Mongo):
             returned = dict(data=final)
             returned["extra"] = []
         else:
+            # TODO how to generate code using ORDER here
             extra = self.fansub_search(NewzmzOnline.__name__, keyword) or \
                     self.fansub_search(ZhuixinfanOnline.__name__, keyword) or \
                     self.fansub_search(XL720.__name__, keyword) or \
@@ -1038,7 +1039,7 @@ class ResourceLatestMongoResource(ResourceLatestResource, Mongo):
         col = self.db["yyets"]
         projection = {"_id": False, "status": False, "info": False}
         episode_data = {}
-        for res in tqdm(col.find(projection=projection), total=col.count()):
+        for res in tqdm(col.find(projection=projection), total=col.count_documents({})):
             for season in res["data"].get("list", []):
                 for item in season["items"].values():
                     for single in item:
