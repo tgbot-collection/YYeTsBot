@@ -53,4 +53,4 @@ MONGO = os.getenv("MONGO") or "mongo"
 MAINTAINER = os.getenv("MAINTAINER")
 REPORT = os.getenv("REPORT") or False
 # This name must match class name, other wise this bot won't running.
-FANSUB_ORDER: str = os.getenv("ORDER") or 'YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline,XL720,BD2020'
+FANSUB_ORDER: str = os.getenv("ORDER") or 'YYeTsOffline,NewzmzOnline,ZhuixinfanOnline,XL720,BD2020'
