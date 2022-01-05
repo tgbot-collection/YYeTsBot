@@ -3,7 +3,7 @@ pytelegrambotapi==4.2.2
 beautifulsoup4==4.10.0
 tgbot-ping
 redis==3.5.3
-apscheduler==3.7.0
+apscheduler==3.8.1
 pymongo==3.11.2
 tornado==6.1
 redis==3.5.3
