@@ -2,11 +2,11 @@ requests==2.27.0
 pytelegrambotapi==4.2.2
 beautifulsoup4==4.10.0
 tgbot-ping
-redis==3.5.3
+redis==4.1.0
 apscheduler==3.7.0
 pymongo==3.11.2
 tornado==6.1
-redis==3.5.3
+redis==4.1.0
 captcha==0.3
 passlib==1.7.4
 fakeredis==1.7.0
