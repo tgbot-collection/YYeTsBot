@@ -11,7 +11,7 @@ captcha==0.3
 passlib==1.7.4
 fakeredis==1.7.0
 pytz==2021.3
-filetype==1.0.7
+filetype==1.0.9
 requests[socks]
 tqdm==4.61.1
 retry==0.9.2
