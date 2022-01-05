@@ -4,7 +4,7 @@ beautifulsoup4==4.10.0
 tgbot-ping
 redis==4.0.2
 apscheduler==3.8.1
-pymongo==3.11.2
+pymongo==4.0.1
 tornado==6.1
 redis==4.0.2
 captcha==0.3
