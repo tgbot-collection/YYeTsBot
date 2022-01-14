@@ -51,6 +51,9 @@ def send_mail(to: str, subject: str, body: str):
 def check_spam(ip, ua, author, content) -> int:
     # 0 means okay
     token = os.getenv("askismet")
+    whitelist: "list" = os.getenv("whitelist", "").split(",")
+    if author in whitelist:
+        return 0
     if token:
         with contextlib.suppress(Exception):
             akismet = Akismet(token, blog="https://yyets.dmesg.app/")
