@@ -17,6 +17,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from tornado import httpserver, ioloop, options, web
 from tornado.log import enable_pretty_logging
 
+from dump_db import entry_dump
 from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      CategoryHandler, CommentChildHandler, CommentHandler,
                      CommentNewestHandler, CommentReactionHandler,
@@ -101,7 +102,8 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler(timezone=timez)
     scheduler.add_job(OtherMongoResource().reset_top, 'cron', hour=0, minute=0, day=1)
     scheduler.add_job(sync_douban, 'cron', hour=0, minute=0, day=1)
-    scheduler.add_job(ResourceLatestMongoResource().refresh_latest_resource, 'cron', hour=1)
+    scheduler.add_job(entry_dump, 'cron', hour=0, minute=0, day_of_week=6)
+    scheduler.add_job(ResourceLatestMongoResource().refresh_latest_resource, 'interval', hours=1)
     scheduler.start()
     options.define("p", default=8888, help="running port", type=int)
     options.define("h", default='127.0.0.1', help="listen address", type=str)

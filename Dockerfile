@@ -25,6 +25,7 @@ RUN if [ "$env" = "dev" ]; then echo "dev build"; yarn build; sh /tmp/dev_robots
 
 FROM runner
 COPY . /YYeTsBot
+RUN apk add mongodb-tools mysql-client
 COPY --from=pybuilder /root/.local /usr/local
 COPY --from=pybuilder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=pybuilder /usr/share/zoneinfo /usr/share/zoneinfo

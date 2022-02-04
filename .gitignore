@@ -135,3 +135,4 @@ logs/*
 /yyetsweb/templates/*.json
 
 
+/yyetsweb/templates/data/*
