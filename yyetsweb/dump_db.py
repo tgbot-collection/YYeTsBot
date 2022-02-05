@@ -44,7 +44,7 @@ def read_resource():
 def read_comment():
     logging.info("Reding comment from mongo")
     return db["comment"].find(
-        projection={"_id": False, "username": False, "ip": False, "browser": False, "id": False, "resource_id": False})
+        projection={"_id": False, "username": False, "ip": False, "browser": False})
 
 
 def prepare_mysql():
@@ -64,7 +64,9 @@ def prepare_mysql():
         create table comment
         (
             content  longtext null,
-            date     varchar(256) null
+            date     varchar(256) null,
+            id     int null,
+            resource_id     varchar(256) null
         ) charset utf8mb4;
         """
 
@@ -93,7 +95,9 @@ def prepare_sqlite():
             create table comment
             (
                 content  longtext null,
-                date     varchar(256) null
+                date     varchar(256) null,
+                id     int null,
+                resource_id     varchar(256) null
             );
             """
 
@@ -146,11 +150,13 @@ def dump_comment():
     for each in tqdm(res, total=db["comment"].count_documents({})):
         content = each["content"]
         date = each["date"]
-        batch_data.append((content, date))
+        id = each.get("id", 0)
+        resource_id = each["resource_id"]
+        batch_data.append((content, date, id, resource_id))
         mb.append(each)
         if len(batch_data) == CHUNK_SIZE:
-            sql1 = "insert into comment values (%s, %s)"
-            sql2 = "insert into comment values ( ?, ?)"
+            sql1 = "insert into comment values (%s, %s, %s, %s)"
+            sql2 = "insert into comment values ( ?, ?, ?,?)"
             insert_func(batch_data, mb, sql1, sql2)
             batch_data = []
             mb = []
