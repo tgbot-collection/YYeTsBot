@@ -9,10 +9,12 @@ __author__ = "Benny <benny.think@gmail.com>"
 
 import json
 import logging
+import multiprocessing
 import os
 import pathlib
 import sqlite3
 import subprocess
+import time
 import zipfile
 
 import pymongo
@@ -26,10 +28,12 @@ data_path = pathlib.Path(__file__).parent.joinpath("templates", "data")
 sqlite_file = data_path.joinpath("yyets.db").as_posix()
 
 mongo = pymongo.MongoClient('mongo', 27017)
-mysql_con = pymysql.connect(host='mysql', user='root', passwd='root', charset='utf8mb4')
-sqlite_con = sqlite3.connect(sqlite_file, check_same_thread=False)
+mc = pymysql.connect(host='mysql', user='root', passwd='root', charset='utf8mb4')
+sc = sqlite3.connect(sqlite_file, check_same_thread=False)
 
-db = mongo["zimuzu"]
+db = pymongo.MongoClient('mongo', 27017)["zimuzu"]
+
+CHUNK_SIZE = 1000
 
 
 def read_resource():
@@ -64,17 +68,17 @@ def prepare_mysql():
         ) charset utf8mb4;
         """
 
-    cur = mysql_con.cursor()
+    cur = mc.cursor()
     cur.execute(db_sql)
     cur.execute("use share")
     cur.execute(resource_sql)
     cur.execute(comment_sql)
-    mysql_con.commit()
+    mc.commit()
 
 
 def prepare_sqlite():
     logging.info("Preparing sqlite")
-    cur = sqlite_con.cursor()
+    cur = sc.cursor()
     resource_sql = """
             create table yyets
             (
@@ -95,17 +99,14 @@ def prepare_sqlite():
 
     cur.execute(resource_sql)
     cur.execute(comment_sql)
-    sqlite_con.commit()
+    sc.commit()
 
 
 def dump_resource():
     res = read_resource()
     # insert into mysql
-    mysql_cur = mysql_con.cursor()
-    sqlite_cur = sqlite_con.cursor()
-    mysql_cur.execute("use share")
-    col = mongo["share"]["resource"]
-
+    batch_data = []
+    mb = []
     for each in tqdm(res, total=db["yyets"].count_documents({})):
         data = each["data"]["info"]
         resource_id = data["id"]
@@ -114,36 +115,45 @@ def dump_resource():
         aliasname = data["aliasname"]
         data = json.dumps(each, ensure_ascii=False)
 
-        mysql_cur.execute("insert into yyets values (%s, %s, %s, %s, %s)",
-                          (resource_id, cnname, enname, aliasname, data)
-                          )
-        sqlite_cur.execute("insert into yyets values (?, ?, ?, ?, ?)",
-                           (resource_id, cnname, enname, aliasname, data)
-                           )
-        col.insert_one(each)
+        batch_data.append((resource_id, cnname, enname, aliasname, data))
+        mb.append(each)
+        if len(batch_data) == CHUNK_SIZE:
+            sql1 = "insert into yyets values (%s, %s, %s, %s, %s)"
+            sql2 = "insert into yyets values (?, ?, ?, ?, ?)"
+            # multiprocessing.Process(target=insert_func, args=(batch_data, mb, sql1, sql2)).start()
+            insert_func(batch_data, mb, sql1, sql2)
+            batch_data = []
+            mb = []
 
-    mysql_con.commit()
-    sqlite_con.commit()
+
+def insert_func(batch_data, mb, sql1, sql2):
+    mysql_cur = mc.cursor()
+    sqlite_cur = sc.cursor()
+    col = pymongo.MongoClient('mongo', 27017)["share"]["comment"]
+    mysql_cur.execute("use share")
+
+    mysql_cur.executemany(sql1, batch_data)
+    sqlite_cur.executemany(sql2, batch_data)
+    col.insert_many(mb)
+    mc.commit()
+    sc.commit()
 
 
 def dump_comment():
     res = read_comment()
-    mysql_cur = mysql_con.cursor()
-    sqlite_cur = sqlite_con.cursor()
-    col = mongo["share"]["comment"]
+    batch_data = []
+    mb = []
     for each in tqdm(res, total=db["comment"].count_documents({})):
         content = each["content"]
         date = each["date"]
-
-        mysql_cur.execute("insert into comment values (%s, %s)",
-                          (content, date)
-                          )
-        sqlite_cur.execute("insert into comment values ( ?, ?)",
-                           (content, date)
-                           )
-        col.insert_one(each)
-    mysql_con.commit()
-    sqlite_con.commit()
+        batch_data.append((content, date))
+        mb.append(each)
+        if len(batch_data) == CHUNK_SIZE:
+            sql1 = "insert into comment values (%s, %s)"
+            sql2 = "insert into comment values ( ?, ?)"
+            insert_func(batch_data, mb, sql1, sql2)
+            batch_data = []
+            mb = []
 
 
 def zip_file():
@@ -167,20 +177,22 @@ def zip_file():
 
 def cleanup():
     logging.info("Cleaning up...")
-    mysql_con.cursor().execute("drop database share")
+    mc.cursor().execute("drop database share")
     os.unlink(sqlite_file)
     mongo.drop_database("share")
     os.unlink("share.sql")
 
 
 def entry_dump():
+    t0 = time.time()
     prepare_mysql()
     prepare_sqlite()
     dump_resource()
     dump_comment()
+    logging.info("Write done! Time used: %.2fs" % (time.time() - t0))
     zip_file()
     cleanup()
-    logging.info("Done!")
+    logging.info("Total time used: %.2fs" % (time.time() - t0))
 
 
 if __name__ == '__main__':
