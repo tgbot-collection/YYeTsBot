@@ -22,7 +22,7 @@ from hashlib import sha1
 from http import HTTPStatus
 
 import filetype
-import requests
+import pathlib
 from tornado import escape, gen, web
 from tornado.concurrent import run_on_executor
 
@@ -38,8 +38,7 @@ else:
 
 logging.info("%s Running with %s. %s", "#" * 10, adapter, "#" * 10)
 
-static_path = os.path.join(os.path.dirname(__file__), 'templates')
-index = os.path.join(static_path, "index.html")
+index = pathlib.Path(__file__).parent.joinpath("templates", "index.html").as_posix()
 
 
 class BaseHandler(web.RequestHandler):
@@ -766,13 +765,13 @@ class DBDumpHandler(BaseHandler):
         result = {}
         data = self.file_info(file_list)
         for file, value in data.items():
-            filename = os.path.basename(file)
+            filename = pathlib.Path(file).name
             result[filename] = {
                 "checksum": value[0],
                 "date": value[1],
                 "size": value[2],
             }
-
+        print(result)
         return result
 
     @gen.coroutine

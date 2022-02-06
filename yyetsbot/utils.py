@@ -4,20 +4,15 @@
 
 __author__ = 'Benny <benny.think@gmail.com>'
 
-import json
-import logging
-import os
-import pickle
-import sys
+import pathlib
 
 import redis
-import requests
 
-from config import AJAX_LOGIN, PASSWORD, REDIS, USERNAME
+from config import REDIS
 
 r = redis.StrictRedis(host=REDIS, decode_responses=True)
 
-cookie_file = os.path.join(os.path.dirname(__file__), 'data', 'cookies.dump')
+cookie_file = pathlib.Path(__file__).parent / 'data' / 'cookies.dump'
 
 
 def save_error_dump(uid, err: str):
@@ -44,7 +39,7 @@ def redis_announcement(content="", op="get"):
 def today_request(request_type: str):
     if r.exists("usage"):
         dict_data: dict = r.hgetall("usage")
-        dict_data[request_type] = int(dict_data[request_type])+1
+        dict_data[request_type] = int(dict_data[request_type]) + 1
     else:
         data_format: dict = dict(total=0, invalid=0, answer=0, success=0, fail=0)
         data_format[request_type] += 1

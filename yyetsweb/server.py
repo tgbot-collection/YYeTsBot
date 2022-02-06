@@ -10,7 +10,7 @@ __author__ = "Benny <benny.think@gmail.com>"
 import logging
 import os
 import platform
-
+import pathlib
 import pytz
 import tornado.autoreload
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -38,8 +38,7 @@ if os.getenv("debug"):
 
 
 class RunServer:
-    root_path = os.path.dirname(__file__)
-    static_path = os.path.join(root_path, 'templates')
+    static_path = pathlib.Path(__file__).parent.joinpath('templates')
     handlers = [
         (r'/', IndexHandler),
         (r'/api/resource', ResourceHandler),
