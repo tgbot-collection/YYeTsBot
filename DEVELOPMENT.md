@@ -43,7 +43,7 @@ docker-compose up -d mongo
 docker yyets_mongo.gz 1234da:/tmp
 # 进入容器
 docker-compose exec mongo bash
-mongorestore --gzip --archive=/tmp/yyets_mongo.gz
+mongorestore --gzip --archive=yyets_mongo.gz --nsFrom "share.*" --nsTo "zimuzu.*"
 exit
 # 开启服务
 docker-compose up -d

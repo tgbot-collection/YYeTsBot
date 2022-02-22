@@ -101,7 +101,7 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler(timezone=timez)
     scheduler.add_job(OtherMongoResource().reset_top, 'cron', hour=0, minute=0, day=1)
     scheduler.add_job(sync_douban, 'cron', hour=0, minute=0, day=1)
-    scheduler.add_job(entry_dump, 'cron', hour=0, minute=0, day_of_week=6)
+    scheduler.add_job(entry_dump, 'cron', hour=2, minute=0)
     scheduler.add_job(ResourceLatestMongoResource().refresh_latest_resource, 'interval', hours=1)
     scheduler.start()
     options.define("p", default=8888, help="running port", type=int)

@@ -9,7 +9,6 @@ __author__ = "Benny <benny.think@gmail.com>"
 
 import json
 import logging
-import multiprocessing
 import os
 import pathlib
 import sqlite3
@@ -25,15 +24,24 @@ from tqdm import tqdm
 logging.basicConfig(level=logging.INFO)
 
 data_path = pathlib.Path(__file__).parent.joinpath("templates", "data")
-sqlite_file = data_path.joinpath("yyets.db").as_posix()
-
-mongo = pymongo.MongoClient('mongo', 27017)
-mc = pymysql.connect(host='mysql', user='root', passwd='root', charset='utf8mb4')
-sc = sqlite3.connect(sqlite_file, check_same_thread=False)
-
-db = pymongo.MongoClient('mongo', 27017)["zimuzu"]
+sqlite_file = data_path.joinpath("yyets.db")
 
 CHUNK_SIZE = 1000
+
+
+def get_conn():
+    try:
+        mongo = pymongo.MongoClient('mongo', 27017)
+        mc = pymysql.connect(host='mysql', user='root', passwd='root', charset='utf8mb4')
+        sc = sqlite3.connect(sqlite_file, check_same_thread=False)
+        db = pymongo.MongoClient('mongo', 27017)["zimuzu"]
+    except Exception as e:
+        logging.error(e)
+        return None, None, None, None
+    return mongo, mc, sc, db
+
+
+mongo, mc, sc, db = get_conn()
 
 
 def read_resource():
@@ -49,7 +57,7 @@ def read_comment():
 
 def prepare_mysql():
     logging.info("Preparing mysql")
-    db_sql = "create database share;"
+    db_sql = "create database zimuzu;"
     resource_sql = """
         create table yyets
         (
@@ -72,7 +80,7 @@ def prepare_mysql():
 
     cur = mc.cursor()
     cur.execute(db_sql)
-    cur.execute("use share")
+    cur.execute("use zimuzu")
     cur.execute(resource_sql)
     cur.execute(comment_sql)
     mc.commit()
@@ -124,17 +132,16 @@ def dump_resource():
         if len(batch_data) == CHUNK_SIZE:
             sql1 = "insert into yyets values (%s, %s, %s, %s, %s)"
             sql2 = "insert into yyets values (?, ?, ?, ?, ?)"
-            # multiprocessing.Process(target=insert_func, args=(batch_data, mb, sql1, sql2)).start()
-            insert_func(batch_data, mb, sql1, sql2)
+            insert_func(batch_data, mb, sql1, sql2, "resource")
             batch_data = []
             mb = []
 
 
-def insert_func(batch_data, mb, sql1, sql2):
+def insert_func(batch_data, mb, sql1, sql2, col_name=None):
     mysql_cur = mc.cursor()
     sqlite_cur = sc.cursor()
-    col = pymongo.MongoClient('mongo', 27017)["share"]["comment"]
-    mysql_cur.execute("use share")
+    col = pymongo.MongoClient('mongo', 27017)["share"][col_name]
+    mysql_cur.execute("use zimuzu")
 
     mysql_cur.executemany(sql1, batch_data)
     sqlite_cur.executemany(sql2, batch_data)
@@ -157,23 +164,23 @@ def dump_comment():
         if len(batch_data) == CHUNK_SIZE:
             sql1 = "insert into comment values (%s, %s, %s, %s)"
             sql2 = "insert into comment values ( ?, ?, ?,?)"
-            insert_func(batch_data, mb, sql1, sql2)
+            insert_func(batch_data, mb, sql1, sql2, "comment")
             batch_data = []
             mb = []
 
 
 def zip_file():
     logging.info("Zipping SQLite...")
-    p = data_path.joinpath("yyets_sqlite.zip").as_posix()
+    p = data_path.joinpath("yyets_sqlite.zip")
     with zipfile.ZipFile(p, 'w', zipfile.ZIP_DEFLATED) as zf:
         zf.write(sqlite_file, "yyets_sqlite.db")
 
     logging.info("Dumping MySQL...")
-    subprocess.check_output("mysqldump -h mysql -u root -proot share > share.sql", shell=True)
-    p = data_path.joinpath("yyets_mysql.zip").as_posix()
+    subprocess.check_output("mysqldump -h mysql -u root -proot zimuzu > zimuzu.sql", shell=True)
+    p = data_path.joinpath("yyets_mysql.zip")
     logging.info("Zipping MySQL...")
     with zipfile.ZipFile(p, 'w', zipfile.ZIP_DEFLATED) as zf:
-        zf.write("share.sql")
+        zf.write("zimuzu.sql")
 
     logging.info("Dumping MongoDB")
     subprocess.check_output(
@@ -183,10 +190,10 @@ def zip_file():
 
 def cleanup():
     logging.info("Cleaning up...")
-    mc.cursor().execute("drop database share")
+    mc.cursor().execute("drop database zimuzu")
     os.unlink(sqlite_file)
     mongo.drop_database("share")
-    os.unlink("share.sql")
+    os.unlink("zimuzu.sql")
 
 
 def entry_dump():
