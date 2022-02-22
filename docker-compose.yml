@@ -23,7 +23,7 @@ services:
       - redis=redis
     working_dir: /YYeTsBot/yyetsweb/
     volumes:
-      - ./data:/YYeTsBot/yyetsweb/data/
+      - ./data:/YYeTsBot/yyetsweb/templates/data/
     command: [ "python3","server.py","-h=0.0.0.0" ]
     ports:
       - "127.0.0.1:8888:8888"

@@ -37,12 +37,12 @@ function import_db() {
   # special for windows
   result=$(uname -a | grep "Msys")
   if [[ "$result" != "" ]]; then
-    echo "docker exec yyets_mongo_1 mongorestore --gzip --archive=/tmp/yyets_mongo.gz" >windows.bat
+    echo "docker exec yyets_mongo_1 mongorestore --gzip --archive=yyets_mongo.gz --nsFrom "share.*" --nsTo "zimuzu.*"" >windows.bat
     echo "docker exec yyets_mongo_1 rm /tmp/yyets_mongo.gz" >>windows.bat
     cmd "/C windows.bat"
     rm windows.bat
   else
-    docker exec yyets_mongo_1 mongorestore --gzip --archive=/tmp/yyets_mongo.gz
+    docker exec yyets_mongo_1 mongorestore --gzip --archive=yyets_mongo.gz --nsFrom "share.*" --nsTo "zimuzu.*"
     docker exec yyets_mongo_1 rm /tmp/yyets_mongo.gz
   fi
 
