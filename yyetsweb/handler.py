@@ -12,6 +12,7 @@ import importlib
 import json
 import logging
 import os
+import pathlib
 import re
 import sys
 import time
@@ -22,7 +23,6 @@ from hashlib import sha1
 from http import HTTPStatus
 
 import filetype
-import pathlib
 from tornado import escape, gen, web
 from tornado.concurrent import run_on_executor
 
