@@ -758,9 +758,9 @@ class DBDumpHandler(BaseHandler):
     @Redis.cache(3600)
     def get_hash(self):
         file_list = [
-            "templates/data/yyets_mongo.gz",
-            "templates/data/yyets_mysql.zip",
-            "templates/data/yyets_sqlite.zip"
+            "templates/dump/yyets_mongo.gz",
+            "templates/dump/yyets_mysql.zip",
+            "templates/dump/yyets_sqlite.zip"
         ]
         result = {}
         data = self.file_info(file_list)
