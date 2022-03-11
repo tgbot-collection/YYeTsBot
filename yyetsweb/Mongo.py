@@ -560,7 +560,8 @@ class ResourceMongoResource(ResourceResource, Mongo):
             returned["extra"] = []
         else:
             # TODO how to generate code using ORDER here
-            extra = self.fansub_search(NewzmzOnline.__name__, keyword) or \
+            extra = self.fansub_search(ZimuxiaOnline.__name__, keyword) or \
+                    self.fansub_search(NewzmzOnline.__name__, keyword) or \
                     self.fansub_search(ZhuixinfanOnline.__name__, keyword) or \
                     self.fansub_search(XL720.__name__, keyword) or \
                     self.fansub_search(BD2020.__name__, keyword)

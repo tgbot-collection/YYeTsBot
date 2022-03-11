@@ -460,9 +460,9 @@ for sub_name in globals().copy():
         vars()[cmd_name] = m
 
 if __name__ == '__main__':
-    sub = BD2020()
-    search = sub.search_preview("我老婆要嫁人")
+    sub = ZimuxiaOnline()
+    search = sub.search_preview("最爱")
     print(search)
-    # uh = "a0702952077718cb9d1e08dca3485c51d5deee6e"
-    # result = sub.search_result(uh)
-    # print(json.dumps(result, ensure_ascii=False))
+    uh = "4bcd33af9be2fba0060c388e984c7a2509e7e654"
+    result = sub.search_result(uh)
+    print(json.dumps(result, ensure_ascii=False))
