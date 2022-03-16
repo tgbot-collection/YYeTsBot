@@ -6,7 +6,7 @@ redis==4.1.4
 apscheduler==3.9.1
 pymongo==4.0.2
 tornado==6.1
-captcha==0.3
+captcha==0.4
 passlib==1.7.4
 fakeredis==1.7.1
 pytz==2021.3
