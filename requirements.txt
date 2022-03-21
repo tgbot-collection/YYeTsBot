@@ -9,7 +9,7 @@ tornado==6.1
 captcha==0.4
 passlib==1.7.4
 fakeredis==1.7.1
-pytz==2021.3
+pytz==2022.1
 filetype==1.0.10
 requests[socks]
 tqdm==4.63.0
