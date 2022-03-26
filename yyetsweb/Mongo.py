@@ -721,6 +721,9 @@ class UserMongoResource(UserResource, Mongo):
                 returned_value["message"] = "用户名或密码错误"
 
         else:
+            if os.getenv("DISABLE_REGISTER"):
+                return {"status_code": HTTPStatus.BAD_REQUEST, "message": "本站已经暂停注册"}
+
             # register
             hash_value = pbkdf2_sha256.hash(password)
             try:
