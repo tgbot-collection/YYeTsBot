@@ -182,6 +182,32 @@ def send_search(message):
     base_send_search(message)
 
 
+@bot.message_handler(content_types=["document"])
+def ban_user(message):
+    if str(message.chat.id) != MAINTAINER:
+        return
+
+    mem = io.BytesIO()
+    file_id = message.document.file_id
+    file_info = bot.get_file(file_id)
+    content = bot.download_file(file_info.file_path)
+    mem.write(content)
+    user_list = mem.getvalue().decode("u8").split("\n")
+    yy = fansub.YYeTsOffline()
+    client = yy.mongo
+    user_col = client["zimuzu"]["users"]
+    text = ""
+    for line in user_list:
+        user, reason = line.split(maxsplit=1)
+        ban = {"disable": True, "reason": reason}
+        user_col.update_one({"username": user}, {"$set": {"status": ban}})
+        status = f"{user} 已经被禁言，原因：{reason}\n"
+        logging.info("Banning %s", status)
+        text += status
+    bot.reply_to(message, text)
+    mem.close()
+
+
 def base_send_search(message, instance=None):
     if instance is None:
         fan = fansub.FansubEntrance()
