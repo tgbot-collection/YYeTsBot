@@ -915,7 +915,13 @@ class NotificationMongoResource(NotificationResource, Mongo):
         # .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
         notify = self.db["notification"].find_one({"username": username}, projection={"_id": False})
         if not notify:
-            return {}
+            return {
+                "username": username,
+                "unread_item": [],
+                "read_item": [],
+                "unread_count": 0,
+                "read_count": 0
+            }
 
         # size is shared
         unread = notify.get("unread", [])
