@@ -97,7 +97,7 @@ class AntiCrawler:
             count = 1
         # ban rule: (count-10)*600
         if count > 10:
-            ex = (count - 10) * 3600
+            ex = (count - 10) * 600
         else:
             ex = None
         con.r.set(ip, count, ex)
