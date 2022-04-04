@@ -25,7 +25,7 @@ from http import HTTPStatus
 import filetype
 from tornado import escape, gen, web
 from tornado.concurrent import run_on_executor
-
+from Mongo import Mongo
 from database import AntiCrawler, CaptchaResource, Redis
 
 escape.json_encode = lambda value: json.dumps(value, ensure_ascii=False)
@@ -52,6 +52,14 @@ class BaseHandler(web.RequestHandler):
         with contextlib.suppress(ValueError):
             self.json: dict = json.loads(self.request.body)
         self.instance = getattr(self.adapter_module, self.class_name)()
+        self.db = Mongo()
+        self.ban_yellow_nazi()
+
+    def ban_yellow_nazi(self):
+        if self.db.is_user_blocked(self.get_current_user()):
+            self.set_status(HTTPStatus.FORBIDDEN, "You don't deserve it.")
+            real_ip = AntiCrawler(self).get_real_ip()
+            AntiCrawler(self).imprisonment(real_ip)
 
     def write_error(self, status_code, **kwargs):
         if status_code in [HTTPStatus.FORBIDDEN,
