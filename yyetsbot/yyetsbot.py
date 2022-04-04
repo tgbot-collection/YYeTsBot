@@ -7,6 +7,7 @@ __author__ = 'Benny <benny.think@gmail.com>'
 import io
 import json
 import logging
+import os
 import re
 import tempfile
 import time
@@ -175,6 +176,8 @@ def send_my_response(message):
 
 @bot.message_handler(content_types=["photo", "text"])
 def send_search(message):
+    if str(message.chat.id) == os.getenv("SPECIAL_ID") and message.text == "❤️":
+        bot.reply_to(message, "❤️")
     # normal ordered search
     if message.text in ("Voice Chat started", "Voice Chat ended"):
         logging.warning("This is really funny %s", message.text)
@@ -196,11 +199,13 @@ def ban_user(message):
     yy = fansub.YYeTsOffline()
     client = yy.mongo
     user_col = client["zimuzu"]["users"]
+    comment_col = client["zimuzu"]["comment"]
     text = ""
     for line in user_list:
         user, reason = line.split(maxsplit=1)
         ban = {"disable": True, "reason": reason}
         user_col.update_one({"username": user}, {"$set": {"status": ban}})
+        comment_col.delete_many({"username": user})
         status = f"{user} 已经被禁言，原因：{reason}\n"
         logging.info("Banning %s", status)
         text += status
