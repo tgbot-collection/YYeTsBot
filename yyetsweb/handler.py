@@ -23,10 +23,12 @@ from hashlib import sha1
 from http import HTTPStatus
 
 import filetype
+import zhconv
 from tornado import escape, gen, web
 from tornado.concurrent import run_on_executor
-from Mongo import Mongo
+
 from database import AntiCrawler, CaptchaResource, Redis
+from Mongo import Mongo
 
 escape.json_encode = lambda value: json.dumps(value, ensure_ascii=False)
 logging.basicConfig(level=logging.INFO)
@@ -209,6 +211,8 @@ class ResourceHandler(BaseHandler):
     @run_on_executor()
     def search_resource(self):
         kw = self.get_query_argument("keyword").lower()
+        # convert any text to zh-hans
+        kw = zhconv.convert(kw, "zh-hans")
         return self.instance.search_resource(kw)
 
     @gen.coroutine
