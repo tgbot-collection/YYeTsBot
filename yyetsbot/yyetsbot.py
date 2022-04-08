@@ -15,6 +15,7 @@ from urllib.parse import quote_plus
 
 import requests
 import telebot
+import zhconv
 from apscheduler.schedulers.background import BackgroundScheduler
 from telebot import apihelper, types
 from tgbot_ping import get_runtime
@@ -227,7 +228,7 @@ def base_send_search(message, instance=None):
         send_my_response(message)
         return
 
-    name = message.text
+    name = zhconv.convert(message.text, "zh-hans")
     logging.info('Receiving message: %s from user %s(%s)', name, message.chat.username, message.chat.id)
     if name is None:
         today_request("invalid")
