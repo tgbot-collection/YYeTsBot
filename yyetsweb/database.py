@@ -55,60 +55,6 @@ class Redis:
         return func
 
 
-class AntiCrawler:
-
-    def __init__(self, instance):
-        self.tornado = instance
-        self.redis = Redis()
-
-    def execute(self) -> bool:
-        header_result = self.header_check()
-        ban_check = self.ban_check()
-        if header_result or ban_check:
-            return True
-
-    def header_check(self):
-        referer = self.tornado.request.headers.get("Referer")
-        resource_id = self.tornado.get_query_argument("id")
-        uri = self.tornado.request.uri
-        logging.info("Verifying: Referer:[%s] uri:[%s]", referer, uri)
-        if referer is None:
-            return True
-        if resource_id not in uri:
-            return True
-        if resource_id not in referer:
-            return True
-
-    def ban_check(self):
-        con = self.redis
-        ip = self.get_real_ip()
-        str_count = con.r.get(ip)
-        if str_count and int(str_count) > 10:
-            return True
-
-    def imprisonment(self, ip):
-        con = self.redis
-        # don't use incr - we need to set expire time
-        if con.r.exists(ip):
-            count_str = con.r.get(ip)
-            count = int(count_str)
-            count += 1
-        else:
-            count = 1
-        # ban rule: (count-10)*600
-        if count > 10:
-            ex = (count - 10) * 600
-        else:
-            ex = None
-        con.r.set(ip, count, ex)
-
-    def get_real_ip(self):
-        x_real = self.tornado.request.headers.get("X-Real-IP")
-        remote_ip = self.tornado.request.remote_ip
-        logging.debug("X-Real-IP:%s, Remote-IP:%s", x_real, remote_ip)
-        return x_real or remote_ip
-
-
 class OtherResource():
     def reset_top(self):
         pass
