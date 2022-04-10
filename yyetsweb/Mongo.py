@@ -92,6 +92,15 @@ class OtherMongoResource(OtherResource, Mongo):
         # reset
         self.db["yyets"].update_many({}, {"$set": {"data.info.views": 0}})
 
+    def import_ban_user(self):
+        usernames = self.db["users"].find({"status.disable": True}, projection={"username": True})
+        r = Redis().r
+        r.delete("user_blacklist")
+        logging.info("Importing ban users to redis...%s", usernames)
+        for username in [u["username"] for u in usernames]:
+            r.hset("user_blacklist", username, 100)
+        r.close()
+
 
 class AnnouncementMongoResource(AnnouncementResource, Mongo):
     def get_announcement(self, page: int, size: int) -> dict:
@@ -507,7 +516,8 @@ class ResourceMongoResource(ResourceResource, Mongo):
             {"data.info.id": resource_id},
             {'$inc': {'data.info.views': 1}},
             {'_id': False})
-
+        if not data:
+            return {}
         if username:
             user_like_data = self.db["users"].find_one({"username": username})
             if user_like_data and resource_id in user_like_data.get("like", []):
@@ -653,13 +663,12 @@ class TopMongoResource(TopResource, Mongo):
 
     def get_top_resource(self) -> dict:
         area_dict = dict(ALL={"$regex": ".*"}, US="美国", JP="日本", KR="韩国", UK="英国")
-        all_data = {}
+        all_data = {"ALL": "全部"}
         for abbr, area in area_dict.items():
             data = self.db["yyets"].find({"data.info.area": area, "data.info.id": {"$ne": 233}}, self.projection). \
                 sort("data.info.views", pymongo.DESCENDING).limit(15)
             all_data[abbr] = list(data)
 
-        area_dict["ALL"] = "全部"
         all_data["class"] = area_dict
         return all_data
 

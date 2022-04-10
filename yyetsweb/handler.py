@@ -27,8 +27,7 @@ import zhconv
 from tornado import escape, gen, web
 from tornado.concurrent import run_on_executor
 
-from database import AntiCrawler, CaptchaResource, Redis
-from Mongo import Mongo
+from database import CaptchaResource, Redis
 
 escape.json_encode = lambda value: json.dumps(value, ensure_ascii=False)
 logging.basicConfig(level=logging.INFO)
@@ -43,7 +42,63 @@ logging.info("%s Running with %s. %s", "#" * 10, adapter, "#" * 10)
 index = pathlib.Path(__file__).parent.joinpath("templates", "index.html").as_posix()
 
 
-class BaseHandler(web.RequestHandler):
+class SecurityHandler(web.RequestHandler):
+    key = "user_blacklist"
+
+    def __init__(self, application, request, **kwargs):
+        super().__init__(application, request, **kwargs)
+        self.r = Redis().r
+
+    def prepare(self):
+        if self.check_request():
+            self.set_status(HTTPStatus.FORBIDDEN)
+            self.finish()
+
+    def data_received(self, chunk):
+        pass
+
+    def check_request(self):
+        ban = self.__ip_check()
+        user = self.__user_check()
+        result = ban or user
+        if result:
+            self.ban()
+        return result
+
+    def get_real_ip(self):
+        x_real = self.request.headers.get("X-Real-IP")
+        remote_ip = self.request.remote_ip
+        logging.debug("X-Real-IP:%s, Remote-IP:%s", x_real, remote_ip)
+        return x_real or remote_ip
+
+    def ban(self):
+        ip = self.get_real_ip()
+        self.r.incr(ip)
+        count = int(self.r.get(ip))
+        # ban rule: (count-10)*600
+        ex = 120 if count <= 10 else (count - 10) * 600
+        self.r.set(ip, count, ex)
+        user = self.get_current_user()
+        if user:
+            self.r.hincrby(self.key, user)
+
+    def get_current_user(self) -> str:
+        username = self.get_secure_cookie("username") or b""
+        return username.decode("u8")
+
+    def __user_check(self):
+        count = self.r.hget(self.key, self.get_current_user()) or 0
+        count = int(count)
+        if count >= 20:
+            return True
+
+    def __ip_check(self):
+        d = self.r.get(self.get_real_ip()) or 0
+        if int(d) >= 10:
+            return True
+
+
+class BaseHandler(SecurityHandler):
     executor = ThreadPoolExecutor(200)
     class_name = f"Fake{adapter}Resource"
     adapter_module = importlib.import_module(f"{adapter}")
@@ -54,28 +109,14 @@ class BaseHandler(web.RequestHandler):
         with contextlib.suppress(ValueError):
             self.json: dict = json.loads(self.request.body)
         self.instance = getattr(self.adapter_module, self.class_name)()
-        self.db = Mongo()
-        self.ban_yellow_nazi()
-
-    def ban_yellow_nazi(self):
-        if self.db.is_user_blocked(self.get_current_user()):
-            self.set_status(HTTPStatus.FORBIDDEN, "You don't deserve it.")
-            real_ip = AntiCrawler(self).get_real_ip()
-            AntiCrawler(self).imprisonment(real_ip)
 
     def write_error(self, status_code, **kwargs):
         if status_code in [HTTPStatus.FORBIDDEN,
-                           HTTPStatus.INTERNAL_SERVER_ERROR,
                            HTTPStatus.UNAUTHORIZED,
-                           HTTPStatus.NOT_FOUND]:
+                           HTTPStatus.NOT_FOUND,
+                           HTTPStatus.INTERNAL_SERVER_ERROR,
+                           ]:
             self.write(str(kwargs.get('exc_info')))
-
-    def data_received(self, chunk):
-        pass
-
-    def get_current_user(self) -> str:
-        username = self.get_secure_cookie("username") or b""
-        return username.decode("u8")
 
 
 class TopHandler(BaseHandler):
@@ -131,7 +172,7 @@ class UserHandler(BaseHandler):
         password = data["password"]
         captcha = data.get("captcha")
         captcha_id = data.get("captcha_id", "")
-        ip = AntiCrawler(self).get_real_ip()
+        ip = self.get_real_ip()
         browser = self.request.headers['user-agent']
 
         response = self.instance.login_user(username, password, captcha, captcha_id, ip, browser)
@@ -171,7 +212,7 @@ class UserHandler(BaseHandler):
         # everytime we receive a GET request to this api, we'll update last_date and last_ip
         username = self.get_current_user()
         if username:
-            now_ip = AntiCrawler(self).get_real_ip()
+            now_ip = self.get_real_ip()
             self.instance.update_user_last(username, now_ip)
 
     @gen.coroutine
@@ -189,20 +230,12 @@ class ResourceHandler(BaseHandler):
 
     @run_on_executor()
     def get_resource_data(self):
-        ban = AntiCrawler(self)
-        if ban.execute():
-            logging.warning("%s@%s make you happy:-(", self.request.headers.get("user-agent"), ban.get_real_ip())
-            self.set_status(HTTPStatus.FORBIDDEN)
-            return {}
-        else:
-            resource_id = int(self.get_query_argument("id"))
-            username = self.get_current_user()
-            data = self.instance.get_resource_data(resource_id, username)
 
+        resource_id = int(self.get_query_argument("id"))
+        username = self.get_current_user()
+        data = self.instance.get_resource_data(resource_id, username)
         if not data:
-            # not found, dangerous
-            ip = ban.get_real_ip()
-            ban.imprisonment(ip)
+            self.ban()
             self.set_status(HTTPStatus.NOT_FOUND)
             data = {}
 
@@ -392,7 +425,7 @@ class CommentHandler(BaseHandler):
         resource_id = payload["resource_id"]
         comment_id = payload.get("comment_id")
 
-        real_ip = AntiCrawler(self).get_real_ip()
+        real_ip = self.get_real_ip()
         username = self.get_current_user()
         browser = self.request.headers['user-agent']
 
@@ -550,7 +583,7 @@ class AnnouncementHandler(BaseHandler):
 
         payload = self.json
         content = payload["content"]
-        real_ip = AntiCrawler(self).get_real_ip()
+        real_ip = self.get_real_ip()
         browser = self.request.headers['user-agent']
 
         self.instance.add_announcement(username, content, real_ip, browser)
@@ -725,6 +758,7 @@ class BlacklistHandler(BaseHandler):
 
 class NotFoundHandler(BaseHandler):
     def get(self):  # for react app
+        self.ban()
         self.render(index)
 
 
@@ -941,7 +975,7 @@ class SpamProcessHandler(BaseHandler):
         obj_id = self.json.get("obj_id")
         token = self.json.get("token")
         ua = self.request.headers['user-agent']
-        ip = AntiCrawler(self).get_real_ip()
+        ip = self.get_real_ip()
         logging.info("Authentication %s(%s) for spam API now...", ua, ip)
         if token == os.getenv("TOKEN"):
             return getattr(self.instance, method)(obj_id)

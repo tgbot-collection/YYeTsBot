@@ -105,7 +105,9 @@ if __name__ == "__main__":
     scheduler.add_job(sync_douban, trigger=CronTrigger.from_crontab("1 1 1 * *"))
     scheduler.add_job(entry_dump, trigger=CronTrigger.from_crontab("2 2 * * *"))
     scheduler.add_job(ResourceLatestMongoResource().refresh_latest_resource, 'interval', hours=1)
+    scheduler.add_job(OtherMongoResource().import_ban_user, 'interval', seconds=300)
     scheduler.start()
+
     options.define("p", default=8888, help="running port", type=int)
     options.define("h", default='127.0.0.1', help="listen address", type=str)
     options.parse_command_line()
