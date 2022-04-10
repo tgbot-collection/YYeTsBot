@@ -28,6 +28,7 @@ from tornado import escape, gen, web
 from tornado.concurrent import run_on_executor
 
 from database import CaptchaResource, Redis
+from utils import add_cf_blacklist
 
 escape.json_encode = lambda value: json.dumps(value, ensure_ascii=False)
 logging.basicConfig(level=logging.INFO)
@@ -76,7 +77,12 @@ class SecurityHandler(web.RequestHandler):
         self.r.incr(ip)
         count = int(self.r.get(ip))
         # ban rule: (count-10)*600
-        ex = 120 if count <= 10 else (count - 10) * 600
+        if count <= 10:
+            ex = 120
+        else:
+            ex = (count - 10) * 600
+        if count >= 30:
+            add_cf_blacklist(ip)
         self.r.set(ip, count, ex)
         user = self.get_current_user()
         if user:
@@ -758,7 +764,11 @@ class BlacklistHandler(BaseHandler):
 
 class NotFoundHandler(BaseHandler):
     def get(self):  # for react app
-        self.ban()
+        if self.request.uri not in ["/", "/home", "/discuss", "/login", "/404", "/search",
+                                    "/resource", "/me", "/database", "help", "/statistics"
+                                    ]:
+            self.ban()
+
         self.render(index)
 
 
