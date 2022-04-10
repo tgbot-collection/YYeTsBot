@@ -764,11 +764,10 @@ class BlacklistHandler(BaseHandler):
 
 class NotFoundHandler(BaseHandler):
     def get(self):  # for react app
-        if self.request.uri not in ["/", "/home", "/discuss", "/login", "/404", "/search",
-                                    "/resource", "/me", "/database", "help", "/statistics"
-                                    ]:
-            self.ban()
-
+        # if self.request.uri not in ["/", "/home", "/discuss", "/login", "/404", "/search",
+        #                             "/resource", "/me", "/database", "help", "/statistics"
+        #                             ]:
+        #     self.ban()
         self.render(index)
 
 
