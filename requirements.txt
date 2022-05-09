@@ -1,5 +1,5 @@
 requests==2.27.1
-pytelegrambotapi==4.4.1
+pytelegrambotapi==4.5.1
 beautifulsoup4==4.11.1
 tgbot-ping==1.0.4
 redis==4.1.4
