@@ -201,7 +201,8 @@ class UserHandler(BaseHandler):
         if username:
             data = self.instance.get_user_info(username)
         else:
-            self.set_status(HTTPStatus.UNAUTHORIZED)
+            # self.set_status(HTTPStatus.UNAUTHORIZED)
+            self.clear_cookie("username")
             data = {"message": "Please try to login"}
         return data
 
