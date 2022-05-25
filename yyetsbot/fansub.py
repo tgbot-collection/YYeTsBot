@@ -277,7 +277,7 @@ class ZimuxiaOnline(BaseFansub):
         html = self.get_html(resource_url)
         soup = BeautifulSoup(html, 'html.parser')
         cnname = soup.title.text.split("|")[0]
-        return {"all": html, "share": resource_url, "cnname": cnname}
+        return {"all": html, "share": resource_url, "cnname": cnname, "type": "resource"}
 
 
 class ZhuixinfanOnline(BaseFansub):
@@ -315,7 +315,7 @@ class ZhuixinfanOnline(BaseFansub):
         # 解析获得cnname等信息
         soup = BeautifulSoup(html, 'html.parser')
         cnname = soup.title.text.split("_")[0]
-        return {"all": html, "share": url, "cnname": cnname}
+        return {"all": html, "share": url, "cnname": cnname, "type": "resource"}
 
 
 class NewzmzOnline(BaseFansub):
@@ -346,7 +346,7 @@ class NewzmzOnline(BaseFansub):
         # 解析获得cnname等信息
         soup = BeautifulSoup(html, 'html.parser')
         cnname = soup.title.text.split("-")[0]
-        return {"all": html, "share": url, "cnname": cnname}
+        return {"all": html, "share": url, "cnname": cnname, "type": "resource"}
 
 
 class BD2020(NewzmzOnline):
@@ -405,7 +405,7 @@ class XL720(BD2020):
         html = self.get_html(url)
         soup = BeautifulSoup(html, 'html.parser')
         cnname = soup.title.text.split("迅雷下载")[0]
-        return {"all": html, "share": url, "cnname": cnname}
+        return {"all": html, "share": url, "cnname": cnname, "type": "resource"}
 
 
 class FansubEntrance(BaseFansub):
