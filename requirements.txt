@@ -8,7 +8,7 @@ pymongo==4.1.1
 tornado==6.1
 captcha==0.4
 passlib==1.7.4
-fakeredis==1.8
+fakeredis==1.8.1
 pytz==2022.1
 filetype==1.0.13
 requests[socks]
