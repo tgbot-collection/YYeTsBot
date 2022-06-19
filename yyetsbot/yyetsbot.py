@@ -311,7 +311,7 @@ def choose_link(call):
             if result.get("type") == "resource":
                 caption = "{}\n\n{}".format(result["cnname"], result["share"])
             else:
-                caption = result["all"]
+                caption = result["all"].replace(r"\n", "  ")
             bot.send_chat_action(call.message.chat.id, 'upload_document')
             bot.send_document(call.message.chat.id, f, caption=caption)
 
