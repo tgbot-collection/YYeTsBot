@@ -34,7 +34,7 @@ NEWZMZ_SEARCH = "https://newzmz.com/subres/index/getres.html?keyword={}"
 NEWZMZ_RESOURCE = "https://ysfx.tv/view/{}"
 
 # BD2020
-BD2020_SEARCH = "https://www.bd2020.com/search.jspx?q={}"
+BD2020_SEARCH = "https://v.bd2020.me/search.jspx?q={}"
 
 # XL720
 XL720_SEARCH = "https://www.xl720.com/?s={}"

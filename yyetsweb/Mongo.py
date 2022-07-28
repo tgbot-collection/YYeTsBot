@@ -527,6 +527,8 @@ class ResourceMongoResource(ResourceResource, Mongo):
         return data
 
     def search_resource(self, keyword: str) -> dict:
+        order = os.getenv("ORDER") or 'YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline,XL720,BD2020'.split(",")
+        order.pop(0)
         final = []
         returned = {}
 
@@ -569,12 +571,12 @@ class ResourceMongoResource(ResourceResource, Mongo):
             returned = dict(data=final)
             returned["extra"] = []
         else:
-            # TODO how to generate code using ORDER here
-            extra = self.fansub_search(ZimuxiaOnline.__name__, keyword) or \
-                    self.fansub_search(NewzmzOnline.__name__, keyword) or \
-                    self.fansub_search(ZhuixinfanOnline.__name__, keyword) or \
-                    self.fansub_search(XL720.__name__, keyword) or \
-                    self.fansub_search(BD2020.__name__, keyword)
+            extra = []
+            with contextlib.suppress(requests.exceptions.RequestException):
+                for name in order:
+                    extra = self.fansub_search(name, keyword)
+                    if extra:
+                        break
 
             returned["data"] = []
             returned["extra"] = extra
