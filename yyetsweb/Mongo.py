@@ -838,7 +838,7 @@ class DoubanMongoResource(DoubanResource, Mongo):
         douban_item = soup.find_all("div", class_="content")
 
         fwd_link = unquote(douban_item[0].a["href"])
-        douban_id = re.findall(r"https://movie.douban.com/subject/(\d*)/&query=", fwd_link)[0]
+        douban_id = re.findall(r"https://movie\.douban\.com/subject/(\d*)/.*", fwd_link)[0]
         final_data = self.get_craw_data(cname, douban_id, resource_id, search_html, session)
         douban_col.insert_one(final_data.copy())
         final_data.pop("raw")
