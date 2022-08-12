@@ -1,0 +1,70 @@
+name: CI Test
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+jobs:
+  ci:
+    name: Build Image Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Lower case for ghcr
+        id: ghcr_string
+        uses: ASzc/change-string-case-action@v1
+        with:
+          string: ${{ github.event.repository.full_name }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+    
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: |
+            ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Install trivy
+        run: |
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy -y
+      
+      - name: Scan for CVE
+        uses: mathiasvr/command-output@v1
+        id: trivy
+        with:
+          run: |
+            trivy image --no-progress --severity "HIGH,CRITICAL" ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
+      
+      - name: Comment CVE PR
+        uses: thollander/actions-comment-pull-request@v1
+        with:
+          message: |
+            ```
+            ${{ steps.trivy.outputs.stdout }}
+            ```
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
