@@ -1,5 +1,5 @@
 requests==2.28.1
-pytelegrambotapi==4.6.1
+pytelegrambotapi==4.7.0
 beautifulsoup4==4.11.1
 tgbot-ping==1.0.4
 redis==4.3.4
@@ -9,7 +9,7 @@ tornado==6.2
 captcha==0.4
 passlib==1.7.4
 fakeredis==1.9.0
-pytz==2022.2
+pytz==2022.2.1
 filetype==1.1.0
 requests[socks]
 tqdm==4.64.0
