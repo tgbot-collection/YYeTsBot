@@ -424,7 +424,7 @@ class CommentNewestMongoResource(CommentNewestResource, CommentMongoResource, Mo
 class CommentSearchMongoResource(CommentNewestMongoResource):
 
     def get_comment(self, page: int, size: int, keyword="") -> dict:
-        self.condition.update(content={'$regex': f'.*{keyword}.*', "$options": "-i"})
+        self.condition.update(content={'$regex': f'.*{keyword}.*', "$options": "i"})
         return super(CommentSearchMongoResource, self).get_comment(page, size, keyword)
 
     def extra_info(self, data):
@@ -538,9 +538,9 @@ class ResourceMongoResource(ResourceResource, Mongo):
 
         resource_data = self.db["yyets"].find({
             "$or": [
-                {"data.info.cnname": {'$regex': f'.*{keyword}.*', "$options": "-i"}},
-                {"data.info.enname": {'$regex': f'.*{keyword}.*', "$options": "-i"}},
-                {"data.info.aliasname": {'$regex': f'.*{keyword}.*', "$options": "-i"}},
+                {"data.info.cnname": {'$regex': f'.*{keyword}.*', "$options": "i"}},
+                {"data.info.enname": {'$regex': f'.*{keyword}.*', "$options": "i"}},
+                {"data.info.aliasname": {'$regex': f'.*{keyword}.*', "$options": "i"}},
             ]},
             projection
         )

@@ -183,9 +183,9 @@ class YYeTsOffline(BaseFansub):
         projection = {'_id': False, 'data.info': True}
         data = self.collection.find({
             "$or": [
-                {"data.info.cnname": {"$regex": f".*{search_text}.*", "$options": "-i"}},
-                {"data.info.enname": {"$regex": f".*{search_text}.*", "$options": "-i"}},
-                {"data.info.aliasname": {"$regex": f".*{search_text}.*", "$options": "-i"}},
+                {"data.info.cnname": {"$regex": f".*{search_text}.*", "$options": "i"}},
+                {"data.info.enname": {"$regex": f".*{search_text}.*", "$options": "i"}},
+                {"data.info.aliasname": {"$regex": f".*{search_text}.*", "$options": "i"}},
             ]},
             projection
         )
@@ -203,7 +203,7 @@ class YYeTsOffline(BaseFansub):
 
         logging.info("[%s] Offline resource search complete", self.__class__.__name__)
 
-        comments = self.db["comment"].find({"content": {"$regex": f".*{search_text}.*", "$options": "-i"}})
+        comments = self.db["comment"].find({"content": {"$regex": f".*{search_text}.*", "$options": "i"}})
         for c in comments:
             url = "https://yyets.dmesg.app/resource.html?id={}#{}".format(c["resource_id"], str(c["_id"]))
             url_hash = hashlib.sha1(url.encode('u8')).hexdigest()
