@@ -21,7 +21,7 @@ function prepare() {
 }
 
 function prepare_compose() {
-  echo "[2/5] 下载docker-compose.yaml"
+  echo "[2/5] 下载docker-compose.yml"
   curl -o docker-compose.yml https://raw.githubusercontent.com/tgbot-collection/YYeTsBot/master/docker-compose.yml
   sed -ie '31,67d' docker-compose.yml
 }
@@ -64,14 +64,14 @@ function deploy() {
 }
 
 function cleanup() {
-  echo "您确认要进行清理吗？项目运行将会被删除，所有的docker image也将会被清除。输入YES确认"
-  read confirm
+  echo "您确认要进行清理吗？网站将会停止运行，对应的的docker image也将会被清除。输入YES确认"
+  read -r confirm
 
   if [ "$confirm" = "YES" ]; then
     echo "继续清理，可能会要求您进行sudo鉴权"
-    docker-compose -f ${HOME}/YYeTs/docker-compose.yaml down
-    sudo rm -rf ${HOME}/YYeTs
-    docker system prune -a --volumes -f
+    docker-compose -f "${HOME}"/YYeTs/docker-compose.yml down
+    sudo rm -rf "${HOME}"/YYeTs
+    docker rmi bennythink/yyetsbot
     echo "清理完成。"
   else
     echo "取消清理"
@@ -82,7 +82,7 @@ function cleanup() {
 
 function upgrade() {
   docker pull bennythink/yyetsbot
-  docker-compose -f ${HOME}/YYeTs/docker-compose.yaml up -d
+  docker-compose -f "${HOME}"/YYeTs/docker-compose.yml up -d
   echo "更新成功"
 }
 
