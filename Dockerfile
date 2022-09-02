@@ -12,24 +12,26 @@ RUN apk update && apk add --no-cache libressl jpeg-dev openjpeg-dev libimagequan
 
 
 FROM node:lts-alpine as nodebuilder
-WORKDIR /build
+WORKDIR /YYeTsBot/YYeTsFE/
 ARG env
 RUN apk add git
-COPY YYeTsFE/package.json /build/
-COPY YYeTsFE/yarn.lock /build/
+COPY YYeTsFE/package.json /YYeTsBot/YYeTsFE/
+COPY YYeTsFE/yarn.lock /YYeTsBot/YYeTsFE/
 COPY scripts/dev_robots.sh /tmp/
 RUN yarn --network-timeout 1000000
-COPY YYeTsFE /build/
+COPY YYeTsFE /YYeTsBot/YYeTsFE/
+COPY .git /YYeTsBot/.git/
 RUN if [ "$env" = "dev" ]; then echo "dev build"; yarn build; sh /tmp/dev_robots.sh; else echo "prod build"; yarn run release; fi
 
 
 FROM runner
-COPY . /YYeTsBot
 RUN apk add mongodb-tools mysql-client
+COPY . /YYeTsBot
+
 COPY --from=pybuilder /root/.local /usr/local
 COPY --from=pybuilder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=pybuilder /usr/share/zoneinfo /usr/share/zoneinfo
-COPY --from=nodebuilder /build/build /YYeTsBot/yyetsweb/templates/
+COPY --from=nodebuilder /YYeTsBot/YYeTsFE/build /YYeTsBot/yyetsweb/templates/
 
 ENV TZ=Asia/Shanghai
 WORKDIR /YYeTsBot/yyetsbot

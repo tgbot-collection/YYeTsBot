@@ -2,8 +2,8 @@
 
 function splash() {
   echo "本脚本会在 ${HOME}/YYeTs 部署人人影视web"
-  echo "并且监听 0.0.0.0，你确定要继续吗？输入YES确认"
-  read confirm
+  echo "你确定要继续吗？输入YES确认"
+  read -r confirm
 
   if [ "$confirm" = "YES" ]; then
     echo "继续安装"
@@ -16,15 +16,14 @@ function splash() {
 
 function prepare() {
   echo "[1/5] 准备中……"
-  mkdir -p ${HOME}/YYeTs
-  cd ${HOME}/YYeTs
+  mkdir -p "${HOME}"/YYeTs
+  cd "${HOME}"/YYeTs || exit
 }
 
 function prepare_compose() {
   echo "[2/5] 下载docker-compose.yaml"
-  curl -o docker-compose.yaml https://raw.githubusercontent.com/tgbot-collection/YYeTsBot/master/docker-compose.yml
-  sed -i '31,67d' docker-compose.yaml
-  sed -i 's/127.0.0.1/0.0.0.0/' docker-compose.yaml
+  curl -o docker-compose.yml https://raw.githubusercontent.com/tgbot-collection/YYeTsBot/master/docker-compose.yml
+  sed -ie '31,67d' docker-compose.yml
 }
 
 function import_db() {
@@ -33,16 +32,17 @@ function import_db() {
 
   echo "[4/5] 正在下载并导入数据库"
   curl -o /tmp/yyets_mongo.gz https://yyets.dmesg.app/dump/yyets_mongo.gz
+  file /tmp/yyets_mongo.gz
   docker cp /tmp/yyets_mongo.gz yyets_mongo_1:/tmp
   # special for windows
   result=$(uname -a | grep "Msys")
   if [[ "$result" != "" ]]; then
-    echo "docker exec yyets_mongo_1 mongorestore --gzip --archive=yyets_mongo.gz --nsFrom "share.*" --nsTo "zimuzu.*"" >windows.bat
+    echo "docker exec yyets_mongo_1 mongorestore --gzip --archive=/tmp/yyets_mongo.gz --nsFrom "share.*" --nsTo "zimuzu.*"" >windows.bat
     echo "docker exec yyets_mongo_1 rm /tmp/yyets_mongo.gz" >>windows.bat
     cmd "/C windows.bat"
     rm windows.bat
   else
-    docker exec yyets_mongo_1 mongorestore --gzip --archive=yyets_mongo.gz --nsFrom "share.*" --nsTo "zimuzu.*"
+    docker exec yyets_mongo_1 mongorestore --gzip --archive=/tmp/yyets_mongo.gz --nsFrom "share.*" --nsTo "zimuzu.*"
     docker exec yyets_mongo_1 rm /tmp/yyets_mongo.gz
   fi
 

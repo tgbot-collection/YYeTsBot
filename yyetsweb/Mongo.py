@@ -179,7 +179,7 @@ class CommentMongoResource(CommentResource, Mongo):
     def get_user_group(self, data):
         for comment in data:
             username = comment["username"]
-            user = self.db["users"].find_one({"username": username})
+            user = self.db["users"].find_one({"username": username}) or {}
             group = user.get("group", ["user"])
             comment["group"] = group
 
@@ -555,17 +555,18 @@ class ResourceMongoResource(ResourceResource, Mongo):
         for c in r.get("data", []):
             comment_rid = c["resource_id"]
             d = self.db["yyets"].find_one({"data.info.id": comment_rid}, projection={"data.info": True})
-            c_search.append(
-                {
-                    "username": c["username"],
-                    "date": c["date"],
-                    "comment": c["content"],
-                    "commentID": c["id"],
-                    "resourceID": comment_rid,
-                    "resourceName": d["data"]["info"]["cnname"],
-                    "origin": "comment"
-                }
-            )
+            if d:
+                c_search.append(
+                    {
+                        "username": c["username"],
+                        "date": c["date"],
+                        "comment": c["content"],
+                        "commentID": c["id"],
+                        "resourceID": comment_rid,
+                        "resourceName": d["data"]["info"]["cnname"],
+                        "origin": "comment"
+                    }
+                )
 
         if final:
             returned = dict(data=final)

@@ -75,7 +75,9 @@ def prepare_mysql():
             content  longtext null,
             date     varchar(256) null,
             id     int null,
-            resource_id     varchar(256) null
+            resource_id     varchar(256) null,
+            browser     varchar(256) null,
+            username     varchar(256) null
         ) charset utf8mb4;
         """
     con = MySQL()
@@ -108,7 +110,9 @@ def prepare_sqlite():
                 content  longtext null,
                 date     varchar(256) null,
                 id     int null,
-                resource_id     varchar(256) null
+                resource_id     varchar(256) null,
+                browser     varchar(256) null,
+                username     varchar(256) null
             );
             """
 
@@ -138,7 +142,7 @@ def dump_resource():
         if len(batch_data) == CHUNK_SIZE:
             sql1 = "insert into yyets values (%s, %s, %s, %s, %s)"
             sql2 = "insert into yyets values (?, ?, ?, ?, ?)"
-            insert_func(batch_data, mb, sql1, sql2, "resource")
+            insert_func(batch_data, mb, sql1, sql2, "yyets")
             batch_data = []
             mb = []
 
@@ -171,11 +175,14 @@ def dump_comment():
         date = each["date"]
         id = each.get("id", 0)
         resource_id = each["resource_id"]
-        batch_data.append((content, date, id, resource_id))
+        browser = "Fake Browser"
+        username = "Anonymous"
+        batch_data.append((content, date, id, resource_id, browser, username))
+        each.update(browser=browser, username=username)
         mb.append(each)
         if len(batch_data) == CHUNK_SIZE:
-            sql1 = "insert into comment values (%s, %s, %s, %s)"
-            sql2 = "insert into comment values ( ?, ?, ?,?)"
+            sql1 = "insert into comment values (%s, %s, %s, %s, %s, %s)"
+            sql2 = "insert into comment values ( ?, ?, ?,?, ?,?)"
             insert_func(batch_data, mb, sql1, sql2, "comment")
             batch_data = []
             mb = []
