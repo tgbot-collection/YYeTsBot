@@ -22,8 +22,6 @@ services:
       - mongo=mongo
       - redis=redis
     working_dir: /YYeTsBot/yyetsweb/
-    volumes:
-      - ./dump:/YYeTsBot/yyetsweb/templates/dump/
     command: [ "python3","server.py","-h=0.0.0.0" ]
     ports:
       - "127.0.0.1:8888:8888"

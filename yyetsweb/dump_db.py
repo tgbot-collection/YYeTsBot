@@ -24,6 +24,7 @@ from tqdm import tqdm
 logging.basicConfig(level=logging.INFO)
 
 data_path = pathlib.Path(__file__).parent.joinpath("templates", "dump")
+data_path.mkdir(exist_ok=True)
 sqlite_file = data_path.joinpath("yyets.db")
 
 CHUNK_SIZE = 1000
