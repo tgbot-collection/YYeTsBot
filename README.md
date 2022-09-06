@@ -1,7 +1,7 @@
 # YYeTsBot
 
 [![build docker image](https://github.com/tgbot-collection/YYeTsBot/actions/workflows/builder.yaml/badge.svg)](https://github.com/tgbot-collection/YYeTsBot/actions/workflows/builder.yaml)
-[![Normal upgrade](https://github.com/tgbot-collection/YYeTsBot/actions/workflows/normal_upgrade.yaml/badge.svg)](https://github.com/tgbot-collection/YYeTsBot/actions/workflows/normal_upgrade.yaml)
+[![Docker Pulls](https://img.shields.io/docker/pulls/bennythink/yyetsbot)](https://hub.docker.com/r/bennythink/yyetsbot)
 
 * 人人影视bot，[戳我使用](https://t.me/yyets_bot)
 
