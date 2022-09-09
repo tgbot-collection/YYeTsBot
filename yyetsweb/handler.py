@@ -28,11 +28,11 @@ from tornado import escape, gen, web
 from tornado.concurrent import run_on_executor
 
 from database import CaptchaResource, Redis
-from utils import add_cf_blacklist
+from utils import Cloudflare
 
 escape.json_encode = lambda value: json.dumps(value, ensure_ascii=False)
 logging.basicConfig(level=logging.INFO)
-
+cf = Cloudflare()
 if getattr(sys, '_MEIPASS', None):
     adapter = "SQLite"
 else:
@@ -82,7 +82,7 @@ class SecurityHandler(web.RequestHandler):
         else:
             ex = (count - 10) * 600
         if count >= 30:
-            add_cf_blacklist(ip)
+            cf.ban_new_ip(ip)
         self.r.set(ip, count, ex)
         user = self.get_current_user()
         if user:
@@ -991,7 +991,7 @@ class SpamProcessHandler(BaseHandler):
             return getattr(self.instance, method)(obj_id)
         else:
             self.set_status(HTTPStatus.FORBIDDEN)
-            return {"status": False, "message": "this token is not allowed to access this API"}
+            return {"status": False, "message": "This token is not allowed to access this API"}
 
     @gen.coroutine
     def post(self):
@@ -999,4 +999,4 @@ class SpamProcessHandler(BaseHandler):
 
     @gen.coroutine
     def delete(self):
-        self.write(self.process("delete_spam"))
+        self.write(self.process("ban_spam"))

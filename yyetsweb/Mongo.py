@@ -37,7 +37,7 @@ from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
                       NameResource, NotificationResource, OtherResource, Redis,
                       ResourceLatestResource, ResourceResource, TopResource,
                       UserEmailResource, UserResource)
-from utils import check_spam, send_mail, ts_date
+from utils import check_spam, send_mail, ts_date, Cloudflare
 
 lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().as_posix()
 sys.path.append(lib_path)
@@ -46,6 +46,7 @@ from fansub import BD2020, XL720, NewzmzOnline, ZhuixinfanOnline, ZimuxiaOnline
 mongo_host = os.getenv("mongo") or "localhost"
 DOUBAN_SEARCH = "https://www.douban.com/search?cat=1002&q={}"
 DOUBAN_DETAIL = "https://movie.douban.com/subject/{}/"
+cf = Cloudflare()
 
 
 class Mongo:
@@ -93,6 +94,7 @@ class OtherMongoResource(OtherResource, Mongo):
         self.db["yyets"].update_many({}, {"$set": {"data.info.views": 0}})
 
     def import_ban_user(self):
+        # TODO ban IP as well?
         usernames = self.db["users"].find({"status.disable": True}, projection={"username": True})
         r = Redis().r
         r.delete("user_blacklist")
@@ -1091,10 +1093,15 @@ class ResourceLatestMongoResource(ResourceLatestResource, Mongo):
 
 class SpamProcessMongoResource(Mongo):
 
-    def delete_spam(self, obj_id: "str"):
+    def ban_spam(self, obj_id: "str"):
         obj_id = ObjectId(obj_id)
         logging.info("Deleting spam %s", obj_id)
-        self.db["spam"].delete_one({"_id": obj_id})
+        spam = self.db["spam"].find_one({"_id": obj_id})
+        username = spam["username"]
+        self.db["spam"].delete_many({"username": username})
+        # TODO disable it for now
+        # self.db["comment"].delete_many({"username": username})
+        cf.ban_new_ip(spam["ip"])
         return {"status": True}
 
     def restore_spam(self, obj_id: "str"):
@@ -1121,8 +1128,8 @@ class SpamProcessMongoResource(Mongo):
                             "callback_data": f"approve{obj_id}"
                         },
                         {
-                            "text": "deny",
-                            "callback_data": f"deny{obj_id}"
+                            "text": "ban",
+                            "callback_data": f"ban{obj_id}"
                         }
                     ]
                 ]

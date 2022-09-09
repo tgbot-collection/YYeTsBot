@@ -32,9 +32,10 @@ from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      UserEmailHandler, UserHandler)
 from migration.douban_sync import sync_douban
 from Mongo import OtherMongoResource, ResourceLatestMongoResource
+from utils import Cloudflare
 
 enable_pretty_logging()
-
+cf = Cloudflare()
 if os.getenv("debug"):
     logging.basicConfig(level=logging.DEBUG)
 
@@ -106,6 +107,7 @@ if __name__ == "__main__":
     scheduler.add_job(entry_dump, trigger=CronTrigger.from_crontab("2 2 1 * *"))
     scheduler.add_job(ResourceLatestMongoResource().refresh_latest_resource, 'interval', hours=1)
     scheduler.add_job(OtherMongoResource().import_ban_user, 'interval', seconds=300)
+    scheduler.add_job(cf.clear_fw, trigger=CronTrigger.from_crontab("0 0 */5 * *"))
     scheduler.start()
 
     options.define("p", default=8888, help="running port", type=int)
