@@ -11,6 +11,7 @@ import logging
 import os
 import pathlib
 import platform
+import threading
 
 import pytz
 import tornado.autoreload
@@ -19,7 +20,7 @@ from apscheduler.triggers.cron import CronTrigger
 from tornado import httpserver, ioloop, options, web
 from tornado.log import enable_pretty_logging
 
-from dump_db import entry_dump
+import dump_db
 from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      CategoryHandler, CommentChildHandler, CommentHandler,
                      CommentNewestHandler, CommentReactionHandler,
@@ -104,11 +105,13 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler(timezone=timez)
     scheduler.add_job(OtherMongoResource().reset_top, trigger=CronTrigger.from_crontab("0 0 1 * *"))
     scheduler.add_job(sync_douban, trigger=CronTrigger.from_crontab("1 1 1 * *"))
-    scheduler.add_job(entry_dump, trigger=CronTrigger.from_crontab("2 2 1 * *"))
+    scheduler.add_job(dump_db.entry_dump, trigger=CronTrigger.from_crontab("2 2 1 * *"))
     scheduler.add_job(ResourceLatestMongoResource().refresh_latest_resource, 'interval', hours=1)
     scheduler.add_job(OtherMongoResource().import_ban_user, 'interval', seconds=300)
     scheduler.add_job(cf.clear_fw, trigger=CronTrigger.from_crontab("0 0 */5 * *"))
     scheduler.start()
+    logging.info("Triggering dump database now...")
+    threading.Thread(target=dump_db.no_error_entry_dump).start()
 
     options.define("p", default=8888, help="running port", type=int)
     options.define("h", default='127.0.0.1', help="listen address", type=str)

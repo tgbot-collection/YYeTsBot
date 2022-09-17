@@ -37,7 +37,7 @@ from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
                       NameResource, NotificationResource, OtherResource, Redis,
                       ResourceLatestResource, ResourceResource, TopResource,
                       UserEmailResource, UserResource)
-from utils import check_spam, send_mail, ts_date, Cloudflare
+from utils import Cloudflare, check_spam, send_mail, ts_date
 
 lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().as_posix()
 sys.path.append(lib_path)

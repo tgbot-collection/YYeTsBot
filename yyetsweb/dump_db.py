@@ -7,6 +7,7 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
+import contextlib
 import json
 import logging
 import os
@@ -228,6 +229,11 @@ def entry_dump():
     zip_file()
     cleanup()
     logging.info("Total time used: %.2fs" % (time.time() - t0))
+
+
+def no_error_entry_dump():
+    with contextlib.suppress(Exception):
+        entry_dump()
 
 
 if __name__ == '__main__':
