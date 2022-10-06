@@ -124,7 +124,7 @@ certs/*
 data/*
 logs/*
 **/.DS_Store
-/yyetsweb/yyets.sqlite
+/yyetsweb/yyets_sqlite.db
 /yyetsweb/yyetsweb
 /yyetsweb/assets.go
 /yyetsweb/templates/static/*
@@ -136,3 +136,5 @@ logs/*
 
 
 /yyetsweb/templates/data/*
+/yyetsweb/builds/
+/builds/checksum-sha256sum.txt
