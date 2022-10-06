@@ -6,6 +6,7 @@
 
 **支持amd64/arm64，请先安装 docker、docker-compose和curl**
 
+**为了安全考虑，安装完成后程序将监听在 127.0.0.1 。如有需要请自行修改 `docker-compose.yml`的127.0.0.1为0.0.0.0**
 ### Linux/macOS：
 
 ```bash
