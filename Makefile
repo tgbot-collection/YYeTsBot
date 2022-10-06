@@ -32,7 +32,7 @@ current:
 	echo "Build static files..."
 	make asset
 	echo "Build current platform executable..."
-	cd $(WEB); go build .; mkdir -p builds; mv yyetsweb* builds/
+	cd $(WEB); go build .;
 
 asset:
 	cd $(WEB);go get -u github.com/go-bindata/go-bindata/... ;go install github.com/go-bindata/go-bindata/...
