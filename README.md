@@ -88,12 +88,9 @@ yyets_offline - 人人影视离线数据
 
 这个版本使用起来也很简单，不过页面比较朴素（又不是不能用）。无依赖。步骤如下
 
-1. 请到 [GitHub Release](https://github.com/tgbot-collection/YYeTsBot/releases) 根据自己平台下载一键运行包
-2. 请到 [database download](https://yyets.dmesg.app/database) 下载SQLite数据库，然后解压缩
-3. 把这两个文件放到同一个目录
-4. windows：双击第一步下载的文件； macos/Linux，cd到你的目录, `chmod +x yyetsweb ; ./yyetsweb`
-
-打开浏览器 http://127.0.0.1:8888 就可以看到熟悉的搜索界面啦！
+1. 请到 [GitHub Release](https://github.com/tgbot-collection/YYeTsBot/releases) 根据自己平台下载最新的一键运行包
+2. windows：双击第一步下载的exe文件； macos/Linux，cd到你的目录, `chmod +x yyetsweb ; ./yyetsweb`
+3. 程序会自动下载数据库并启动。等到出现启动banner时， 打开浏览器 http://127.0.0.1:8888 就可以看到熟悉的搜索界面啦！
 
 # 开发
 

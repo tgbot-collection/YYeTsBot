@@ -1,25 +1,31 @@
 package main
 
 import (
+	"archive/zip"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/glebarez/go-sqlite"
+	"io"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
 const dbFile = "yyets_sqlite.db"
 
 func main() {
+	downloadDB()
 	banner := `
     ▌ ▌ ▌ ▌     ▀▛▘
     ▝▞  ▝▞  ▞▀▖  ▌  ▞▀▘
      ▌   ▌  ▛▀   ▌  ▝▀▖
      ▘   ▘  ▝▀▘  ▘  ▀▀ 
                         
-     Lazarus came back from the dead. By @Bennythink
+	Lazarus came back from the dead. By @Bennythink
+	http://127.0.0.1:8888/
 `
 	r := gin.Default()
 	r.GET("/api/resource", entrance)
@@ -33,7 +39,6 @@ func main() {
 	r.GET("/", bindataStaticHandler)
 
 	fmt.Printf(banner)
-
 	_ = r.Run("localhost:8888") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 
@@ -131,4 +136,32 @@ func entrance(c *gin.Context) {
 		})
 	}
 
+}
+
+func downloadDB() {
+	if _, err := os.Stat("yyets_sqlite.db"); err == nil {
+		log.Println("File already exists")
+		return
+	}
+
+	log.Println("Downloading database file...")
+	var downloadUrl = "https://yyets.dmesg.app/dump/yyets_sqlite.zip"
+	resp, _ := http.Get(downloadUrl)
+	file, _ := os.Create("yyets_sqlite.zip")
+	_, _ = io.Copy(file, resp.Body)
+	_ = resp.Body.Close()
+	_ = file.Close()
+
+	log.Println("Download complete, extracting...")
+	archive, _ := zip.OpenReader("yyets_sqlite.zip")
+	for _, f := range archive.File {
+		dstFile, _ := os.OpenFile(f.Name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		fileInArchive, _ := f.Open()
+		_, _ = io.Copy(dstFile, fileInArchive)
+		_ = dstFile.Close()
+		_ = fileInArchive.Close()
+	}
+
+	log.Println("Extraction complete, cleaning up...")
+	_ = os.Remove("yyets_sqlite.zip")
 }
