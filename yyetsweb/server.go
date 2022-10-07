@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "github.com/glebarez/go-sqlite"
 	"net/http"
 	"strings"
 )
-
-import _ "github.com/mattn/go-sqlite3"
 
 const dbFile = "yyets_sqlite.db"
 
@@ -87,7 +86,7 @@ type ItemData struct {
 func search(c *gin.Context) {
 	keyword, _ := c.GetQuery("keyword")
 	keyword = "%" + keyword + "%"
-	db, _ := sql.Open("sqlite3", dbFile)
+	db, _ := sql.Open("sqlite", dbFile)
 
 	rows, _ := db.Query("SELECT resource_id, cnname, enname, aliasname FROM yyets "+
 		"WHERE cnname LIKE ? or enname LIKE ? or aliasname LIKE ?", keyword, keyword, keyword)
@@ -104,7 +103,7 @@ func search(c *gin.Context) {
 
 func resource(c *gin.Context) {
 	id, _ := c.GetQuery("id")
-	db, _ := sql.Open("sqlite3", dbFile)
+	db, _ := sql.Open("sqlite", dbFile)
 
 	rows, _ := db.Query("SELECT data FROM yyets WHERE resource_id=?", id)
 	var result string
