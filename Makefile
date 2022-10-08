@@ -1,7 +1,7 @@
 OS = darwin linux windows
 ARCH = amd64 arm64
 WEB := $(shell cd yyetsweb;pwd)
-
+DATE:=$(shell date +"%Y-%m-%d %H:%M:%S")
 update:
 	git pull
 	git submodule update --remote
@@ -36,20 +36,25 @@ current:
 
 asset:
 	cd $(WEB);go get -u github.com/go-bindata/go-bindata/... ;go install github.com/go-bindata/go-bindata/...
-	cd yyetsweb/templates;~/go/bin/go-bindata -o assets.go resource.html index.html search.html js/... css/... fonts/... img/...
+	cd $(WEB)/templates;~/go/bin/go-bindata -o assets.go ./...
 	mv yyetsweb/templates/assets.go yyetsweb/assets.go
+
+frontend:
+	cd YYeTsFE; yarn && yarn run release
+	cp -R YYeTsFE/build/* yyetsweb/templates/
 
 all:
 	make clean
+	make frontend
 	make asset
 	@echo "Build all platform executables..."
 	@for o in $(OS) ; do            \
         		for a in $(ARCH) ; do     \
         		  	echo "Building $$o-$$a..."; \
         		  	if [ "$$o" = "windows" ]; then \
-                    	cd $(WEB);CGO_ENABLED=0 GOOS=$$o GOARCH=$$a go build -ldflags="-s -w" -o builds/yyetsweb-$$o-$$a.exe .;    \
+                    	cd $(WEB);CGO_ENABLED=0 GOOS=$$o GOARCH=$$a go build -ldflags="-s -w -X 'main.buildTime=$(DATE)'" -o builds/yyetsweb-$$o-$$a.exe .;    \
                     else \
-        				cd $(WEB);CGO_ENABLED=0 GOOS=$$o GOARCH=$$a go build -ldflags="-s -w" -o builds/yyetsweb-$$o-$$a .;    \
+        				cd $(WEB);CGO_ENABLED=0 GOOS=$$o GOARCH=$$a go build -ldflags="-s -w -X 'main.buildTime=$(DATE)'" -o builds/yyetsweb-$$o-$$a .;    \
         			fi; \
         		done   \
         	done

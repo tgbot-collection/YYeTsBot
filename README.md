@@ -86,7 +86,7 @@ yyets_offline - 人人影视离线数据
 
 ## 一键运行包
 
-这个版本使用起来也很简单，不过页面比较朴素（又不是不能用）。无依赖。步骤如下
+这个版本使用起来也很简单，也同样是最新的UI，只不过只有最基础的搜索功能。步骤如下
 
 1. 请到 [GitHub Release](https://github.com/tgbot-collection/YYeTsBot/releases) 根据自己平台下载最新的一键运行包
 2. windows：双击第一步下载的exe文件； macos/Linux，cd到你的目录, `chmod +x yyetsweb ; ./yyetsweb`

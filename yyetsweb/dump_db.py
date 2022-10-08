@@ -68,7 +68,11 @@ def prepare_mysql():
             cnname      varchar(256) null,
             enname     varchar(256) null,
             aliasname   varchar(256) null,
-            data        longtext     null
+            area varchar(32),
+            views int null,
+            data        longtext     null,
+            douban longtext null,
+            image blob null
         ) charset utf8mb4;
         """
     comment_sql = """
@@ -103,7 +107,11 @@ def prepare_sqlite():
                 cnname      varchar(256) null,
                 enname     varchar(256) null,
                 aliasname   varchar(256) null,
-                data        longtext     null
+                area varchar(32),
+                views int null,
+                data        longtext     null,
+                douban longtext null,
+                image blob null
             );
             """
     comment_sql = """
@@ -137,13 +145,15 @@ def dump_resource():
         cnname = data["cnname"]
         enname = data["enname"]
         aliasname = data["aliasname"]
+        views = data["views"]
+        area = data["area"]
         data = json.dumps(each, ensure_ascii=False)
 
-        batch_data.append((resource_id, cnname, enname, aliasname, data))
+        batch_data.append((resource_id, cnname, enname, aliasname, area, views, data, "", ""))
         mb.append(each)
         if len(batch_data) == CHUNK_SIZE:
-            sql1 = "insert into yyets values (%s, %s, %s, %s, %s)"
-            sql2 = "insert into yyets values (?, ?, ?, ?, ?)"
+            sql1 = "insert into yyets values (%s, %s, %s, %s, %s, %s, %s, %s,%s)"
+            sql2 = "insert into yyets values (?, ?, ?, ?, ?,?,?,?,?)"
             insert_func(batch_data, mb, sql1, sql2, "yyets")
             batch_data = []
             mb = []
