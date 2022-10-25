@@ -34,17 +34,17 @@ bot = telebot.TeleBot(TOKEN, num_threads=100)
 angry_count = 0
 
 
-@bot.message_handler(commands=['start'])
+@bot.message_handler(commands=['start'], chat_types=['private'])
 def send_welcome(message):
     bot.send_chat_action(message.chat.id, 'typing')
     bot.send_message(message.chat.id, '欢迎使用，直接发送想要的剧集标题给我就可以了，不需要其他关键字，我会帮你搜索。\n\n'
-                                      '别说了，现在连流浪地球都搜得到了。本小可爱再也不生气了😄，'
+                                      '仅私聊使用，群组功能已禁用。'
                                       f'目前搜索优先级 {FANSUB_ORDER}\n '
                                       f'另外，可以尝试使用一下 https://yyets.dmesg.app/ 哦！',
                      parse_mode='html', disable_web_page_preview=True)
 
 
-@bot.message_handler(commands=['help'])
+@bot.message_handler(commands=['help'], chat_types=['private'])
 def send_help(message):
     bot.send_chat_action(message.chat.id, 'typing')
     bot.send_message(message.chat.id, '''机器人无法使用或者报错？从 /ping 里可以看到运行状态以及最新信息。
@@ -54,7 +54,7 @@ def send_help(message):
     3. <a href='https://t.me/mikuri520'>Telegram Channel</a>''', parse_mode='html', disable_web_page_preview=True)
 
 
-@bot.message_handler(commands=['ping'])
+@bot.message_handler(commands=['ping'], chat_types=['private'])
 def send_ping(message):
     logging.info("Pong!")
     bot.send_chat_action(message.chat.id, 'typing')
@@ -71,7 +71,7 @@ def send_ping(message):
                      parse_mode='markdown')
 
 
-@bot.message_handler(commands=['settings'])
+@bot.message_handler(commands=['settings'], chat_types=['private'])
 def settings(message):
     is_admin = str(message.chat.id) == MAINTAINER
     # 普通用户只可以查看，不可以设置。
@@ -109,7 +109,7 @@ def delete_announcement(call):
                           call.message.message_id)
 
 
-@bot.message_handler(commands=['credits'])
+@bot.message_handler(commands=['credits'], chat_types=['private'])
 def send_credits(message):
     bot.send_chat_action(message.chat.id, 'typing')
     bot.send_message(message.chat.id, '''感谢字幕组的无私奉献！本机器人资源来源:\n
@@ -122,7 +122,7 @@ def send_credits(message):
 
 for sub_name in dir(fansub):
     if sub_name.endswith("_offline") or sub_name.endswith("_online"):
-        @bot.message_handler(commands=[sub_name])
+        @bot.message_handler(commands=[sub_name], chat_types=['private'])
         def varies_fansub(message):
             bot.send_chat_action(message.chat.id, 'typing')
             # /YYeTsOffline 逃避可耻 /YYeTsOffline
@@ -131,7 +131,8 @@ for sub_name in dir(fansub):
             class_ = getattr(fansub, class_name)
 
             if not tv_name:
-                bot.send_message(message.chat.id, f"{class_.__name__}: 请附加你要搜索的剧集名称，如 `/{class_name} 逃避可耻`",
+                bot.send_message(message.chat.id,
+                                 f"{class_.__name__}: 请附加你要搜索的剧集名称，如 `/{class_name} 逃避可耻`",
                                  parse_mode='markdown')
                 return
 
@@ -175,7 +176,7 @@ def send_my_response(message):
     logging.info("Forward has been deleted.")
 
 
-@bot.message_handler(content_types=["photo", "text"])
+@bot.message_handler(content_types=["photo", "text"], chat_types=['private'])
 def send_search(message):
     if str(message.chat.id) == os.getenv("SPECIAL_ID") and message.text == "❤️":
         bot.reply_to(message, "❤️")
@@ -186,7 +187,7 @@ def send_search(message):
     base_send_search(message)
 
 
-@bot.message_handler(content_types=["document"])
+@bot.message_handler(content_types=["document"], chat_types=['private'])
 def ban_user(message):
     if str(message.chat.id) != MAINTAINER:
         return
