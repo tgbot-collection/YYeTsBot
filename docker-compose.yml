@@ -2,13 +2,13 @@ version: '3.1'
 
 services:
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
     restart: always
     logging:
       driver: none
 
   mongo:
-    image: mongo
+    image: mongo:6
     restart: always
     volumes:
       - ./mongo_data/mongodb:/data/db
@@ -51,7 +51,7 @@ services:
 
   nginx:
     restart: always
-    image: nginx:alpine
+    image: nginx:stable-alpine
     volumes:
       - ./conf:/etc/nginx/conf.d
       - /home/photos:/usr/share/nginx/html/photos
