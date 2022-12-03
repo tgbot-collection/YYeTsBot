@@ -11,8 +11,9 @@ FROM python:3.10-alpine as runner
 RUN apk update && apk add --no-cache libressl jpeg-dev openjpeg-dev libimagequant-dev tiff-dev freetype-dev libxcb-dev
 
 
-FROM node:lts-alpine as nodebuilder
+FROM node:18-alpine as nodebuilder
 WORKDIR /YYeTsBot/YYeTsFE/
+ENV NODE_OPTIONS=--openssl-legacy-provider
 ARG env
 RUN apk add git
 COPY YYeTsFE/package.json /YYeTsBot/YYeTsFE/
