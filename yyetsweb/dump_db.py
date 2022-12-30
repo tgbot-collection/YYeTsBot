@@ -220,13 +220,18 @@ def zip_file():
 
 
 def cleanup():
+    # this function will never occur any errors!
     logging.info("Cleaning up...")
-    con = MySQL()
-    con.cursor().execute("drop database zimuzu")
-    con.close()
-    os.unlink(sqlite_file)
-    MongoDB().drop_database("share")
-    os.unlink("zimuzu.sql")
+    with contextlib.suppress(Exception):
+        con = MySQL()
+        con.cursor().execute("drop database zimuzu")
+        con.close()
+    with contextlib.suppress(Exception):
+        os.unlink(sqlite_file)
+    with contextlib.suppress(Exception):
+        MongoDB().drop_database("share")
+    with contextlib.suppress(Exception):
+        os.unlink("zimuzu.sql")
 
 
 def entry_dump():
@@ -239,11 +244,6 @@ def entry_dump():
     zip_file()
     cleanup()
     logging.info("Total time used: %.2fs" % (time.time() - t0))
-
-
-def no_error_entry_dump():
-    with contextlib.suppress(Exception):
-        entry_dump()
 
 
 if __name__ == '__main__':
