@@ -11,6 +11,7 @@ import logging
 import os
 import pathlib
 import platform
+import threading
 
 import pytz
 import tornado.autoreload
@@ -109,6 +110,8 @@ if __name__ == "__main__":
     scheduler.add_job(OtherMongoResource().import_ban_user, 'interval', seconds=300)
     scheduler.add_job(cf.clear_fw, trigger=CronTrigger.from_crontab("0 0 */5 * *"))
     scheduler.start()
+    logging.info("Triggering dump database now...")
+    threading.Thread(target=dump_db.entry_dump).start()
 
     options.define("p", default=8888, help="running port", type=int)
     options.define("h", default='127.0.0.1', help="listen address", type=str)
