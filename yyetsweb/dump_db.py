@@ -235,6 +235,7 @@ def cleanup():
 
 
 def entry_dump():
+    cleanup()
     t0 = time.time()
     prepare_mysql()
     prepare_sqlite()
