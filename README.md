@@ -146,6 +146,10 @@ yyets_offline - 人人影视离线数据
 * [Telegram Channel](https://t.me/mikuri520)
 * 捐助我，[给我买杯咖啡？](https://www.buymeacoffee.com/bennythink)
 * 捐助我，[爱发电？](https://afdian.net/@BennyThink)
+* 捐助我，[GitHub Sponsor](https://github.com/sponsors/BennyThink)
+* 捐助我，[Stripe](https://buy.stripe.com/dR67vU4p13Ox73a6oq)
+
+ <img src="./assets/CNY.png" width = 30%  alt="stripe"  />
 
 # 感谢
 
