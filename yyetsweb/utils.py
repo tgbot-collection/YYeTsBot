@@ -12,16 +12,20 @@ import logging
 import os
 import smtplib
 import time
+from datetime import datetime
 from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import formataddr, parseaddr
 
+import pytz
 import requests
 from akismet import Akismet
 
 
 def ts_date(ts=None):
-    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts))
+    # all the time save in db should be CST
+    timestamp = ts or time.time()
+    return datetime.fromtimestamp(timestamp, pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def _format_addr(s):
