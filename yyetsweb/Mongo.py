@@ -43,6 +43,8 @@ lib_path = pathlib.Path(__file__).parent.parent.joinpath("yyetsbot").resolve().a
 sys.path.append(lib_path)
 from fansub import BD2020, XL720, NewzmzOnline, ZhuixinfanOnline, ZimuxiaOnline
 
+logging.info("Loading fansub...%s", (BD2020, XL720, NewzmzOnline, ZhuixinfanOnline, ZimuxiaOnline))
+
 mongo_host = os.getenv("mongo") or "localhost"
 DOUBAN_SEARCH = "https://www.douban.com/search?cat=1002&q={}"
 DOUBAN_DETAIL = "https://movie.douban.com/subject/{}/"
@@ -94,7 +96,6 @@ class OtherMongoResource(OtherResource, Mongo):
         self.db["yyets"].update_many({}, {"$set": {"data.info.views": 0}})
 
     def import_ban_user(self):
-        # TODO ban IP as well?
         usernames = self.db["users"].find({"status.disable": True}, projection={"username": True})
         r = Redis().r
         r.delete("user_blacklist")
@@ -157,8 +158,9 @@ class CommentMongoResource(CommentResource, Mongo):
             item["id"] = str(item["_id"])
             item.pop("_id")
             for child in item.get("children", []):
-                child["id"] = str(child["_id"])
-                child.pop("_id")
+                with contextlib.suppress(Exception):
+                    child["id"] = str(child["_id"])
+                    child.pop("_id")
 
     def find_children(self, parent_data):
         for item in parent_data:
@@ -301,7 +303,6 @@ class CommentMongoResource(CommentResource, Mongo):
                 upsert=True
             )
             # send email
-            # TODO unsubscribe
             parent_comment = self.db["comment"].find_one({"_id": ObjectId(parent_comment_id)})
             if resource_id == 233:
                 link = f"https://yyets.dmesg.app/discuss#{parent_comment_id}"
@@ -426,11 +427,31 @@ class CommentNewestMongoResource(CommentNewestResource, CommentMongoResource, Mo
 class CommentSearchMongoResource(CommentNewestMongoResource):
 
     def get_comment(self, page: int, size: int, keyword="") -> dict:
+        self.projection.pop("children")
         self.condition.update(content={'$regex': f'.*{keyword}.*', "$options": "i"})
-        return super(CommentSearchMongoResource, self).get_comment(page, size, keyword)
+        data = list(self.db["comment"].find(self.condition, self.projection).
+                    sort("_id", pymongo.DESCENDING).
+                    limit(size).skip((page - 1) * size))
+        self.convert_objectid(data)
+        self.get_user_group(data)
+        self.extra_info(data)
+        self.fill_children(data)
+        # final step - remove children
+        for i in data:
+            i.pop("children", None)
+        return {
+            "data": data,
+        }
 
-    def extra_info(self, data):
-        pass
+    def fill_children(self, data):
+        for item in data:
+            child_id: "list" = item.get("children", [])
+            children = list(self.db["comment"].find(
+                {"_id": {"$in": child_id}}, self.projection).sort("_id", pymongo.DESCENDING))
+            self.convert_objectid(children)
+            self.get_user_group(children)
+            self.extra_info(children)
+            data.extend(children)
 
 
 class GrafanaQueryMongoResource(GrafanaQueryResource, Mongo):
@@ -514,7 +535,7 @@ class ResourceMongoResource(ResourceResource, Mongo):
             return []
 
     def get_resource_data(self, resource_id: int, username: str) -> dict:
-        data = self.db["yyets"].find_one_and_update(
+        data: "dict" = self.db["yyets"].find_one_and_update(
             {"data.info.id": resource_id},
             {'$inc': {'data.info.views': 1}},
             {'_id': False})
@@ -531,7 +552,7 @@ class ResourceMongoResource(ResourceResource, Mongo):
     def search_resource(self, keyword: str) -> dict:
         order = os.getenv("ORDER") or 'YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline,XL720,BD2020'.split(",")
         order.pop(0)
-        final = []
+        zimuzu_data = []
         returned = {}
 
         projection = {'_id': False,
@@ -549,7 +570,7 @@ class ResourceMongoResource(ResourceResource, Mongo):
 
         for item in resource_data:
             item["data"]["info"]["origin"] = "yyets"
-            final.append(item["data"]["info"])
+            zimuzu_data.append(item["data"]["info"])
 
         # get comment
         r = CommentSearchMongoResource().get_comment(1, 2 ** 10, keyword)
@@ -570,10 +591,11 @@ class ResourceMongoResource(ResourceResource, Mongo):
                     }
                 )
 
-        if final:
-            returned = dict(data=final)
+        if zimuzu_data:
+            returned = dict(data=zimuzu_data)
             returned["extra"] = []
         else:
+            # only returned when no data found
             extra = []
             with contextlib.suppress(requests.exceptions.RequestException):
                 for name in order:
@@ -583,7 +605,7 @@ class ResourceMongoResource(ResourceResource, Mongo):
 
             returned["data"] = []
             returned["extra"] = extra
-        # add comment data here
+        # comment data will always be returned
         returned["comment"] = c_search
         return returned
 
@@ -1099,7 +1121,6 @@ class SpamProcessMongoResource(Mongo):
         spam = self.db["spam"].find_one({"_id": obj_id})
         username = spam["username"]
         self.db["spam"].delete_many({"username": username})
-        # TODO disable it for now
         # self.db["comment"].delete_many({"username": username})
         cf.ban_new_ip(spam["ip"])
         return {"status": True}
