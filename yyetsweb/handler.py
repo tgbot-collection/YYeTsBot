@@ -408,7 +408,7 @@ class CommentHandler(BaseHandler):
         resource_id = int(self.get_argument("resource_id", "0"))
         size = int(self.get_argument("size", "5"))
         page = int(self.get_argument("page", "1"))
-        inner_size = int(self.get_argument("inner_size", "15"))
+        inner_size = int(self.get_argument("inner_size", "3"))
         inner_page = int(self.get_argument("inner_page", "1"))
         comment_id = self.get_argument("comment_id", None)
 
@@ -511,7 +511,7 @@ class CommentChildHandler(CommentHandler):
     @run_on_executor()
     def get_comment(self):
         parent_id = self.get_argument("parent_id", "0")
-        size = int(self.get_argument("size", "15"))
+        size = int(self.get_argument("size", "3"))
         page = int(self.get_argument("page", "1"))
 
         if not parent_id:
