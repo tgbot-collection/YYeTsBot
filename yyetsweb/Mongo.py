@@ -1011,7 +1011,7 @@ class UserEmailMongoResource(UserEmailResource, Mongo):
             self.db["users"].update_one({"username": username},
                                         {"$set": {"status": {"disable": True, "reason": "verify email crack"}}}
                                         )
-            return {"status": False, "status_code": HTTPStatus.FORBIDDEN, "message": "Account locked. Please stay away"}
+            return {"status": False, "status_code": HTTPStatus.FORBIDDEN, "message": "账户已被封锁"}
         correct_code = verify_data["code"]
 
         if correct_code == code:
@@ -1020,12 +1020,12 @@ class UserEmailMongoResource(UserEmailResource, Mongo):
             self.db["users"].update_one({"username": username},
                                         {"$set": {"email.verified": True}}
                                         )
-            return {"status": True, "status_code": HTTPStatus.CREATED, "message": "success"}
+            return {"status": True, "status_code": HTTPStatus.CREATED, "message": "邮箱已经验证成功"}
         else:
             r.hset(email, "wrong", wrong_count + 1)
             return {"status": False,
                     "status_code": HTTPStatus.FORBIDDEN,
-                    "message": f"verification code is incorrect. You have {MAX - wrong_count} attempts remaining"}
+                    "message": f"验证码不正确。你还可以尝试 {MAX - wrong_count} 次"}
 
 
 class CategoryMongoResource(CategoryResource, Mongo):
