@@ -783,16 +783,17 @@ class UserMongoResource(UserResource, Mongo):
             if data.get(field):
                 valid_data[field] = data[field]
 
-        if valid_data.get("email") and not re.findall(r"\S@\S", valid_data.get("email")):
-            return {"status_code": HTTPStatus.BAD_REQUEST, "status": False, "message": "email format error  "}
+        email_regex = r"@gmail\.com|@outlook\.com|@qq\.com|@163\.com"
+        if valid_data.get("email") and not re.findall(email_regex, valid_data.get("email"), re.IGNORECASE):
+            return {"status_code": HTTPStatus.BAD_REQUEST, "status": False, "message": "不支持的邮箱"}
         elif valid_data.get("email"):
             # rate limit
             user_email = valid_data.get("email")
-            timeout_key = f"timeout-{user_email}"
+            timeout_key = f"timeout-{username}"
             if redis.get(timeout_key):
                 return {"status_code": HTTPStatus.TOO_MANY_REQUESTS,
                         "status": False,
-                        "message": f"try again in {redis.ttl(timeout_key)}s"}
+                        "message": f"验证次数过多，请于{redis.ttl(timeout_key)}秒后尝试"}
 
             verify_code = random.randint(10000, 99999)
             valid_data["email"] = {"verified": False, "address": user_email}
@@ -801,16 +802,17 @@ class UserMongoResource(UserResource, Mongo):
             body = f"{username} 您好，<br>请输入如下验证码完成你的邮箱认证。验证码有效期为24小时。<br>" \
                    f"如果您未有此请求，请忽略此邮件。<br><br>验证码： {verify_code}"
 
+            send_mail(user_email, subject, body)
+            # 发送成功才设置缓存
             redis.set(timeout_key, username, ex=1800)
             redis.hset(user_email, mapping={"code": verify_code, "wrong": 0})
             redis.expire(user_email, 24 * 3600)
-            send_mail(user_email, subject, body)
 
         self.db["users"].update_one(
             {"username": username},
             {"$set": valid_data}
         )
-        return {"status_code": HTTPStatus.CREATED, "status": True, "message": "success"}
+        return {"status_code": HTTPStatus.CREATED, "status": True, "message": "邮件已经成功发送"}
 
 
 class DoubanMongoResource(DoubanResource, Mongo):
