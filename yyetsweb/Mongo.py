@@ -738,42 +738,21 @@ class UserMongoResource(UserResource, Mongo):
         else:
             return {"status_code": HTTPStatus.FORBIDDEN, "message": "验证码错误", "status": False}
         # check user account is locked.
-
-        data = self.db["users"].find_one({"username": username}) or {}
-        if data.get("status", {}).get("disable"):
+        user = self.db["users"].find_one({"username": username}) or {}
+        if user.get("status", {}).get("disable"):
             return {"status_code": HTTPStatus.FORBIDDEN,
                     "status": False,
-                    "message": data.get("status", {}).get("reason")}
+                    "message": user.get("status", {}).get("reason")
+                    }
 
-        returned_value = {"status_code": 0, "message": ""}
-
-        if data:
-            # try to login
-            stored_password = data["password"]
-            if pbkdf2_sha256.verify(password, stored_password):
-                returned_value["status_code"] = HTTPStatus.OK
-            else:
-                returned_value["status_code"] = HTTPStatus.FORBIDDEN
-                returned_value["message"] = "用户名或密码错误"
-
+        returned_value = {}
+        if user and pbkdf2_sha256.verify(password, user["password"]):
+            returned_value["status_code"] = HTTPStatus.OK
+            returned_value["username"] = user.get("username")
+            returned_value["group"] = user.get("group", ["user"])
         else:
-            if os.getenv("DISABLE_REGISTER"):
-                return {"status_code": HTTPStatus.BAD_REQUEST, "message": "本站已经暂停注册"}
+            returned_value = {"status_code": HTTPStatus.FORBIDDEN, "message": "用户名或密码错误"}
 
-            # register
-            hash_value = pbkdf2_sha256.hash(password)
-            try:
-                self.db["users"].insert_one(dict(username=username, password=hash_value,
-                                                 date=ts_date(), ip=ip, browser=browser)
-                                            )
-                returned_value["status_code"] = HTTPStatus.CREATED
-
-            except Exception as e:
-                returned_value["status_code"] = HTTPStatus.INTERNAL_SERVER_ERROR
-                returned_value["message"] = str(e)
-
-        returned_value["username"] = data.get("username")
-        returned_value["group"] = data.get("group", ["user"])
         return returned_value
 
     def get_user_info(self, username: str) -> dict:
