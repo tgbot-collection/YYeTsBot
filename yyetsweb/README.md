@@ -38,6 +38,10 @@ db.getCollection('douban').createIndex({"resourceId" : 1});
 db.getCollection('douban').getIndexes();
 
 db.getCollection('users').createIndex({"username" : 1}, { unique: true });
+db.getCollection('users').createIndex(
+   { "email.address": 1 },
+   { unique: true, partialFilterExpression: { "email.address": { $exists: true } } }
+)
 db.getCollection('users').getIndexes();
 
 db.getCollection('comment').createIndex({"resource_id" : 1});

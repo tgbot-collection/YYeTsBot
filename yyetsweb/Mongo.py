@@ -70,6 +70,9 @@ class Mongo:
         if r:
             return r["status"]["reason"]
 
+    def is_old_user(self, username: str) -> bool:
+        return bool(self.db["users"].find_one({"username": username, "oldUser": True}))
+
 
 class FakeMongoResource:
     pass
@@ -223,6 +226,10 @@ class CommentMongoResource(CommentResource, Mongo):
 
     def add_comment(self, captcha: str, captcha_id: int, content: str, resource_id: int,
                     ip: str, username: str, browser: str, parent_comment_id=None) -> dict:
+        # check if this user is allowed to comment
+        if not self.is_old_user(username):
+            return {"status_code": HTTPStatus.TEMPORARY_REDIRECT,
+                    "message": "你需要验证邮箱才能评论，请到个人中心进行验证"}
         returned = {"status_code": 0, "message": ""}
         # check if this user is blocked
         reason = self.is_user_blocked(username)
@@ -249,7 +256,9 @@ class CommentMongoResource(CommentResource, Mongo):
         if not user_group:
             # admin don't have to verify code
             verify_result = CaptchaResource().verify_code(captcha, captcha_id)
-            if not verify_result["status"]:
+            if os.getenv("PYTHON_DEV"):
+                pass
+            elif not verify_result["status"]:
                 returned["status_code"] = HTTPStatus.BAD_REQUEST
                 returned["message"] = verify_result["message"]
                 return returned

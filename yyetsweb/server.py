@@ -111,7 +111,8 @@ if __name__ == "__main__":
     scheduler.add_job(cf.clear_fw, trigger=CronTrigger.from_crontab("0 0 */5 * *"))
     scheduler.start()
     logging.info("Triggering dump database now...")
-    threading.Thread(target=dump_db.entry_dump).start()
+    if not os.getenv("PYTHON_DEV"):
+        threading.Thread(target=dump_db.entry_dump).start()
 
     options.define("p", default=8888, help="running port", type=int)
     options.define("h", default='127.0.0.1', help="listen address", type=str)
