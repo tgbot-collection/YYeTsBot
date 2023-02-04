@@ -49,6 +49,7 @@ jobs:
           REACT_APP_DOMAIN: ${{ secrets.REACT_APP_DOMAIN }}
           REACT_APP_GA: ${{ secrets.REACT_APP_GA }}
           GENERATE_SOURCEMAP: ${{ secrets.GENERATE_SOURCEMAP }}
+          REACT_APP_ADSENSE: ${{ secrets.REACT_APP_ADSENSE }}
         run: bash scripts/pre_build.sh
 
       - name: Lower case for Docker Hub
