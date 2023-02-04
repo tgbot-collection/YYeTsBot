@@ -226,8 +226,9 @@ class CommentMongoResource(CommentResource, Mongo):
 
     def add_comment(self, captcha: str, captcha_id: int, content: str, resource_id: int,
                     ip: str, username: str, browser: str, parent_comment_id=None) -> dict:
-        # check if this user is allowed to comment
-        if not self.is_old_user(username):
+        user_data = self.db["users"].find_one({"username": username})
+        # old user is allowed to comment without verification
+        if not self.is_old_user(username) and user_data.get("email", {}).get("verified", False) is False:
             return {"status_code": HTTPStatus.TEMPORARY_REDIRECT,
                     "message": "你需要验证邮箱才能评论，请到个人中心进行验证"}
         returned = {"status_code": 0, "message": ""}
@@ -249,10 +250,7 @@ class CommentMongoResource(CommentResource, Mongo):
             SpamProcessMongoResource.request_approval(document)
             return {"status_code": HTTPStatus.FORBIDDEN, "message": f"possible spam, reference id: {inserted_id}"}
 
-        user_group = self.db["users"].find_one(
-            {"username": username},
-            projection={"group": True, "_id": False}
-        )
+        user_group = user_data.get("group", [])
         if not user_group:
             # admin don't have to verify code
             verify_result = CaptchaResource().verify_code(captcha, captcha_id)
@@ -747,21 +745,42 @@ class UserMongoResource(UserResource, Mongo):
         else:
             return {"status_code": HTTPStatus.FORBIDDEN, "message": "验证码错误", "status": False}
         # check user account is locked.
-        user = self.db["users"].find_one({"username": username}) or {}
-        if user.get("status", {}).get("disable"):
+
+        data = self.db["users"].find_one({"username": username}) or {}
+        if data.get("status", {}).get("disable"):
             return {"status_code": HTTPStatus.FORBIDDEN,
                     "status": False,
-                    "message": user.get("status", {}).get("reason")
-                    }
+                    "message": data.get("status", {}).get("reason")}
 
-        returned_value = {}
-        if user and pbkdf2_sha256.verify(password, user["password"]):
-            returned_value["status_code"] = HTTPStatus.OK
-            returned_value["username"] = user.get("username")
-            returned_value["group"] = user.get("group", ["user"])
+        returned_value = {"status_code": 0, "message": ""}
+
+        if data:
+            # try to login
+            stored_password = data["password"]
+            if pbkdf2_sha256.verify(password, stored_password):
+                returned_value["status_code"] = HTTPStatus.OK
+            else:
+                returned_value["status_code"] = HTTPStatus.FORBIDDEN
+                returned_value["message"] = "用户名或密码错误"
+
         else:
-            returned_value = {"status_code": HTTPStatus.FORBIDDEN, "message": "用户名或密码错误"}
+            if os.getenv("DISABLE_REGISTER"):
+                return {"status_code": HTTPStatus.BAD_REQUEST, "message": "本站已经暂停注册"}
 
+            # register
+            hash_value = pbkdf2_sha256.hash(password)
+            try:
+                self.db["users"].insert_one(dict(username=username, password=hash_value,
+                                                 date=ts_date(), ip=ip, browser=browser)
+                                            )
+                returned_value["status_code"] = HTTPStatus.CREATED
+
+            except Exception as e:
+                returned_value["status_code"] = HTTPStatus.INTERNAL_SERVER_ERROR
+                returned_value["message"] = str(e)
+
+        returned_value["username"] = data.get("username")
+        returned_value["group"] = data.get("group", ["user"])
         return returned_value
 
     def get_user_info(self, username: str) -> dict:
