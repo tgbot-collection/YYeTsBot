@@ -192,7 +192,7 @@ class YYeTsOffline(BaseFansub):
         results = {}
         for item in data:
             info = item["data"]["info"]
-            url = "https://yyets.dmesg.app/resource.html?id={}".format(info["id"])
+            url = WORKERS.format(info["id"])
             url_hash = hashlib.sha1(url.encode('u8')).hexdigest()
             all_name = info["cnname"] + info["enname"] + info["aliasname"]
             results[url_hash] = {
@@ -205,7 +205,7 @@ class YYeTsOffline(BaseFansub):
 
         comments = self.db["comment"].find({"content": {"$regex": f".*{search_text}.*", "$options": "i"}})
         for c in comments:
-            url = "https://yyets.dmesg.app/resource.html?id={}#{}".format(c["resource_id"], str(c["_id"]))
+            url = WORKERS + "#{}".format(c["resource_id"], str(c["_id"]))
             url_hash = hashlib.sha1(url.encode('u8')).hexdigest()
             all_name = c["content"]
             results[url_hash] = {
@@ -237,7 +237,7 @@ class YYeTsOffline(BaseFansub):
             rid = resource_url.split("id=")[1]
             data: dict = self.collection.find_one({"data.info.id": int(rid)}, {'_id': False})
             name = data["data"]["info"]["cnname"]
-            share = WORKERS % rid
+            share = WORKERS.format(rid)
             t = "resource"
 
         return {"all": json.dumps(data, ensure_ascii=False, indent=4), "share": share, "cnname": name, "type": t}

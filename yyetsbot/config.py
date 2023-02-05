@@ -27,7 +27,7 @@ ZHUIXINFAN_SEARCH = "http://www.fanxinzhui.com/list?k={}"
 ZHUIXINFAN_RESOURCE = "http://www.fanxinzhui.com{}"
 # yyets website
 DOMAIN = "https://yyets.dmesg.app/"
-WORKERS = f"{DOMAIN}resource.html?id=%s"
+WORKERS = f"{DOMAIN}resource?id=" + "{}"
 
 # new zmz
 NEWZMZ_SEARCH = "https://newzmz.com/subres/index/getres.html?keyword={}"
