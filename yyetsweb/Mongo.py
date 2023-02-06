@@ -319,9 +319,13 @@ class CommentMongoResource(CommentResource, Mongo):
             if user_info:
                 subject = "[人人影视下载分享站] 你的评论有了新的回复"
                 pt_content = content.split("</reply>")[-1]
-                body = f"{username} 您好，<br>你的评论 {parent_comment['content']} 有了新的回复：<br>{pt_content}" \
+                text = f"你的评论 {parent_comment['content']} 有了新的回复：<br>{pt_content}" \
                        f"<br>你可以<a href='{link}'>点此链接</a>查看<br><br>请勿回复此邮件"
-                send_mail(user_info["email"]["address"], subject, body)
+                context = {
+                    "username": username,
+                    "text": text
+                }
+                send_mail(user_info["email"]["address"], subject, context)
         return returned
 
     def delete_comment(self, comment_id):
@@ -818,10 +822,13 @@ class UserMongoResource(UserResource, Mongo):
             valid_data["email"] = {"verified": False, "address": user_email}
             # send email confirm
             subject = "[人人影视下载分享站] 请验证你的邮箱"
-            body = f"{username} 您好，<br>请输入如下验证码完成你的邮箱认证。验证码有效期为24小时。<br>" \
+            text = f"请输入如下验证码完成你的邮箱认证。验证码有效期为24小时。<br>" \
                    f"如果您未有此请求，请忽略此邮件。<br><br>验证码： {verify_code}"
-
-            send_mail(user_email, subject, body)
+            context = {
+                "username": username,
+                "text": text
+            }
+            send_mail(user_email, subject, context)
             # 发送成功才设置缓存
             redis.set(timeout_key, username, ex=1800)
             redis.hset(user_email, mapping={"code": verify_code, "wrong": 0})
