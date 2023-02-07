@@ -207,7 +207,16 @@ class CommentMongoResource(CommentResource, Mongo):
 
         condition = {"resource_id": resource_id, "deleted_at": {"$exists": False}, "type": {"$ne": "child"}}
         if comment_id:
-            condition.update(_id=ObjectId(comment_id))
+            # 搜索某个评论id的结果
+            condition = {
+                "deleted_at": {"$exists": False},
+                "$or": [
+                    # 如果是子评论id，搜索子评论，会将整个父评论带出
+                    {"children": {"$in": [ObjectId(comment_id)]}},
+                    # 如果是父评论id，搜索父评论，并且排除子评论的记录
+                    {"_id": ObjectId(comment_id), "type": {"$ne": "child"}}
+                ]
+            }
 
         count = self.db["comment"].count_documents(condition)
         data = self.db["comment"].find(condition, self.projection) \
