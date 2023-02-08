@@ -26,9 +26,10 @@ from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      CategoryHandler, CommentChildHandler, CommentHandler,
                      CommentNewestHandler, CommentReactionHandler,
                      DBDumpHandler, DoubanHandler, DoubanReportHandler,
-                     GitHubOAuth2LoginHandler, GrafanaIndexHandler,
-                     GrafanaQueryHandler, GrafanaSearchHandler, IndexHandler,
-                     LikeHandler, MetricsHandler, NameHandler, NotFoundHandler,
+                     GitHubOAuth2LoginHandler, GoogleOAuth2LoginHandler,
+                     GrafanaIndexHandler, GrafanaQueryHandler,
+                     GrafanaSearchHandler, IndexHandler, LikeHandler,
+                     MetricsHandler, NameHandler, NotFoundHandler,
                      NotificationHandler, ResourceHandler,
                      ResourceLatestHandler, SpamProcessHandler, TopHandler,
                      UserEmailHandler, UserHandler)
@@ -70,6 +71,7 @@ class RunServer:
         (r'/api/category', CategoryHandler),
         (r'/api/admin/spam', SpamProcessHandler),
         (r'/auth/github', GitHubOAuth2LoginHandler),
+        (r'/auth/google', GoogleOAuth2LoginHandler),
 
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|'
          r'.*\.svg|.*\.json|.*\.txt)',
@@ -80,6 +82,8 @@ class RunServer:
         "cookie_secret": os.getenv("cookie_secret", "eo2kcgpKwXj8Q3PKYj6nIL1J4j3b58DX"),
         "default_handler_class": NotFoundHandler,
         "login_url": "/login",
+        "google_oauth": {"key": os.getenv("GOOGLE_CLIENT_ID"), "secret": os.getenv("GOOGLE_CLIENT_SECRET")},
+        "github_oauth": {"key": os.getenv("GITHUB_CLIENT_ID"), "secret": os.getenv("GITHUB_CLIENT_SECRET")}
     }
     application = web.Application(handlers, **settings)
 

@@ -27,7 +27,7 @@ import filetype
 import requests
 import zhconv
 from tornado import escape, gen, web
-from tornado.auth import OAuth2Mixin
+from tornado.auth import GoogleOAuth2Mixin, OAuth2Mixin
 from tornado.concurrent import run_on_executor
 
 from database import CaptchaResource, Redis
@@ -1011,10 +1011,6 @@ class GitHubOAuth2LoginHandler(BaseHandler, OAuth2Mixin):
     _OAUTH_API_REQUEST_URL = "https://api.github.com/user"
     class_name = f"OAuthRegisterResource"
 
-    github_client_id = os.getenv("GITHUB_CLIENT_ID")
-    github_client_secret = os.getenv("GITHUB_CLIENT_SECRET")
-    redirect_uri = os.getenv("GITHUB_REDIRECT_URI")
-
     def add_oauth_user(self, username):
         ip = self.get_real_ip()
         browser = self.request.headers['user-agent']
@@ -1022,14 +1018,20 @@ class GitHubOAuth2LoginHandler(BaseHandler, OAuth2Mixin):
         return response
 
     def get(self):
+        settings = self.settings.get("github_oauth")
+        github_client_id = settings.get("key")
+        github_client_secret = settings.get("secret")
+        redirect_uri = os.getenv("DOMAIN") + self.request.path
+
         code = self.get_argument('code', None)
         if code:
-            access = self.get_authenticated_user(code)
-            resp = requests.get(
-                self._OAUTH_API_REQUEST_URL,
-                headers={"Authorization": "Bearer {}".format(access["access_token"])}
-            ).json()
-            
+            body = {"client_id": github_client_id, "client_secret": github_client_secret, "code": code}
+            access = requests.post(self._OAUTH_ACCESS_TOKEN_URL, data=body,
+                                   headers={"Accept": "application/json"}).json()
+            resp = requests.get(self._OAUTH_API_REQUEST_URL,
+                                headers={"Authorization": "Bearer {}".format(access["access_token"])}
+                                ).json()
+
             username = resp["login"]
             logging.info("User %s login with GitHub now...", username)
             result = self.add_oauth_user(username)
@@ -1039,15 +1041,41 @@ class GitHubOAuth2LoginHandler(BaseHandler, OAuth2Mixin):
 
         else:
             self.authorize_redirect(
-                redirect_uri=self.redirect_uri,
-                client_id=self.github_client_id,
+                redirect_uri=redirect_uri,
+                client_id=github_client_id,
                 scope=[],
                 response_type='code')
 
-    def get_authenticated_user(self, code):
-        body = {
-            "client_id": self.github_client_id,
-            "client_secret": self.github_client_secret,
-            "code": code,
-        }
-        return requests.post(self._OAUTH_ACCESS_TOKEN_URL, data=body, headers={"Accept": "application/json"}).json()
+
+class GoogleOAuth2LoginHandler(BaseHandler, GoogleOAuth2Mixin):
+    class_name = f"OAuthRegisterResource"
+
+    def add_oauth_user(self, email):
+        ip = self.get_real_ip()
+        browser = self.request.headers['user-agent']
+        response = self.instance.add_user(email, ip, browser)
+        return response
+
+    async def get(self):
+        redirect_uri = os.getenv("DOMAIN") + self.request.path
+        code = self.get_argument('code', None)
+        if code:
+            access = await self.get_authenticated_user(
+                redirect_uri=redirect_uri,
+                code=code)
+            user = await self.oauth2_request(
+                "https://www.googleapis.com/oauth2/v1/userinfo",
+                access_token=access["access_token"])
+            email = user["email"]
+            logging.info("User %s login with GitHub now...", email)
+            result = self.add_oauth_user(email)
+            if result["status"] == "success":
+                self.set_secure_cookie("username", email, 365)
+            self.redirect("/login?" + urlencode(result))
+        else:
+            self.authorize_redirect(
+                redirect_uri=redirect_uri,
+                client_id=self.settings['google_oauth']['key'],
+                scope=['email'],
+                response_type='code',
+                extra_params={'approval_prompt': 'auto'})
