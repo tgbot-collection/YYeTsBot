@@ -21,10 +21,13 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from hashlib import sha1
 from http import HTTPStatus
+from urllib.parse import urlencode
 
 import filetype
+import requests
 import zhconv
 from tornado import escape, gen, web
+from tornado.auth import OAuth2Mixin
 from tornado.concurrent import run_on_executor
 
 from database import CaptchaResource, Redis
@@ -1000,3 +1003,51 @@ class SpamProcessHandler(BaseHandler):
     @gen.coroutine
     def delete(self):
         self.write(self.process("ban_spam"))
+
+
+class GitHubOAuth2LoginHandler(BaseHandler, OAuth2Mixin):
+    _OAUTH_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
+    _OAUTH_ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token"
+    _OAUTH_API_REQUEST_URL = "https://api.github.com/user"
+    class_name = f"OAuthRegisterResource"
+
+    github_client_id = os.getenv("GITHUB_CLIENT_ID")
+    github_client_secret = os.getenv("GITHUB_CLIENT_SECRET")
+    redirect_uri = os.getenv("GITHUB_REDIRECT_URI")
+
+    def add_oauth_user(self, username):
+        ip = self.get_real_ip()
+        browser = self.request.headers['user-agent']
+        response = self.instance.add_user(username, ip, browser)
+        return response
+
+    def get(self):
+        code = self.get_argument('code', None)
+        if code:
+            access = self.get_authenticated_user(code)
+            resp = requests.get(
+                self._OAUTH_API_REQUEST_URL,
+                headers={"Authorization": "Bearer {}".format(access["access_token"])}
+            ).json()
+            
+            username = resp["login"]
+            logging.info("User %s login with GitHub now...", username)
+            result = self.add_oauth_user(username)
+            if result["status"] == "success":
+                self.set_secure_cookie("username", username, 365)
+            self.redirect("/login?" + urlencode(result))
+
+        else:
+            self.authorize_redirect(
+                redirect_uri=self.redirect_uri,
+                client_id=self.github_client_id,
+                scope=[],
+                response_type='code')
+
+    def get_authenticated_user(self, code):
+        body = {
+            "client_id": self.github_client_id,
+            "client_secret": self.github_client_secret,
+            "code": code,
+        }
+        return requests.post(self._OAUTH_ACCESS_TOKEN_URL, data=body, headers={"Accept": "application/json"}).json()

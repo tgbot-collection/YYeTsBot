@@ -26,9 +26,9 @@ from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      CategoryHandler, CommentChildHandler, CommentHandler,
                      CommentNewestHandler, CommentReactionHandler,
                      DBDumpHandler, DoubanHandler, DoubanReportHandler,
-                     GrafanaIndexHandler, GrafanaQueryHandler,
-                     GrafanaSearchHandler, IndexHandler, LikeHandler,
-                     MetricsHandler, NameHandler, NotFoundHandler,
+                     GitHubOAuth2LoginHandler, GrafanaIndexHandler,
+                     GrafanaQueryHandler, GrafanaSearchHandler, IndexHandler,
+                     LikeHandler, MetricsHandler, NameHandler, NotFoundHandler,
                      NotificationHandler, ResourceHandler,
                      ResourceLatestHandler, SpamProcessHandler, TopHandler,
                      UserEmailHandler, UserHandler)
@@ -69,6 +69,7 @@ class RunServer:
         (r'/api/notification', NotificationHandler),
         (r'/api/category', CategoryHandler),
         (r'/api/admin/spam', SpamProcessHandler),
+        (r'/auth/github', GitHubOAuth2LoginHandler),
 
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|'
          r'.*\.svg|.*\.json|.*\.txt)',
