@@ -32,7 +32,7 @@ from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      MetricsHandler, NameHandler, NotFoundHandler,
                      NotificationHandler, ResourceHandler,
                      ResourceLatestHandler, SpamProcessHandler, TopHandler,
-                     UserEmailHandler, UserHandler)
+                     TwitterOAuth2LoginHandler, UserEmailHandler, UserHandler)
 from migration.douban_sync import sync_douban
 from utils import Cloudflare
 
@@ -72,6 +72,7 @@ class RunServer:
         (r'/api/admin/spam', SpamProcessHandler),
         (r'/auth/github', GitHubOAuth2LoginHandler),
         (r'/auth/google', GoogleOAuth2LoginHandler),
+        (r'/auth/twitter', TwitterOAuth2LoginHandler),
 
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|'
          r'.*\.svg|.*\.json|.*\.txt)',
@@ -83,7 +84,9 @@ class RunServer:
         "default_handler_class": NotFoundHandler,
         "login_url": "/login",
         "google_oauth": {"key": os.getenv("GOOGLE_CLIENT_ID"), "secret": os.getenv("GOOGLE_CLIENT_SECRET")},
-        "github_oauth": {"key": os.getenv("GITHUB_CLIENT_ID"), "secret": os.getenv("GITHUB_CLIENT_SECRET")}
+        "github_oauth": {"key": os.getenv("GITHUB_CLIENT_ID"), "secret": os.getenv("GITHUB_CLIENT_SECRET")},
+        "twitter_consumer_key": os.getenv("TWITTER_CONSUMER_KEY"),
+        "twitter_consumer_secret": os.getenv("TWITTER_CONSUMER_SECRET"),
     }
     application = web.Application(handlers, **settings)
 

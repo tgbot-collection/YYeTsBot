@@ -27,7 +27,7 @@ import filetype
 import requests
 import zhconv
 from tornado import escape, gen, web
-from tornado.auth import GoogleOAuth2Mixin, OAuth2Mixin
+from tornado.auth import GoogleOAuth2Mixin, OAuth2Mixin, TwitterMixin
 from tornado.concurrent import run_on_executor
 
 from database import CaptchaResource, Redis
@@ -1008,17 +1008,23 @@ class SpamProcessHandler(BaseHandler):
         self.write(self.process("ban_spam"))
 
 
-class GitHubOAuth2LoginHandler(BaseHandler, OAuth2Mixin):
-    _OAUTH_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
-    _OAUTH_ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token"
-    _OAUTH_API_REQUEST_URL = "https://api.github.com/user"
+class OAuth2Handler(BaseHandler, OAuth2Mixin):
     class_name = f"OAuthRegisterResource"
+    _OAUTH_AUTHORIZE_URL = ""
+    _OAUTH_ACCESS_TOKEN_URL = ""
+    _OAUTH_API_REQUEST_URL = ""
 
     def add_oauth_user(self, username):
         ip = self.get_real_ip()
         browser = self.request.headers['user-agent']
         response = self.instance.add_user(username, ip, browser)
         return response
+
+
+class GitHubOAuth2LoginHandler(OAuth2Handler):
+    _OAUTH_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
+    _OAUTH_ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token"
+    _OAUTH_API_REQUEST_URL = "https://api.github.com/user"
 
     def get(self):
         settings = self.settings.get("github_oauth")
@@ -1050,14 +1056,7 @@ class GitHubOAuth2LoginHandler(BaseHandler, OAuth2Mixin):
                 response_type='code')
 
 
-class GoogleOAuth2LoginHandler(BaseHandler, GoogleOAuth2Mixin):
-    class_name = f"OAuthRegisterResource"
-
-    def add_oauth_user(self, email):
-        ip = self.get_real_ip()
-        browser = self.request.headers['user-agent']
-        response = self.instance.add_user(email, ip, browser)
-        return response
+class GoogleOAuth2LoginHandler(GoogleOAuth2Mixin, OAuth2Handler):
 
     async def get(self):
         redirect_uri = os.getenv("DOMAIN") + self.request.path
@@ -1070,7 +1069,7 @@ class GoogleOAuth2LoginHandler(BaseHandler, GoogleOAuth2Mixin):
                 "https://www.googleapis.com/oauth2/v1/userinfo",
                 access_token=access["access_token"])
             email = user["email"]
-            logging.info("User %s login with GitHub now...", email)
+            logging.info("User %s login with Google now...", email)
             result = self.add_oauth_user(email)
             if result["status"] == "success":
                 self.set_secure_cookie("username", email, 365)
@@ -1082,3 +1081,18 @@ class GoogleOAuth2LoginHandler(BaseHandler, GoogleOAuth2Mixin):
                 scope=['email'],
                 response_type='code',
                 extra_params={'approval_prompt': 'auto'})
+
+
+class TwitterOAuth2LoginHandler(TwitterMixin, OAuth2Handler):
+    async def get(self):
+        if self.get_argument("oauth_token", None):
+            user = await self.get_authenticated_user()
+            username = user["username"]
+            logging.info("User %s login with Twitter now...", username)
+            result = self.add_oauth_user(username)
+            if result["status"] == "success":
+                self.set_secure_cookie("username", username, 365)
+            self.redirect("/login?" + urlencode(result))
+            # Save the user using e.g. set_secure_cookie()
+        else:
+            await self.authorize_redirect(extra_params={"x_auth_access_type": "read"})
