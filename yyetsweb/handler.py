@@ -1096,3 +1096,38 @@ class TwitterOAuth2LoginHandler(TwitterMixin, OAuth2Handler):
             # Save the user using e.g. set_secure_cookie()
         else:
             await self.authorize_redirect(extra_params={"x_auth_access_type": "read"})
+
+
+class MSOAuth2LoginHandler(OAuth2Handler):
+    _OAUTH_AUTHORIZE_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+    _OAUTH_ACCESS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+    _OAUTH_API_REQUEST_URL = "https://graph.microsoft.com/v1.0/me"
+
+    def get(self):
+        settings = self.settings.get("ms_oauth")
+        client_id = settings.get("key")
+        client_secret = settings.get("secret")
+        redirect_uri = os.getenv("DOMAIN") + self.request.path
+
+        code = self.get_argument('code', None)
+        if code:
+            body = {"client_id": client_id, "client_secret": client_secret, "code": code,
+                    "grant_type": "authorization_code", "redirect_uri": redirect_uri}
+            access = requests.post(self._OAUTH_ACCESS_TOKEN_URL, data=body,
+                                   headers={"Accept": "application/json"}).json()
+            resp = requests.get(self._OAUTH_API_REQUEST_URL,
+                                headers={"Authorization": "Bearer {}".format(access["access_token"])}
+                                ).json()
+            email = resp["userPrincipalName"]
+            logging.info("User %s login with Microsoft now...", email)
+            result = self.add_oauth_user(email, "Microsoft")
+            if result["status"] == "success":
+                self.set_secure_cookie("username", email, 365)
+            self.redirect("/login?" + urlencode(result))
+
+        else:
+            self.authorize_redirect(
+                redirect_uri=redirect_uri,
+                client_id=client_id,
+                scope=["https://graph.microsoft.com/User.Read"],
+                response_type='code')
