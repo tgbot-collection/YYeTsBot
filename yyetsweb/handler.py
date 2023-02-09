@@ -243,6 +243,9 @@ class ResourceHandler(BaseHandler):
 
         resource_id = int(self.get_query_argument("id"))
         username = self.get_current_user()
+        if str(resource_id) in os.getenv("HIDDEN_RESOURCE", "").split(","):
+            self.set_status(HTTPStatus.NOT_FOUND)
+            return {"status": 0, "info": "资源已隐藏", }
         data = self.instance.get_resource_data(resource_id, username)
         if not data:
             self.ban()
