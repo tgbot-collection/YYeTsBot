@@ -24,13 +24,13 @@ import dump_db
 from Mongo import OtherMongoResource, ResourceLatestMongoResource
 from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      CategoryHandler, CommentChildHandler, CommentHandler,
-                     CommentNewestHandler, CommentReactionHandler, MSOAuth2LoginHandler,
+                     CommentNewestHandler, CommentReactionHandler,
                      DBDumpHandler, DoubanHandler, DoubanReportHandler,
                      GitHubOAuth2LoginHandler, GoogleOAuth2LoginHandler,
                      GrafanaIndexHandler, GrafanaQueryHandler,
                      GrafanaSearchHandler, IndexHandler, LikeHandler,
-                     MetricsHandler, NameHandler, NotFoundHandler,
-                     NotificationHandler, ResourceHandler,
+                     MetricsHandler, MSOAuth2LoginHandler, NameHandler,
+                     NotFoundHandler, NotificationHandler, ResourceHandler,
                      ResourceLatestHandler, SpamProcessHandler, TopHandler,
                      TwitterOAuth2LoginHandler, UserEmailHandler, UserHandler)
 from migration.douban_sync import sync_douban

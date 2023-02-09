@@ -1009,16 +1009,35 @@ class SpamProcessHandler(BaseHandler):
 
 
 class OAuth2Handler(BaseHandler, OAuth2Mixin):
-    class_name = f"OAuthRegisterResource"
+    class_name = "OAuthRegisterResource"
     _OAUTH_AUTHORIZE_URL = ""
     _OAUTH_ACCESS_TOKEN_URL = ""
     _OAUTH_API_REQUEST_URL = ""
 
     def add_oauth_user(self, username, source=None):
+        logging.info("User %s login with %s now...", username, source)
         ip = self.get_real_ip()
         browser = self.request.headers['user-agent']
-        response = self.instance.add_user(username, ip, browser, source)
-        return response
+        result = self.instance.add_user(username, ip, browser, source)
+        if result["status"] == "success":
+            self.set_secure_cookie("username", username, 365)
+        self.redirect("/login?" + urlencode(result))
+
+    def get_authenticated_user(self, client_id: str, client_secret: str, code: str, extra_fields: dict = None):
+        args = {"code": code, "client_id": client_id, "client_secret": client_secret}
+        if extra_fields:
+            args.update(extra_fields)
+        return requests.post(self._OAUTH_ACCESS_TOKEN_URL, headers={"Accept": "application/json"}, data=args).json()
+
+    def oauth2_sync_request(self, access_token):
+        return requests.get(self._OAUTH_API_REQUEST_URL, headers={"Authorization": f"Bearer {access_token}"}).json()
+
+    def get_secret(self, settings_key):
+        settings = self.settings.get(settings_key)
+        client_id = settings.get("key")
+        client_secret = settings.get("secret")
+        redirect_uri = os.getenv("DOMAIN") + self.request.path
+        return client_id, client_secret, redirect_uri
 
 
 class GitHubOAuth2LoginHandler(OAuth2Handler):
@@ -1027,32 +1046,43 @@ class GitHubOAuth2LoginHandler(OAuth2Handler):
     _OAUTH_API_REQUEST_URL = "https://api.github.com/user"
 
     def get(self):
-        settings = self.settings.get("github_oauth")
-        github_client_id = settings.get("key")
-        github_client_secret = settings.get("secret")
-        redirect_uri = os.getenv("DOMAIN") + self.request.path
-
+        client_id, client_secret, redirect_uri = self.get_secret("github_oauth")
         code = self.get_argument('code', None)
         if code:
-            body = {"client_id": github_client_id, "client_secret": github_client_secret, "code": code}
-            access = requests.post(self._OAUTH_ACCESS_TOKEN_URL, data=body,
-                                   headers={"Accept": "application/json"}).json()
-            resp = requests.get(self._OAUTH_API_REQUEST_URL,
-                                headers={"Authorization": "Bearer {}".format(access["access_token"])}
-                                ).json()
-
+            access = self.get_authenticated_user(client_id, client_secret, code)
+            resp = self.oauth2_sync_request(access["access_token"])
             username = resp["login"]
-            logging.info("User %s login with GitHub now...", username)
-            result = self.add_oauth_user(username, "GitHub")
-            if result["status"] == "success":
-                self.set_secure_cookie("username", username, 365)
-            self.redirect("/login?" + urlencode(result))
+            self.add_oauth_user(username, "GitHub")
+        else:
+            self.authorize_redirect(
+                redirect_uri=redirect_uri,
+                client_id=client_id,
+                scope=[],
+                response_type='code')
+
+
+class MSOAuth2LoginHandler(OAuth2Handler):
+    _OAUTH_AUTHORIZE_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+    _OAUTH_ACCESS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+    _OAUTH_API_REQUEST_URL = "https://graph.microsoft.com/v1.0/me"
+
+    def get(self):
+        client_id, client_secret, redirect_uri = self.get_secret("ms_oauth")
+        code = self.get_argument('code', None)
+        if code:
+            access = self.get_authenticated_user(
+                client_id, client_secret, code,
+                {"grant_type": "authorization_code", "redirect_uri": redirect_uri}
+            )
+            resp = self.oauth2_sync_request(access["access_token"])
+            email = resp["userPrincipalName"]
+            self.add_oauth_user(email, "Microsoft")
 
         else:
             self.authorize_redirect(
                 redirect_uri=redirect_uri,
-                client_id=github_client_id,
-                scope=[],
+                client_id=client_id,
+                scope=["https://graph.microsoft.com/User.Read"],
                 response_type='code')
 
 
@@ -1069,11 +1099,7 @@ class GoogleOAuth2LoginHandler(GoogleOAuth2Mixin, OAuth2Handler):
                 "https://www.googleapis.com/oauth2/v1/userinfo",
                 access_token=access["access_token"])
             email = user["email"]
-            logging.info("User %s login with Google now...", email)
-            result = self.add_oauth_user(email, "Google")
-            if result["status"] == "success":
-                self.set_secure_cookie("username", email, 365)
-            self.redirect("/login?" + urlencode(result))
+            self.add_oauth_user(email, "Google")
         else:
             self.authorize_redirect(
                 redirect_uri=redirect_uri,
@@ -1088,46 +1114,6 @@ class TwitterOAuth2LoginHandler(TwitterMixin, OAuth2Handler):
         if self.get_argument("oauth_token", None):
             user = await self.get_authenticated_user()
             username = user["username"]
-            logging.info("User %s login with Twitter now...", username)
-            result = self.add_oauth_user(username, "Twitter")
-            if result["status"] == "success":
-                self.set_secure_cookie("username", username, 365)
-            self.redirect("/login?" + urlencode(result))
-            # Save the user using e.g. set_secure_cookie()
+            self.add_oauth_user(username, "Twitter")
         else:
             await self.authorize_redirect(extra_params={"x_auth_access_type": "read"})
-
-
-class MSOAuth2LoginHandler(OAuth2Handler):
-    _OAUTH_AUTHORIZE_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
-    _OAUTH_ACCESS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
-    _OAUTH_API_REQUEST_URL = "https://graph.microsoft.com/v1.0/me"
-
-    def get(self):
-        settings = self.settings.get("ms_oauth")
-        client_id = settings.get("key")
-        client_secret = settings.get("secret")
-        redirect_uri = os.getenv("DOMAIN") + self.request.path
-
-        code = self.get_argument('code', None)
-        if code:
-            body = {"client_id": client_id, "client_secret": client_secret, "code": code,
-                    "grant_type": "authorization_code", "redirect_uri": redirect_uri}
-            access = requests.post(self._OAUTH_ACCESS_TOKEN_URL, data=body,
-                                   headers={"Accept": "application/json"}).json()
-            resp = requests.get(self._OAUTH_API_REQUEST_URL,
-                                headers={"Authorization": "Bearer {}".format(access["access_token"])}
-                                ).json()
-            email = resp["userPrincipalName"]
-            logging.info("User %s login with Microsoft now...", email)
-            result = self.add_oauth_user(email, "Microsoft")
-            if result["status"] == "success":
-                self.set_secure_cookie("username", email, 365)
-            self.redirect("/login?" + urlencode(result))
-
-        else:
-            self.authorize_redirect(
-                redirect_uri=redirect_uri,
-                client_id=client_id,
-                scope=["https://graph.microsoft.com/User.Read"],
-                response_type='code')
