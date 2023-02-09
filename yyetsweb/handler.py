@@ -1014,10 +1014,10 @@ class OAuth2Handler(BaseHandler, OAuth2Mixin):
     _OAUTH_ACCESS_TOKEN_URL = ""
     _OAUTH_API_REQUEST_URL = ""
 
-    def add_oauth_user(self, username):
+    def add_oauth_user(self, username, source=None):
         ip = self.get_real_ip()
         browser = self.request.headers['user-agent']
-        response = self.instance.add_user(username, ip, browser)
+        response = self.instance.add_user(username, ip, browser, source)
         return response
 
 
@@ -1043,7 +1043,7 @@ class GitHubOAuth2LoginHandler(OAuth2Handler):
 
             username = resp["login"]
             logging.info("User %s login with GitHub now...", username)
-            result = self.add_oauth_user(username)
+            result = self.add_oauth_user(username, "GitHub")
             if result["status"] == "success":
                 self.set_secure_cookie("username", username, 365)
             self.redirect("/login?" + urlencode(result))
@@ -1070,7 +1070,7 @@ class GoogleOAuth2LoginHandler(GoogleOAuth2Mixin, OAuth2Handler):
                 access_token=access["access_token"])
             email = user["email"]
             logging.info("User %s login with Google now...", email)
-            result = self.add_oauth_user(email)
+            result = self.add_oauth_user(email, "Google")
             if result["status"] == "success":
                 self.set_secure_cookie("username", email, 365)
             self.redirect("/login?" + urlencode(result))
@@ -1089,7 +1089,7 @@ class TwitterOAuth2LoginHandler(TwitterMixin, OAuth2Handler):
             user = await self.get_authenticated_user()
             username = user["username"]
             logging.info("User %s login with Twitter now...", username)
-            result = self.add_oauth_user(username)
+            result = self.add_oauth_user(username, "Twitter")
             if result["status"] == "success":
                 self.set_secure_cookie("username", username, 365)
             self.redirect("/login?" + urlencode(result))

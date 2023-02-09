@@ -1187,7 +1187,7 @@ class SpamProcessMongoResource(Mongo):
 
 
 class OAuthRegisterResource(Mongo):
-    def add_user(self, username, ip, browser):
+    def add_user(self, username, ip, browser, source):
         # username = "Benny"
         user = self.db["users"].find_one({"username": username})
         if user and user.get("password"):
@@ -1204,6 +1204,7 @@ class OAuthRegisterResource(Mongo):
                 "date": ts_date(),
                 "ip": ip,
                 "browser": browser,
-                "oldUser": True
+                "oldUser": True,
+                "source": source
             })
             return {"status": "success", "message": "第三方登录成功，即将跳转首页", "username": username}
