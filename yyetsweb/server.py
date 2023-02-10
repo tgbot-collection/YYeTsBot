@@ -21,19 +21,20 @@ from tornado import httpserver, ioloop, options, web
 from tornado.log import enable_pretty_logging
 
 import dump_db
-from Mongo import OtherMongoResource, ResourceLatestMongoResource
 from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      CategoryHandler, CommentChildHandler, CommentHandler,
                      CommentNewestHandler, CommentReactionHandler,
                      DBDumpHandler, DoubanHandler, DoubanReportHandler,
-                     GitHubOAuth2LoginHandler, GoogleOAuth2LoginHandler,
-                     GrafanaIndexHandler, GrafanaQueryHandler,
-                     GrafanaSearchHandler, IndexHandler, LikeHandler,
-                     MetricsHandler, MSOAuth2LoginHandler, NameHandler,
-                     NotFoundHandler, NotificationHandler, ResourceHandler,
-                     ResourceLatestHandler, SpamProcessHandler, TopHandler,
-                     TwitterOAuth2LoginHandler, UserEmailHandler, UserHandler)
+                     FacebookAuth2LoginHandler, GitHubOAuth2LoginHandler,
+                     GoogleOAuth2LoginHandler, GrafanaIndexHandler,
+                     GrafanaQueryHandler, GrafanaSearchHandler, IndexHandler,
+                     LikeHandler, MetricsHandler, MSOAuth2LoginHandler,
+                     NameHandler, NotFoundHandler, NotificationHandler,
+                     ResourceHandler, ResourceLatestHandler,
+                     SpamProcessHandler, TopHandler, TwitterOAuth2LoginHandler,
+                     UserEmailHandler, UserHandler)
 from migration.douban_sync import sync_douban
+from Mongo import OtherMongoResource, ResourceLatestMongoResource
 from utils import Cloudflare
 
 enable_pretty_logging()
@@ -74,6 +75,7 @@ class RunServer:
         (r'/auth/google', GoogleOAuth2LoginHandler),
         (r'/auth/twitter', TwitterOAuth2LoginHandler),
         (r'/auth/microsoft', MSOAuth2LoginHandler),
+        (r'/auth/facebook', FacebookAuth2LoginHandler),
 
         (r'/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|'
          r'.*\.svg|.*\.json|.*\.txt)',
@@ -87,6 +89,7 @@ class RunServer:
         "google_oauth": {"key": os.getenv("GOOGLE_CLIENT_ID"), "secret": os.getenv("GOOGLE_CLIENT_SECRET")},
         "github_oauth": {"key": os.getenv("GITHUB_CLIENT_ID"), "secret": os.getenv("GITHUB_CLIENT_SECRET")},
         "ms_oauth": {"key": os.getenv("MS_CLIENT_ID"), "secret": os.getenv("MS_CLIENT_SECRET")},
+        "fb_oauth": {"key": os.getenv("FB_CLIENT_ID"), "secret": os.getenv("FB_CLIENT_SECRET")},
         "twitter_consumer_key": os.getenv("TWITTER_CONSUMER_KEY"),
         "twitter_consumer_secret": os.getenv("TWITTER_CONSUMER_SECRET"),
     }

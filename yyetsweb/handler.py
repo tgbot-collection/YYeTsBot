@@ -1029,8 +1029,12 @@ class OAuth2Handler(BaseHandler, OAuth2Mixin):
             args.update(extra_fields)
         return requests.post(self._OAUTH_ACCESS_TOKEN_URL, headers={"Accept": "application/json"}, data=args).json()
 
-    def oauth2_sync_request(self, access_token):
-        return requests.get(self._OAUTH_API_REQUEST_URL, headers={"Authorization": f"Bearer {access_token}"}).json()
+    def oauth2_sync_request(self, access_token, extra_fields=None):
+        return requests.get(
+            self._OAUTH_API_REQUEST_URL,
+            headers={"Authorization": f"Bearer {access_token}"},
+            params=extra_fields
+        ).json()
 
     def get_secret(self, settings_key):
         settings = self.settings.get(settings_key)
@@ -1117,3 +1121,28 @@ class TwitterOAuth2LoginHandler(TwitterMixin, OAuth2Handler):
             self.add_oauth_user(username, "Twitter")
         else:
             await self.authorize_redirect(extra_params={"x_auth_access_type": "read"})
+
+
+class FacebookAuth2LoginHandler(OAuth2Handler):
+    _OAUTH_AUTHORIZE_URL = "https://www.facebook.com/v16.0/dialog/oauth"
+    _OAUTH_ACCESS_TOKEN_URL = "https://graph.facebook.com/oauth/access_token"
+    _OAUTH_API_REQUEST_URL = "https://graph.facebook.com/me"
+
+    def get(self):
+        client_id, client_secret, redirect_uri = self.get_secret("fb_oauth")
+        code = self.get_argument('code', None)
+        if code:
+            access = self.get_authenticated_user(
+                client_id, client_secret, code,
+                {"redirect_uri": redirect_uri}
+            )
+            resp = self.oauth2_sync_request(access["access_token"], {"fields": "email"})
+            email = resp["email"]
+            self.add_oauth_user(email, "Facebook")
+
+        else:
+            self.authorize_redirect(
+                redirect_uri=redirect_uri,
+                client_id=client_id,
+            )
+
