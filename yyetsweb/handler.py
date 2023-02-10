@@ -1136,8 +1136,8 @@ class FacebookAuth2LoginHandler(OAuth2Handler):
                 client_id, client_secret, code,
                 {"redirect_uri": redirect_uri}
             )
-            resp = self.oauth2_sync_request(access["access_token"], {"fields": "email"})
-            email = resp["email"]
+            resp = self.oauth2_sync_request(access["access_token"], {"fields": "name"})
+            email = "{}_{}".format(resp["name"], resp["id"])
             self.add_oauth_user(email, "Facebook")
 
         else:
@@ -1145,4 +1145,3 @@ class FacebookAuth2LoginHandler(OAuth2Handler):
                 redirect_uri=redirect_uri,
                 client_id=client_id,
             )
-
