@@ -1014,11 +1014,11 @@ class OAuth2Handler(BaseHandler, OAuth2Mixin):
     _OAUTH_ACCESS_TOKEN_URL = ""
     _OAUTH_API_REQUEST_URL = ""
 
-    def add_oauth_user(self, username, source=None):
+    def add_oauth_user(self, username, unique, source):
         logging.info("User %s login with %s now...", username, source)
         ip = self.get_real_ip()
         browser = self.request.headers['user-agent']
-        result = self.instance.add_user(username, ip, browser, source)
+        result = self.instance.add_user(username, ip, browser, unique, source)
         if result["status"] == "success":
             self.set_secure_cookie("username", username, 365)
         self.redirect("/login?" + urlencode(result))
@@ -1056,7 +1056,8 @@ class GitHubOAuth2LoginHandler(OAuth2Handler):
             access = self.get_authenticated_user(client_id, client_secret, code)
             resp = self.oauth2_sync_request(access["access_token"])
             username = resp["login"]
-            self.add_oauth_user(username, "GitHub")
+            db_id = resp["id"]
+            self.add_oauth_user(username, db_id, "GitHub")
         else:
             self.authorize_redirect(
                 redirect_uri=redirect_uri,
@@ -1080,7 +1081,8 @@ class MSOAuth2LoginHandler(OAuth2Handler):
             )
             resp = self.oauth2_sync_request(access["access_token"])
             email = resp["userPrincipalName"]
-            self.add_oauth_user(email, "Microsoft")
+            uid = resp["id"]
+            self.add_oauth_user(email, uid, "Microsoft")
 
         else:
             self.authorize_redirect(
@@ -1103,7 +1105,8 @@ class GoogleOAuth2LoginHandler(GoogleOAuth2Mixin, OAuth2Handler):
                 "https://www.googleapis.com/oauth2/v1/userinfo",
                 access_token=access["access_token"])
             email = user["email"]
-            self.add_oauth_user(email, "Google")
+            # Google's email can't be changed
+            self.add_oauth_user(email, email, "Google")
         else:
             self.authorize_redirect(
                 redirect_uri=redirect_uri,
@@ -1118,7 +1121,8 @@ class TwitterOAuth2LoginHandler(TwitterMixin, OAuth2Handler):
         if self.get_argument("oauth_token", None):
             user = await self.get_authenticated_user()
             username = user["username"]
-            self.add_oauth_user(username, "Twitter")
+            id_str = user["id_str"]
+            self.add_oauth_user(username, id_str, "Twitter")
         else:
             await self.authorize_redirect(extra_params={"x_auth_access_type": "read"})
 
@@ -1136,9 +1140,11 @@ class FacebookAuth2LoginHandler(OAuth2Handler):
                 client_id, client_secret, code,
                 {"redirect_uri": redirect_uri}
             )
-            resp = self.oauth2_sync_request(access["access_token"], {"fields": "name"})
-            email = "{}_{}".format(resp["name"], resp["id"])
-            self.add_oauth_user(email, "Facebook")
+            resp = self.oauth2_sync_request(access["access_token"], {"fields": "name,id"})
+            # Facebook doesn't allow to get email except for business accounts
+            uid = resp["id"]
+            email = "{}_{}".format(resp["name"], uid)
+            self.add_oauth_user(email, uid, "Facebook")
 
         else:
             self.authorize_redirect(

@@ -21,6 +21,7 @@ from tornado import httpserver, ioloop, options, web
 from tornado.log import enable_pretty_logging
 
 import dump_db
+from Mongo import OtherMongoResource, ResourceLatestMongoResource
 from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      CategoryHandler, CommentChildHandler, CommentHandler,
                      CommentNewestHandler, CommentReactionHandler,
@@ -34,7 +35,6 @@ from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      SpamProcessHandler, TopHandler, TwitterOAuth2LoginHandler,
                      UserEmailHandler, UserHandler)
 from migration.douban_sync import sync_douban
-from Mongo import OtherMongoResource, ResourceLatestMongoResource
 from utils import Cloudflare
 
 enable_pretty_logging()

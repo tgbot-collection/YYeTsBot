@@ -1187,9 +1187,10 @@ class SpamProcessMongoResource(Mongo):
 
 
 class OAuthRegisterResource(Mongo):
-    def add_user(self, username, ip, browser, source):
+    def add_user(self, username, ip, browser, uid, source: "str"):
+        uid = str(uid)
         # username = "Benny"
-        user = self.db["users"].find_one({"username": username})
+        user = self.db["users"].find_one({"uid": uid, "source": source})
         if user and user.get("password"):
             # 直接注册的用户
             return {"status": "fail", "message": "第三方登录失败，用户名已存在"}
@@ -1205,6 +1206,7 @@ class OAuthRegisterResource(Mongo):
                 "ip": ip,
                 "browser": browser,
                 "oldUser": True,
-                "source": source
+                "source": source,
+                "uid": uid
             })
             return {"status": "success", "message": "第三方登录成功，即将跳转首页", "username": username}
