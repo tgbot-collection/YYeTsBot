@@ -7,8 +7,9 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import pymongo
 import os
+
+import pymongo
 
 
 class Mongo:

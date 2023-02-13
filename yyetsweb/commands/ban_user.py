@@ -7,8 +7,9 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-from common import Mongo
 from tqdm import tqdm
+
+from common import Mongo
 
 client = Mongo()
 user_col = client.db["users"]

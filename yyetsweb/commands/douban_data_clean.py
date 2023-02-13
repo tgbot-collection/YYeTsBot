@@ -14,9 +14,8 @@ import sys
 logging.basicConfig(level=logging.INFO)
 lib_path = pathlib.Path(__file__).parent.parent.resolve().as_posix()
 sys.path.append(lib_path)
-from tqdm import tqdm
-
 from Mongo import DoubanMongoResource
+from tqdm import tqdm
 
 m = DoubanMongoResource()
 

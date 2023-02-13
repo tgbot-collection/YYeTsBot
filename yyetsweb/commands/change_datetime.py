@@ -9,10 +9,9 @@ __author__ = "Benny <benny.think@gmail.com>"
 
 import time
 
-import pymongo
+from common import Mongo
 
-client = pymongo.MongoClient()
-from bson import ObjectId
+client = Mongo().client
 
 comment = client["zimuzu"]["comment"]  # date
 users = client["zimuzu"]["users"]  # date

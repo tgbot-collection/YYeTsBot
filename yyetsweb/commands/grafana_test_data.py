@@ -10,10 +10,9 @@ __author__ = "Benny <benny.think@gmail.com>"
 import random
 from datetime import date, timedelta
 
-import pymongo
+from common import Mongo
 
-client = pymongo.MongoClient()
-col = client["zimuzu"]["metrics"]
+col = Mongo().client["zimuzu"]["metrics"]
 
 
 def generate_date_series(start: str, end: str) -> list:

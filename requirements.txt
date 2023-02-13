@@ -1,14 +1,14 @@
 requests==2.28.2
-pytelegrambotapi==4.9.0
+pytelegrambotapi==4.10.0
 beautifulsoup4==4.11.2
 tgbot-ping==1.0.7
-redis==4.4.2
+redis==4.5.1
 apscheduler==3.10.0
 pymongo==4.3.3
 tornado==6.2
 captcha==0.4
 passlib==1.7.4
-fakeredis==2.7.1
+fakeredis==2.8.0
 pytz==2022.7.1
 filetype==1.2.0
 requests[socks]

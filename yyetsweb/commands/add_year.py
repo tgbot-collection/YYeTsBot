@@ -11,8 +11,9 @@ import logging
 import re
 import time
 
-import pymongo
 from tqdm import tqdm
+
+from common import Mongo
 
 logging.basicConfig(level=logging.INFO)
 
@@ -29,8 +30,7 @@ def extract_year(name: str) -> int:
     return r
 
 
-mongo_client = pymongo.MongoClient()
-col = mongo_client["zimuzu"]["yyets"]
+col = Mongo().client["zimuzu"]["yyets"]
 
 data = col.find()
 

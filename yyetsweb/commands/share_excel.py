@@ -7,15 +7,16 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import openpyxl
 import pathlib
 import sys
+
+import openpyxl
 
 web_path = pathlib.Path(__file__).parent.parent.resolve().as_posix()
 sys.path.append(web_path)
 from Mongo import Mongo
 from tqdm import tqdm
-from utils import ts_date
+from yyetsweb.utils import ts_date
 
 wb = openpyxl.open("aliyun.xlsx")
 
