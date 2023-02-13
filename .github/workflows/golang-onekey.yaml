@@ -1,4 +1,4 @@
-name: publish release
+name: Publish golang one key release
 on:
   push:
     tags:

@@ -1,8 +1,12 @@
-name: build docker image
+name: Build and push docker image
 on:
   push:
     branches:
       - 'master'
+    paths-ignore:
+      - '**.md'
+      - '**.yml'
+      - 'LICENSE'
 
 jobs:
   docker:
@@ -64,7 +68,35 @@ jobs:
         with:
           string: ${{ github.event.repository.full_name }}
 
-      - name: Build and push
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.8.0
+        with:
+          mongodb-version: "6.0"
+
+      - name: Build CI docker images
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          # due to the limitation of docker, we can only save one platform at a time.
+          # for CI purposes, we only need to save amd64 and then build multi-arch later
+          platforms: linux/amd64
+          load: true
+          tags: |
+            ${{ steps.dh_string.outputs.lowercase }}
+          build-args: |
+            env=dev
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      - name: Restore database and run tests
+        run: |
+          sudo apt update && sudo apt install -y wget
+          wget -q https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.6.1.deb
+          sudo dpkg -i mongodb-database-tools-ubuntu2204-x86_64-100.6.1.deb
+          mongorestore --gzip --archive=assets/ci.gz
+          make ci-test
+
+      - name: Build and push docker images
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -86,4 +118,4 @@ jobs:
           TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
           curl "https://api.telegram.org/bot$TOKEN/sendMessage?chat_id=260260121&text=Normal%20Build%20complete!"
-          echo "Build complete!"
+          echo "YYeTsBot Build complete!"
