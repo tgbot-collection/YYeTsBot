@@ -184,11 +184,14 @@ class CommentMongoResource(CommentResource, Mongo):
                 item["childrenCount"] = 0
 
     def get_user_group(self, data):
+        whitelist = os.getenv("whitelist", "").split(",")
         for comment in data:
             username = comment["username"]
             user = self.db["users"].find_one({"username": username}) or {}
             group = user.get("group", ["user"])
             comment["group"] = group
+            if username in whitelist:
+                comment["group"].append("publisher")
 
     def add_reactions(self, data):
         for comment in data:
