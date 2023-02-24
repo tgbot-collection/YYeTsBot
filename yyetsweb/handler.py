@@ -232,6 +232,39 @@ class UserHandler(BaseHandler):
         self.write(resp)
 
 
+class UserAvatarHandler(BaseHandler):
+    class_name = f"UserAvatar{adapter}Resource"
+
+    # from Mongo import UserAvatarMongoResource
+    # instance = UserMongoResource()
+
+    @run_on_executor()
+    def avatar(self) -> dict:
+        username = self.get_current_user()
+        if not username:
+            self.set_status(HTTPStatus.UNAUTHORIZED)
+            self.clear_cookie("username")
+            return {"message": "Please try to login"}
+
+        if self.request.method == "POST":
+            file = self.request.files["image"][0]['body']
+            if len(file) > 10 * 1024 * 1024:
+                self.set_status(HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
+                return {"message": "图片大小不可以超过10MB"}
+            return self.instance.add_avatar(username, file)
+        return self.instance.get_avatar(username)
+
+    @gen.coroutine
+    def post(self):
+        resp = yield self.avatar()
+        self.write(resp)
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.avatar()
+        self.write(resp)
+
+
 class ResourceHandler(BaseHandler):
     class_name = f"Resource{adapter}Resource"
 

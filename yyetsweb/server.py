@@ -23,7 +23,7 @@ from tornado.log import enable_pretty_logging
 import dump_db
 from Mongo import OtherMongoResource, ResourceLatestMongoResource
 from commands.douban_sync import sync_douban
-from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
+from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler, UserAvatarHandler,
                      CategoryHandler, CommentChildHandler, CommentHandler,
                      CommentNewestHandler, CommentReactionHandler,
                      DBDumpHandler, DoubanHandler, DoubanReportHandler,
@@ -52,6 +52,7 @@ class RunServer:
         (r'/api/top', TopHandler),
         (r'/api/like', LikeHandler),
         (r'/api/user', UserHandler),
+        (r'/api/user/avatar', UserAvatarHandler),
         (r'/api/user/email', UserEmailHandler),
         (r'/api/name', NameHandler),
         (r'/api/comment', CommentHandler),

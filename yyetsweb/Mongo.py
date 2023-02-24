@@ -21,6 +21,7 @@ from datetime import date, timedelta
 from http import HTTPStatus
 from urllib.parse import unquote
 
+import filetype
 import pymongo
 import requests
 from bs4 import BeautifulSoup
@@ -72,6 +73,13 @@ class Mongo:
 
     def is_old_user(self, username: str) -> bool:
         return bool(self.db["users"].find_one({"username": username, "oldUser": True}))
+
+    @staticmethod
+    def b64_image(img):
+        if not img:
+            return ""
+        mime = filetype.guess_mime(img) or "image/jpeg"
+        return f"data:{mime};base64,{base64.b64encode(img).decode('utf-8')}"
 
 
 class FakeMongoResource:
@@ -190,6 +198,7 @@ class CommentMongoResource(CommentResource, Mongo):
             user = self.db["users"].find_one({"username": username}) or {}
             group = user.get("group", ["user"])
             comment["group"] = group
+            comment["avatar"] = self.b64_image(user.get("avatar", b""))
             if username in whitelist:
                 comment["group"].append("publisher")
 
@@ -610,7 +619,8 @@ class ResourceMongoResource(ResourceResource, Mongo):
                         "commentID": c["id"],
                         "resourceID": comment_rid,
                         "resourceName": d["data"]["info"]["cnname"],
-                        "origin": "comment"
+                        "origin": "comment",
+                        "avatar": c["avatar"],
                     }
                 )
 
@@ -750,6 +760,7 @@ class LikeMongoResource(LikeResource, Mongo):
 
 
 class UserMongoResource(UserResource, Mongo):
+
     def login_user(self, username: str, password: str, captcha: str, captcha_id: str, ip: str, browser: str) -> dict:
         # verify captcha in the first place.
         redis = Redis().r
@@ -803,6 +814,7 @@ class UserMongoResource(UserResource, Mongo):
         projection = {"_id": False, "password": False}
         data = self.db["users"].find_one({"username": username}, projection)
         data.update(group=data.get("group", ["user"]))
+        data["avatar"] = self.b64_image(data.get("avatar", b""))
         return data
 
     def update_user_last(self, username: str, now_ip: str) -> None:
@@ -851,6 +863,21 @@ class UserMongoResource(UserResource, Mongo):
             {"$set": valid_data}
         )
         return {"status_code": HTTPStatus.CREATED, "status": True, "message": "邮件已经成功发送"}
+
+
+class UserAvatarMongoResource(UserMongoResource, Mongo):
+
+    def add_avatar(self, username, avatar):
+        self.db["users"].update_one({"username": username},
+                                    {"$set": {"avatar": avatar}}
+                                    )
+
+        return {"status_code": HTTPStatus.CREATED, "message": "头像上传成功"}
+
+    def get_avatar(self, username):
+        user = self.db["users"].find_one({"username": username})
+        img = user.get("avatar", b"")
+        return self.b64_image(img)
 
 
 class DoubanMongoResource(DoubanResource, Mongo):
