@@ -239,29 +239,36 @@ class UserAvatarHandler(BaseHandler):
     # instance = UserMongoResource()
 
     @run_on_executor()
-    def avatar(self) -> dict:
+    def update_avatar(self):
         username = self.get_current_user()
         if not username:
             self.set_status(HTTPStatus.UNAUTHORIZED)
             self.clear_cookie("username")
             return {"message": "Please try to login"}
 
-        if self.request.method == "POST":
-            file = self.request.files["image"][0]['body']
-            if len(file) > 10 * 1024 * 1024:
-                self.set_status(HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
-                return {"message": "图片大小不可以超过10MB"}
-            return self.instance.add_avatar(username, file)
-        return self.instance.get_avatar(username)
+        file = self.request.files["image"][0]['body']
+        if len(file) > 10 * 1024 * 1024:
+            self.set_status(HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
+            return {"message": "图片大小不可以超过10MB"}
+        return self.instance.add_avatar(username, file)
+
+    @run_on_executor()
+    def get_avatar(self, username):
+        data = self.instance.get_avatar(username)
+        if data["image"]:
+            self.set_header("Content-Type", data["content_type"])
+            return data["image"]
+        self.set_status(HTTPStatus.NOT_FOUND)
+        return b""
 
     @gen.coroutine
-    def post(self):
-        resp = yield self.avatar()
+    def post(self, _):
+        resp = yield self.update_avatar()
         self.write(resp)
 
     @gen.coroutine
-    def get(self):
-        resp = yield self.avatar()
+    def get(self, username):
+        resp = yield self.get_avatar(username)
         self.write(resp)
 
 

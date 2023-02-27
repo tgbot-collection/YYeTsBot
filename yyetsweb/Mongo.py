@@ -74,13 +74,6 @@ class Mongo:
     def is_old_user(self, username: str) -> bool:
         return bool(self.db["users"].find_one({"username": username, "oldUser": True}))
 
-    @staticmethod
-    def b64_image(img):
-        if not img:
-            return ""
-        mime = filetype.guess_mime(img) or "image/jpeg"
-        return f"data:{mime};base64,{base64.b64encode(img).decode('utf-8')}"
-
 
 class FakeMongoResource:
     pass
@@ -198,7 +191,7 @@ class CommentMongoResource(CommentResource, Mongo):
             user = self.db["users"].find_one({"username": username}) or {}
             group = user.get("group", ["user"])
             comment["group"] = group
-            comment["avatar"] = self.b64_image(user.get("avatar", b""))
+            comment["hasAvatar"] = bool(user.get("avatar"))
             if username in whitelist:
                 comment["group"].append("publisher")
 
@@ -620,7 +613,7 @@ class ResourceMongoResource(ResourceResource, Mongo):
                         "resourceID": comment_rid,
                         "resourceName": d["data"]["info"]["cnname"],
                         "origin": "comment",
-                        "avatar": c["avatar"],
+                        "hasAvatar": c["avatar"],
                     }
                 )
 
@@ -814,7 +807,7 @@ class UserMongoResource(UserResource, Mongo):
         projection = {"_id": False, "password": False}
         data = self.db["users"].find_one({"username": username}, projection)
         data.update(group=data.get("group", ["user"]))
-        data["avatar"] = self.b64_image(data.get("avatar", b""))
+        data["hasAvatar"] = bool(data.pop("avatar", None))
         return data
 
     def update_user_last(self, username: str, now_ip: str) -> None:
@@ -877,7 +870,8 @@ class UserAvatarMongoResource(UserMongoResource, Mongo):
     def get_avatar(self, username):
         user = self.db["users"].find_one({"username": username})
         img = user.get("avatar", b"")
-        return self.b64_image(img)
+        mime = filetype.guess_mime(img)
+        return {"image": img, "content_type": mime}
 
 
 class DoubanMongoResource(DoubanResource, Mongo):

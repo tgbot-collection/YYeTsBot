@@ -52,7 +52,7 @@ class RunServer:
         (r'/api/top', TopHandler),
         (r'/api/like', LikeHandler),
         (r'/api/user', UserHandler),
-        (r'/api/user/avatar', UserAvatarHandler),
+        (r'/api/user/avatar/?(.*)', UserAvatarHandler),
         (r'/api/user/email', UserEmailHandler),
         (r'/api/name', NameHandler),
         (r'/api/comment', CommentHandler),
