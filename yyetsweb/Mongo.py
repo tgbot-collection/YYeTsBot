@@ -613,7 +613,7 @@ class ResourceMongoResource(ResourceResource, Mongo):
                         "resourceID": comment_rid,
                         "resourceName": d["data"]["info"]["cnname"],
                         "origin": "comment",
-                        "hasAvatar": c["avatar"],
+                        "hasAvatar": c["hasAvatar"],
                     }
                 )
 
