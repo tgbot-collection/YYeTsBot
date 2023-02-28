@@ -154,7 +154,7 @@ func douban(c *gin.Context) {
 	}
 	if doubanInfo == "" {
 		var image Image
-		log.Warnf("Douban resource not found, requesting to main site %s...", resourceId)
+		log.Warnf("Douban resource not found, requesting to main site ...")
 		resp, _ := http.Get("https://yyets.dmesg.app" + c.Request.URL.String())
 		body, _ := io.ReadAll(resp.Body)
 		doubanInfo = string(body)
