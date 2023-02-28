@@ -270,8 +270,13 @@ class UserAvatarHandler(BaseHandler):
     def get(self, username):
         resp = yield self.get_avatar(username)
         self.write(resp)
+    
+    @gen.coroutine
+    def head(self, username):
+        resp = yield self.get_avatar(username)
+        self.write(resp)
 
-
+        
 class ResourceHandler(BaseHandler):
     class_name = f"Resource{adapter}Resource"
 
