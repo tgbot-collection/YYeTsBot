@@ -67,8 +67,8 @@ class Zhuixinfan(BaseSync):
 
     def run(self):
         zhuixinfan = "http://www.fanxinzhui.com/rr/{}"
-        start = (self.sync.find_one({"name": "zhuixifna"}) or {}).get("resource_id",
-                                                                      os.getenv("ZHUIXINFAN_START", 20))
+        start = (self.sync.find_one({"name": "zhuixinfan"}) or {}). \
+            get("resource_id", os.getenv("ZHUIXINFAN_START", 20))
         end = os.getenv("ZHUIXINFAN_END", 2500)
         for i in range(start, end):
             url = zhuixinfan.format(i)
@@ -170,18 +170,20 @@ class Zhuixinfan(BaseSync):
     def update_yyets(self, data):
         source = data["data"]["info"]["source"]
         exists = self.yyets.find_one({"data.info.source": source})
-        already_in = self.yyets.find_one({"data.info.cnname": data["data"]["info"]["cnname"]})
+        already_cond = {"data.info.cnname": data["data"]["info"]["cnname"]}
+        already_in = self.yyets.find_one(already_cond)
         if already_in:
-            return
-        if exists:
-            logging.info("Updating data.info.id:%s", source)
+            logging.info("Already in old yyets, updating data.info.source: %s", source)
+            self.yyets.update_one(already_cond, {"$set": {"data.info.source": source}})
+        elif exists:
+            logging.info("Updating new data.info.id: %s", source)
             self.yyets.update_one({"data.info.source": source}, {"$set": {"data.list": data["data"]["list"]}})
         else:
             last_id = 90000
             last = self.yyets.find_one({"data.info.id": {"$gte": last_id}}, sort=[("data.info.id", -1)])
             if last:
                 last_id = last["data"]["info"]["id"] + 1
-            logging.info("Inserting data.info.id:%s", last_id)
+            logging.info("Inserting data.info.id: %s", last_id)
             data["data"]["info"]["id"] = last_id
             self.yyets.insert_one(data.copy())
 
@@ -229,6 +231,6 @@ class YYSub(BaseSync):
 if __name__ == '__main__':
     a = Zhuixinfan()
     # a.build_data(open("1.html").read(), "https://www.zhuixinfan.com/resource/1.html")
-    # a.run()
-    b = YYSub()
-    b.run()
+    a.run()
+    # b = YYSub()
+    # b.run()
