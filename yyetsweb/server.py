@@ -23,7 +23,7 @@ from tornado.log import enable_pretty_logging
 import dump_db
 from Mongo import OtherMongoResource, ResourceLatestMongoResource
 from commands.douban_sync import sync_douban
-from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler, UserAvatarHandler,
+from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      CategoryHandler, CommentChildHandler, CommentHandler,
                      CommentNewestHandler, CommentReactionHandler,
                      DBDumpHandler, DoubanHandler, DoubanReportHandler,
@@ -34,7 +34,8 @@ from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler, User
                      NameHandler, NotFoundHandler, NotificationHandler,
                      ResourceHandler, ResourceLatestHandler,
                      SpamProcessHandler, TopHandler, TwitterOAuth2LoginHandler,
-                     UserEmailHandler, UserHandler)
+                     UserAvatarHandler, UserEmailHandler, UserHandler)
+from sync import YYSub
 from utils import Cloudflare
 
 enable_pretty_logging()
@@ -123,6 +124,8 @@ if __name__ == "__main__":
     scheduler.add_job(ResourceLatestMongoResource().refresh_latest_resource, 'interval', hours=1)
     scheduler.add_job(OtherMongoResource().import_ban_user, 'interval', seconds=300)
     scheduler.add_job(cf.clear_fw, trigger=CronTrigger.from_crontab("0 0 */5 * *"))
+    scheduler.add_job(YYSub().run, trigger=CronTrigger.from_crontab("0 1 * * *"))
+
     scheduler.start()
     logging.info("Triggering dump database now...")
     if not os.getenv("PYTHON_DEV"):
