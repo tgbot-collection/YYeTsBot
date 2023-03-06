@@ -19,6 +19,9 @@ import fakeredis
 import redis
 from captcha.image import ImageCaptcha
 
+from utils import setup_logger
+
+setup_logger()
 captcha_ex = 60 * 10
 predefined_str = re.sub(r"[1l0oOI]", "", string.ascii_letters + string.digits)
 

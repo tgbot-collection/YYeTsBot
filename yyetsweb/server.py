@@ -20,9 +20,9 @@ from apscheduler.triggers.cron import CronTrigger
 from tornado import httpserver, ioloop, options, web
 from tornado.log import enable_pretty_logging
 
-import dump_db
 from Mongo import OtherMongoResource, ResourceLatestMongoResource
 from commands.douban_sync import sync_douban
+from dump_db import entry_dump
 from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      CategoryHandler, CommentChildHandler, CommentHandler,
                      CommentNewestHandler, CommentReactionHandler,
@@ -36,12 +36,13 @@ from handler import (AnnouncementHandler, BlacklistHandler, CaptchaHandler,
                      SpamProcessHandler, TopHandler, TwitterOAuth2LoginHandler,
                      UserAvatarHandler, UserEmailHandler, UserHandler)
 from sync import YYSub
-from utils import Cloudflare
+from utils import Cloudflare, setup_logger
 
 enable_pretty_logging()
+setup_logger()
 cf = Cloudflare()
 if os.getenv("debug"):
-    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger().setLevel(logging.DEBUG)
 
 
 class RunServer:
@@ -120,7 +121,7 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler(timezone=timez)
     scheduler.add_job(OtherMongoResource().reset_top, trigger=CronTrigger.from_crontab("0 0 1 * *"))
     scheduler.add_job(sync_douban, trigger=CronTrigger.from_crontab("1 1 1 * *"))
-    scheduler.add_job(dump_db.entry_dump, trigger=CronTrigger.from_crontab("2 2 1 * *"))
+    scheduler.add_job(entry_dump, trigger=CronTrigger.from_crontab("2 2 1 * *"))
     scheduler.add_job(ResourceLatestMongoResource().refresh_latest_resource, 'interval', hours=1)
     scheduler.add_job(OtherMongoResource().import_ban_user, 'interval', seconds=300)
     scheduler.add_job(cf.clear_fw, trigger=CronTrigger.from_crontab("0 0 */5 * *"))
@@ -129,7 +130,7 @@ if __name__ == "__main__":
     scheduler.start()
     logging.info("Triggering dump database now...")
     if not os.getenv("PYTHON_DEV"):
-        threading.Thread(target=dump_db.entry_dump).start()
+        threading.Thread(target=entry_dump).start()
 
     options.define("p", default=8888, help="running port", type=int)
     options.define("h", default='127.0.0.1', help="listen address", type=str)

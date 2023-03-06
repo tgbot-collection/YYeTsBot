@@ -31,10 +31,10 @@ from tornado.auth import GoogleOAuth2Mixin, OAuth2Mixin, TwitterMixin
 from tornado.concurrent import run_on_executor
 
 from database import CaptchaResource, Redis
-from utils import Cloudflare
+from utils import Cloudflare, setup_logger
 
 escape.json_encode = lambda value: json.dumps(value, ensure_ascii=False)
-logging.basicConfig(level=logging.INFO)
+setup_logger()
 cf = Cloudflare()
 if getattr(sys, '_MEIPASS', None):
     adapter = "SQLite"
@@ -270,13 +270,13 @@ class UserAvatarHandler(BaseHandler):
     def get(self, username):
         resp = yield self.get_avatar(username)
         self.write(resp)
-    
+
     @gen.coroutine
     def head(self, username):
         resp = yield self.get_avatar(username)
         self.write(resp)
 
-        
+
 class ResourceHandler(BaseHandler):
     class_name = f"Resource{adapter}Resource"
 

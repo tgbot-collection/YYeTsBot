@@ -18,12 +18,17 @@ from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import formataddr, parseaddr
 
+import coloredlogs
 import pytz
 import requests
 from akismet import Akismet
 from jinja2 import Template
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+def setup_logger():
+    coloredlogs.install(level=logging.INFO,
+                        fmt='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] - %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
 
 
 def ts_date(ts=None):

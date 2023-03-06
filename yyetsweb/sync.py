@@ -10,9 +10,10 @@ from copy import deepcopy
 import requests
 from bs4 import BeautifulSoup
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
 from Mongo import Mongo
+from utils import setup_logger
+
+setup_logger()
 
 
 class BaseSync:
