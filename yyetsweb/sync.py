@@ -197,6 +197,7 @@ class YYSub(BaseSync):
         return int(x.ul.li.div.a["href"].split("/")[-1])
 
     def run(self):
+        logging.info("Starting to sync YYSub...")
         structure = deepcopy(self.structure)
         end = self.get_lastest_id() + 1
         # end = 41566
@@ -225,7 +226,8 @@ class YYSub(BaseSync):
         logging.info("YYsub Finished")
 
     def insert_data(self, data):
-        self.yyets.insert_one(data)
+        rid = data["data"]["info"]["id"]
+        self.yyets.update_one({"data.info.id": rid}, {"$set": data}, upsert=True)
 
 
 if __name__ == '__main__':
