@@ -48,7 +48,6 @@ from fansub import BD2020, XL720, NewzmzOnline, ZhuixinfanOnline, ZimuxiaOnline
 
 logging.info("Loading fansub...%s", (BD2020, XL720, NewzmzOnline, ZhuixinfanOnline, ZimuxiaOnline))
 
-mongo_host = os.getenv("mongo") or "localhost"
 DOUBAN_SEARCH = "https://www.douban.com/search?cat=1002&q={}"
 DOUBAN_DETAIL = "https://movie.douban.com/subject/{}/"
 cf = Cloudflare()
@@ -56,7 +55,7 @@ cf = Cloudflare()
 
 class Mongo:
     def __init__(self):
-        self.client = pymongo.MongoClient(host=mongo_host, connect=False,
+        self.client = pymongo.MongoClient(host=os.getenv("MONGO", "localhost"), connect=False,
                                           connectTimeoutMS=5000, serverSelectionTimeoutMS=5000)
         self.db = self.client["zimuzu"]
 

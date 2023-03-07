@@ -37,7 +37,7 @@ def SQLite():
 
 
 def MySQL():
-    return pymysql.connect(host='mysql', user='root', passwd='root', charset='utf8mb4')
+    return pymysql.connect(host='172.17.0.1', user='root', passwd='root', charset='utf8mb4')
 
 
 def MongoDB():

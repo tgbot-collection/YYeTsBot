@@ -139,3 +139,6 @@ logs/*
 /yyetsweb/builds/
 /builds/checksum-sha256sum.txt
 /yyetsweb/1.html
+!/env/
+!/mongo_data/
+/env/yyets.env

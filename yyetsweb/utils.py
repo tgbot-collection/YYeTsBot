@@ -51,9 +51,9 @@ def generate_body(context):
 def send_mail(to: str, subject: str, context: dict):
     user = os.getenv("email_user")
     password = os.getenv("email_password")
-    host = os.getenv("email_host") or "localhost"
-    port = os.getenv("email_port") or "1025"  # mailhog
-    from_addr = os.getenv("from_addr") or "yyets@dmesg.app"
+    host = os.getenv("email_host", "localhost")
+    port = os.getenv("email_port", "1025")  # mailhog
+    from_addr = os.getenv("from_addr", "yyets@dmesg.app")
 
     msg = MIMEText(generate_body(context), 'html', 'utf-8')
     msg['From'] = _format_addr('YYeTs <%s>' % from_addr)

@@ -12,53 +12,47 @@ services:
     restart: always
     volumes:
       - ./mongo_data/mongodb:/data/db
+    command: --quiet
     logging:
       driver: none
-
-  yyets-web:
-    image: bennythink/yyetsbot
-    restart: unless-stopped
-    environment:
-      - mongo=mongo
-      - redis=redis
-    working_dir: /YYeTsBot/yyetsweb/
-    command: [ "python3","server.py","-h=0.0.0.0" ]
     ports:
-      - "127.0.0.1:8888:8888"
+      - "127.0.0.1:27017:27017"
 
   socat:
-    image: alpine/socat
+    image: bennythink/socat
     restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     entrypoint: [ "socat", "tcp-listen:2375,fork,reuseaddr","unix-connect:/var/run/docker.sock" ]
-
-  yyets-bot:
-    image: bennythink/yyetsbot
-    depends_on:
-      - redis
-      - socat
-      - mongo
-    restart: on-failure
-    env_file:
-      - env/yyets.env
+    logging:
+      driver: none
 
   mailhog:
     image: cd2team/mailhog
     restart: unless-stopped
-    ports:
-      - "8025:8025"
+    logging:
+      driver: none
 
-  nginx:
+  bot:
+    image: bennythink/yyetsbot
+    depends_on:
+      - redis
+      - mongo
+      - socat
     restart: always
-    image: nginx:stable-alpine
-    volumes:
-      - ./conf:/etc/nginx/conf.d
-      - /home/photos:/usr/share/nginx/html/photos
-      - ./certs/:/etc/nginx/certs/
-      - ./logs:/var/log/nginx/
+    env_file:
+      - env/yyets.env
+
+  web:
+    image: bennythink/yyetsbot
+    restart: always
+    env_file:
+      - env/yyets.env
+    depends_on:
+      - mongo
+      - redis
+    working_dir: /YYeTsBot/yyetsweb/
+    command: [ "python3","server.py","-h=0.0.0.0" ]
     ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      TZ: Asia/Shanghai
+      - "127.0.0.1:8888:8888"
+      - "172.17.0.1:8888:8888"

@@ -28,7 +28,7 @@ predefined_str = re.sub(r"[1l0oOI]", "", string.ascii_letters + string.digits)
 
 class Redis:
     def __init__(self):
-        self.r = redis.StrictRedis(host=os.getenv("redis") or "localhost", decode_responses=True)
+        self.r = redis.StrictRedis(host=os.getenv("REDIS", "localhost"), decode_responses=True)
         try:
             self.r.ping()
         except redis.exceptions.ConnectionError:
