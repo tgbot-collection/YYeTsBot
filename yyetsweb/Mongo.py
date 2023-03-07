@@ -576,7 +576,7 @@ class ResourceMongoResource(ResourceResource, Mongo):
         return data
 
     def search_resource(self, keyword: str) -> dict:
-        order = os.getenv("ORDER") or 'YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline,XL720,BD2020'.split(",")
+        order = os.getenv("ORDER", "YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline").split(",")
         order.pop(0)
         zimuzu_data = []
         returned = {}
