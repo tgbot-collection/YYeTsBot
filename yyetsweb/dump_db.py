@@ -37,11 +37,11 @@ def SQLite():
 
 
 def MySQL():
-    return pymysql.connect(host='172.17.0.1', user='root', passwd='root', charset='utf8mb4')
+    return pymysql.connect(host="mysql", user="root", passwd="root", charset="utf8mb4")
 
 
 def MongoDB():
-    return pymongo.MongoClient('mongo', 27017, connect=False)
+    return pymongo.MongoClient("mongo", 27017, connect=False)
 
 
 def read_resource():
@@ -55,7 +55,8 @@ def read_comment():
     logging.info("Reding comment from mongo")
     client = MongoDB()
     data = client["zimuzu"]["comment"].find(
-        projection={"_id": False, "username": False, "ip": False, "browser": False})
+        projection={"_id": False, "username": False, "ip": False, "browser": False}
+    )
     return data
 
 
@@ -150,7 +151,9 @@ def dump_resource():
         area = data["area"]
         data = json.dumps(each, ensure_ascii=False)
 
-        batch_data.append((resource_id, cnname, enname, aliasname, area, views, data, "", ""))
+        batch_data.append(
+            (resource_id, cnname, enname, aliasname, area, views, data, "", "")
+        )
         mb.append(each)
         if len(batch_data) == CHUNK_SIZE:
             sql1 = "insert into yyets values (%s, %s, %s, %s, %s, %s, %s, %s,%s)"
@@ -204,20 +207,24 @@ def dump_comment():
 def zip_file():
     logging.info("Zipping SQLite...")
     p = data_path.joinpath("yyets_sqlite.zip")
-    with zipfile.ZipFile(p, 'w', zipfile.ZIP_DEFLATED) as zf:
+    with zipfile.ZipFile(p, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.write(sqlite_file, "yyets_sqlite.db")
 
     logging.info("Dumping MySQL...")
-    subprocess.check_output("mysqldump -h mysql -u root -proot zimuzu > zimuzu.sql", shell=True)
+    subprocess.check_output(
+        "mysqldump -h mysql -u root -proot zimuzu > zimuzu.sql", shell=True
+    )
     p = data_path.joinpath("yyets_mysql.zip")
     logging.info("Zipping MySQL...")
-    with zipfile.ZipFile(p, 'w', zipfile.ZIP_DEFLATED) as zf:
+    with zipfile.ZipFile(p, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.write("zimuzu.sql")
 
     logging.info("Dumping MongoDB")
     subprocess.check_output(
-        "mongodump -h mongo -d share --gzip --archive=" + data_path.joinpath("yyets_mongo.gz").as_posix(),
-        shell=True)
+        "mongodump -h mongo -d share --gzip --archive="
+        + data_path.joinpath("yyets_mongo.gz").as_posix(),
+        shell=True,
+    )
 
 
 def cleanup():
@@ -248,5 +255,5 @@ def entry_dump():
     logging.info("Total time used: %.2fs" % (time.time() - t0))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     entry_dump()

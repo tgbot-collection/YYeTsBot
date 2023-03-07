@@ -18,6 +18,15 @@ services:
     ports:
       - "127.0.0.1:27017:27017"
 
+  mysql:
+    image: ubuntu/mysql:8.0-22.04_beta
+    restart: on-failure
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+    logging:
+      driver: none
+    command: "--skip-log-bin --default-authentication-plugin=mysql_native_password"
+
   socat:
     image: bennythink/socat
     restart: always
@@ -51,8 +60,8 @@ services:
     depends_on:
       - mongo
       - redis
+      - mysql
     working_dir: /YYeTsBot/yyetsweb/
     command: [ "python3","server.py","-h=0.0.0.0" ]
     ports:
       - "127.0.0.1:8888:8888"
-      - "172.17.0.1:8888:8888"
