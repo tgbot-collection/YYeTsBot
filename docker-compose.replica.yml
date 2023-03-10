@@ -1,0 +1,15 @@
+version: '3.1'
+# link this file as docker-compose.override.yml  if you want to use replica set
+
+
+services:
+  mongo:
+    image: mongo:6
+    restart: always
+    volumes:
+      - ./mongo_data/mongodb:/data/db
+    command: --quiet --replSet rs0
+    logging:
+      driver: none
+    ports:
+      - "127.0.0.1:27017:27017"

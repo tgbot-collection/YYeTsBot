@@ -7,6 +7,7 @@
 **支持amd64/arm64，请先安装 docker、docker-compose和curl**
 
 **为了安全考虑，安装完成后程序将监听在 127.0.0.1 。如有需要请自行修改 `docker-compose.yml`的127.0.0.1为0.0.0.0**
+
 ### Linux/macOS：
 
 ```bash
@@ -48,6 +49,33 @@ mongorestore --gzip --archive=yyets_mongo.gz --nsFrom "share.*" --nsTo "zimuzu.*
 exit
 # 开启服务
 docker-compose up -d
+```
+
+## replica set 配置方式
+
+```shell
+ln -s docker-compose-replica.yml docker-compose.override.yml
+docker-compose up -d mongo
+# 进入shell
+rs.initiate({
+    _id: "rs0",
+    members: [{
+        _id: 0,
+        host: "localhost:27017"
+    },
+    {
+        _id: 1,
+        host: "mongo2:27017"
+    }]
+})
+
+# 调整优先级
+cfg = rs.conf()
+cfg.members[0].priority = 0.5
+cfg.members[1].priority = 0.5
+cfg.members[2].priority = 1 # 最高
+rs.reconfig(cfg)
+
 ```
 
 ## 常规方式
@@ -119,7 +147,10 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 
 ## Telegram 频道分享
 
-* 包含了2021年1月11日为止的人人影视最新资源，MySQL为主。有兴趣的盆友可以用这个数据进行二次开发[戳我查看详情](https://t.me/mikuri520/668)
+*
+
+包含了2021年1月11日为止的人人影视最新资源，MySQL为主。有兴趣的盆友可以用这个数据进行二次开发[戳我查看详情](https://t.me/mikuri520/668)
+
 * 字幕侠离线数据库 [从这里下载](https://t.me/mikuri520/715)，这个数据比较粗糙，并且字幕侠网站还在，因此不建议使用这个
 
 ## 本地下载

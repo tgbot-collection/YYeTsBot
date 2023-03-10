@@ -142,3 +142,4 @@ logs/*
 !/env/
 !/mongo_data/
 /env/yyets.env
+!/docker-compose.override.yml
