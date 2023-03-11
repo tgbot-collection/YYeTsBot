@@ -25,7 +25,6 @@ from urllib.parse import urlencode
 
 import filetype
 import requests
-import zhconv
 from tornado import escape, gen, web
 from tornado.auth import GoogleOAuth2Mixin, OAuth2Mixin, TwitterMixin
 from tornado.concurrent import run_on_executor
@@ -36,7 +35,7 @@ from utils import Cloudflare, setup_logger
 escape.json_encode = lambda value: json.dumps(value, ensure_ascii=False)
 setup_logger()
 cf = Cloudflare()
-if getattr(sys, '_MEIPASS', None):
+if getattr(sys, "_MEIPASS", None):
     adapter = "SQLite"
 else:
     adapter = "Mongo"
@@ -120,12 +119,13 @@ class BaseHandler(SecurityHandler):
         self.instance = getattr(self.adapter_module, self.class_name)()
 
     def write_error(self, status_code, **kwargs):
-        if status_code in [HTTPStatus.FORBIDDEN,
-                           HTTPStatus.UNAUTHORIZED,
-                           HTTPStatus.NOT_FOUND,
-                           HTTPStatus.INTERNAL_SERVER_ERROR,
-                           ]:
-            self.write(str(kwargs.get('exc_info')))
+        if status_code in [
+            HTTPStatus.FORBIDDEN,
+            HTTPStatus.UNAUTHORIZED,
+            HTTPStatus.NOT_FOUND,
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        ]:
+            self.write(str(kwargs.get("exc_info")))
 
 
 class TopHandler(BaseHandler):
@@ -152,7 +152,6 @@ class TopHandler(BaseHandler):
 
 
 class IndexHandler(BaseHandler):
-
     @run_on_executor()
     def send_index(self):
         with open(index, encoding="u8") as f:
@@ -182,7 +181,7 @@ class UserHandler(BaseHandler):
         captcha = data.get("captcha")
         captcha_id = data.get("captcha_id", "")
         ip = self.get_real_ip()
-        browser = self.request.headers['user-agent']
+        browser = self.request.headers["user-agent"]
 
         response = self.instance.login_user(username, password, captcha, captcha_id, ip, browser)
         if response["status_code"] in (HTTPStatus.CREATED, HTTPStatus.OK):
@@ -246,7 +245,7 @@ class UserAvatarHandler(BaseHandler):
             self.clear_cookie("username")
             return {"message": "Please try to login"}
 
-        file = self.request.files["image"][0]['body']
+        file = self.request.files["image"][0]["body"]
         if len(file) > 10 * 1024 * 1024:
             self.set_status(HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
             return {"message": "图片大小不可以超过10MB"}
@@ -285,12 +284,11 @@ class ResourceHandler(BaseHandler):
 
     @run_on_executor()
     def get_resource_data(self):
-
         resource_id = int(self.get_query_argument("id"))
         username = self.get_current_user()
         if str(resource_id) in os.getenv("HIDDEN_RESOURCE", "").split(","):
             self.set_status(HTTPStatus.NOT_FOUND)
-            return {"status": 0, "info": "资源已隐藏", }
+            return {"status": 0, "info": "资源已隐藏"}
         data = self.instance.get_resource_data(resource_id, username)
         if not data:
             self.ban()
@@ -302,9 +300,8 @@ class ResourceHandler(BaseHandler):
     @run_on_executor()
     def search_resource(self):
         kw = self.get_query_argument("keyword").lower()
-        # convert any text to zh-hans
-        kw = zhconv.convert(kw, "zh-hans")
-        return self.instance.search_resource(kw)
+        search_type = self.get_query_argument("type", "default")
+        return self.instance.search_resource(kw, search_type)
 
     @gen.coroutine
     def get(self):
@@ -467,9 +464,7 @@ class CommentHandler(BaseHandler):
             self.set_status(HTTPStatus.BAD_REQUEST)
             return {"status": False, "message": "请提供resource id"}
         comment_data = self.instance.get_comment(
-            resource_id, page, size,
-            inner_size=inner_size, inner_page=inner_page,
-            comment_id=comment_id
+            resource_id, page, size, inner_size=inner_size, inner_page=inner_page, comment_id=comment_id
         )
         self.hide_phone((comment_data["data"]))
         return comment_data
@@ -485,10 +480,11 @@ class CommentHandler(BaseHandler):
 
         real_ip = self.get_real_ip()
         username = self.get_current_user()
-        browser = self.request.headers['user-agent']
+        browser = self.request.headers["user-agent"]
 
-        result = self.instance.add_comment(captcha, captcha_id, content, resource_id, real_ip,
-                                           username, browser, comment_id)
+        result = self.instance.add_comment(
+            captcha, captcha_id, content, resource_id, real_ip, username, browser, comment_id
+        )
         self.set_status(result["status_code"])
         return result
 
@@ -642,7 +638,7 @@ class AnnouncementHandler(BaseHandler):
         payload = self.json
         content = payload["content"]
         real_ip = self.get_real_ip()
-        browser = self.request.headers['user-agent']
+        browser = self.request.headers["user-agent"]
 
         self.instance.add_announcement(username, content, real_ip, browser)
         self.set_status(HTTPStatus.CREATED)
@@ -661,7 +657,6 @@ class AnnouncementHandler(BaseHandler):
 
 
 class CaptchaHandler(BaseHandler, CaptchaResource):
-
     @run_on_executor()
     def verify_captcha(self):
         data = self.json
@@ -739,16 +734,31 @@ class MetricsHandler(BaseHandler):
 
 
 class GrafanaIndexHandler(BaseHandler):
-
     def get(self):
         self.write({})
 
 
 class GrafanaSearchHandler(BaseHandler):
-
     def post(self):
-        data = ["resource", "top", "home", "search", "extra", "discuss", "multiDownload", "download", "user", "share",
-                "me", "database", "help", "backOld", "favorite", "unFavorite", "comment"]
+        data = [
+            "resource",
+            "top",
+            "home",
+            "search",
+            "extra",
+            "discuss",
+            "multiDownload",
+            "download",
+            "user",
+            "share",
+            "me",
+            "database",
+            "help",
+            "backOld",
+            "favorite",
+            "unFavorite",
+            "comment",
+        ]
         self.write(json.dumps(data))
 
 
@@ -790,10 +800,7 @@ class GrafanaQueryHandler(BaseHandler):
             for i in result:
                 datum = [i[target], self.time_str_int(i["date"]) * 1000] if i.get(target) else []
                 data_points.append(datum)
-            temp = {
-                "target": target,
-                "datapoints": data_points
-            }
+            temp = {"target": target, "datapoints": data_points}
             grafana_data.append(temp)
         self.write(json.dumps(grafana_data))
 
@@ -824,14 +831,13 @@ class NotFoundHandler(BaseHandler):
 
 
 class DBDumpHandler(BaseHandler):
-
     @staticmethod
-    def sizeof_fmt(num: int, suffix='B'):
-        for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+    def sizeof_fmt(num: int, suffix="B"):
+        for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:
             if abs(num) < 1024.0:
                 return "%3.1f%s%s" % (num, unit, suffix)
             num /= 1024.0
-        return "%.1f%s%s" % (num, 'Yi', suffix)
+        return "%.1f%s%s" % (num, "Yi", suffix)
 
     @staticmethod
     def ts_date(ts):
@@ -867,7 +873,7 @@ class DBDumpHandler(BaseHandler):
         file_list = [
             "templates/dump/yyets_mongo.gz",
             "templates/dump/yyets_mysql.zip",
-            "templates/dump/yyets_sqlite.zip"
+            "templates/dump/yyets_sqlite.zip",
         ]
         result = {}
         data = self.file_info(file_list)
@@ -1035,7 +1041,7 @@ class SpamProcessHandler(BaseHandler):
     def process(self, method):
         obj_id = self.json.get("obj_id")
         token = self.json.get("token")
-        ua = self.request.headers['user-agent']
+        ua = self.request.headers["user-agent"]
         ip = self.get_real_ip()
         logging.info("Authentication %s(%s) for spam API now...", ua, ip)
         if token == os.getenv("TOKEN"):
@@ -1062,7 +1068,7 @@ class OAuth2Handler(BaseHandler, OAuth2Mixin):
     def add_oauth_user(self, username, unique, source):
         logging.info("User %s login with %s now...", username, source)
         ip = self.get_real_ip()
-        browser = self.request.headers['user-agent']
+        browser = self.request.headers["user-agent"]
         result = self.instance.add_user(username, ip, browser, unique, source)
         if result["status"] == "success":
             self.set_secure_cookie("username", username, 365)
@@ -1076,9 +1082,7 @@ class OAuth2Handler(BaseHandler, OAuth2Mixin):
 
     def oauth2_sync_request(self, access_token, extra_fields=None):
         return requests.get(
-            self._OAUTH_API_REQUEST_URL,
-            headers={"Authorization": f"Bearer {access_token}"},
-            params=extra_fields
+            self._OAUTH_API_REQUEST_URL, headers={"Authorization": f"Bearer {access_token}"}, params=extra_fields
         ).json()
 
     def get_secret(self, settings_key):
@@ -1096,7 +1100,7 @@ class GitHubOAuth2LoginHandler(OAuth2Handler):
 
     def get(self):
         client_id, client_secret, redirect_uri = self.get_secret("github_oauth")
-        code = self.get_argument('code', None)
+        code = self.get_argument("code", None)
         if code:
             access = self.get_authenticated_user(client_id, client_secret, code)
             resp = self.oauth2_sync_request(access["access_token"])
@@ -1104,11 +1108,7 @@ class GitHubOAuth2LoginHandler(OAuth2Handler):
             db_id = resp["id"]
             self.add_oauth_user(username, db_id, "GitHub")
         else:
-            self.authorize_redirect(
-                redirect_uri=redirect_uri,
-                client_id=client_id,
-                scope=[],
-                response_type='code')
+            self.authorize_redirect(redirect_uri=redirect_uri, client_id=client_id, scope=[], response_type="code")
 
 
 class MSOAuth2LoginHandler(OAuth2Handler):
@@ -1118,11 +1118,10 @@ class MSOAuth2LoginHandler(OAuth2Handler):
 
     def get(self):
         client_id, client_secret, redirect_uri = self.get_secret("ms_oauth")
-        code = self.get_argument('code', None)
+        code = self.get_argument("code", None)
         if code:
             access = self.get_authenticated_user(
-                client_id, client_secret, code,
-                {"grant_type": "authorization_code", "redirect_uri": redirect_uri}
+                client_id, client_secret, code, {"grant_type": "authorization_code", "redirect_uri": redirect_uri}
             )
             resp = self.oauth2_sync_request(access["access_token"])
             email = resp["userPrincipalName"]
@@ -1134,31 +1133,30 @@ class MSOAuth2LoginHandler(OAuth2Handler):
                 redirect_uri=redirect_uri,
                 client_id=client_id,
                 scope=["https://graph.microsoft.com/User.Read"],
-                response_type='code')
+                response_type="code",
+            )
 
 
 class GoogleOAuth2LoginHandler(GoogleOAuth2Mixin, OAuth2Handler):
-
     async def get(self):
         redirect_uri = os.getenv("DOMAIN") + self.request.path
-        code = self.get_argument('code', None)
+        code = self.get_argument("code", None)
         if code:
-            access = await self.get_authenticated_user(
-                redirect_uri=redirect_uri,
-                code=code)
+            access = await self.get_authenticated_user(redirect_uri=redirect_uri, code=code)
             user = await self.oauth2_request(
-                "https://www.googleapis.com/oauth2/v1/userinfo",
-                access_token=access["access_token"])
+                "https://www.googleapis.com/oauth2/v1/userinfo", access_token=access["access_token"]
+            )
             email = user["email"]
             # Google's email can't be changed
             self.add_oauth_user(email, email, "Google")
         else:
             self.authorize_redirect(
                 redirect_uri=redirect_uri,
-                client_id=self.settings['google_oauth']['key'],
-                scope=['email'],
-                response_type='code',
-                extra_params={'approval_prompt': 'auto'})
+                client_id=self.settings["google_oauth"]["key"],
+                scope=["email"],
+                response_type="code",
+                extra_params={"approval_prompt": "auto"},
+            )
 
 
 class TwitterOAuth2LoginHandler(TwitterMixin, OAuth2Handler):
@@ -1179,12 +1177,9 @@ class FacebookAuth2LoginHandler(OAuth2Handler):
 
     def get(self):
         client_id, client_secret, redirect_uri = self.get_secret("fb_oauth")
-        code = self.get_argument('code', None)
+        code = self.get_argument("code", None)
         if code:
-            access = self.get_authenticated_user(
-                client_id, client_secret, code,
-                {"redirect_uri": redirect_uri}
-            )
+            access = self.get_authenticated_user(client_id, client_secret, code, {"redirect_uri": redirect_uri})
             resp = self.oauth2_sync_request(access["access_token"], {"fields": "name,id"})
             # Facebook doesn't allow to get email except for business accounts
             uid = resp["id"]

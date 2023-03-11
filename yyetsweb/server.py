@@ -19,10 +19,9 @@ from apscheduler.triggers.cron import CronTrigger
 from tornado import httpserver, ioloop, options, web
 from tornado.log import enable_pretty_logging
 
-from Mongo import OtherMongoResource, ResourceLatestMongoResource
+from Mongo import OtherMongoResource, ResourceLatestMongoResource, SearchEngine
 from commands.douban_sync import sync_douban
 from dump_db import entry_dump
-from fulltext import SearchEngine
 from handler import (
     AnnouncementHandler,
     BlacklistHandler,
@@ -156,10 +155,11 @@ if __name__ == "__main__":
     if not os.getenv("PYTHON_DEV"):
         threading.Thread(target=entry_dump).start()
     # meilisearch tasks
-    threading.Thread(target=engine.run_import).start()
-    threading.Thread(target=engine.monitor_yyets).start()
-    threading.Thread(target=engine.monitor_douban).start()
-    threading.Thread(target=engine.monitor_comment).start()
+    if os.getenv("MEILI_SEARCH"):
+        threading.Thread(target=engine.run_import).start()
+        threading.Thread(target=engine.monitor_yyets).start()
+        threading.Thread(target=engine.monitor_douban).start()
+        threading.Thread(target=engine.monitor_comment).start()
 
     options.define("p", default=8888, help="running port", type=int)
     options.define("h", default="127.0.0.1", help="listen address", type=str)

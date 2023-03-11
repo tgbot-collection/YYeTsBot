@@ -22,22 +22,40 @@ from http import HTTPStatus
 from urllib.parse import unquote
 
 import filetype
+import meilisearch
 import pymongo
 import requests
+import zhconv
 from bs4 import BeautifulSoup
 from bson.objectid import ObjectId
 from passlib.handlers.pbkdf2 import pbkdf2_sha256
 from retry import retry
 from tqdm import tqdm
 
-from database import (AnnouncementResource, BlacklistResource, CaptchaResource,
-                      CategoryResource, CommentChildResource,
-                      CommentNewestResource, CommentReactionResource,
-                      CommentResource, DoubanReportResource, DoubanResource,
-                      GrafanaQueryResource, LikeResource, MetricsResource,
-                      NameResource, NotificationResource, OtherResource, Redis,
-                      ResourceLatestResource, ResourceResource, TopResource,
-                      UserEmailResource, UserResource)
+from database import (
+    AnnouncementResource,
+    BlacklistResource,
+    CaptchaResource,
+    CategoryResource,
+    CommentChildResource,
+    CommentNewestResource,
+    CommentReactionResource,
+    CommentResource,
+    DoubanReportResource,
+    DoubanResource,
+    GrafanaQueryResource,
+    LikeResource,
+    MetricsResource,
+    NameResource,
+    NotificationResource,
+    OtherResource,
+    Redis,
+    ResourceLatestResource,
+    ResourceResource,
+    TopResource,
+    UserEmailResource,
+    UserResource,
+)
 from utils import Cloudflare, check_spam, send_mail, setup_logger, ts_date
 
 setup_logger()
@@ -53,10 +71,11 @@ DOUBAN_DETAIL = "https://movie.douban.com/subject/{}/"
 cf = Cloudflare()
 
 
-class Mongo:
+class Base:
     def __init__(self):
-        self.client = pymongo.MongoClient(host=os.getenv("MONGO", "localhost"), connect=False,
-                                          connectTimeoutMS=5000, serverSelectionTimeoutMS=5000)
+        self.client = pymongo.MongoClient(
+            host=os.getenv("MONGO", "localhost"), connect=False, connectTimeoutMS=5000, serverSelectionTimeoutMS=5000
+        )
         self.db = self.client["zimuzu"]
 
     def __del__(self):
@@ -76,6 +95,12 @@ class Mongo:
         return bool(self.db["users"].find_one({"username": username, "oldUser": True}))
 
 
+class Mongo(Base):
+    def __init__(self):
+        super().__init__()
+        self.engine = SearchEngine()
+
+
 class FakeMongoResource:
     pass
 
@@ -89,8 +114,8 @@ class OtherMongoResource(OtherResource, Mongo):
         json_data["type"] = "top"
         self.db["history"].insert_one(json_data)
         # save all the views data to history
-        projection = {'_id': False, 'data.info.views': True, 'data.info.id': True}
-        data = self.db['yyets'].find({}, projection).sort("data.info.views", pymongo.DESCENDING)
+        projection = {"_id": False, "data.info.views": True, "data.info.id": True}
+        data = self.db["yyets"].find({}, projection).sort("data.info.views", pymongo.DESCENDING)
         result = {"date": last_month, "type": "detail"}
         for datum in data:
             rid = str(datum["data"]["info"]["id"])
@@ -114,8 +139,13 @@ class AnnouncementMongoResource(AnnouncementResource, Mongo):
     def get_announcement(self, page: int, size: int) -> dict:
         condition = {}
         count = self.db["announcement"].count_documents(condition)
-        data = self.db["announcement"].find(condition, projection={"_id": True, "ip": False}) \
-            .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
+        data = (
+            self.db["announcement"]
+            .find(condition, projection={"_id": True, "ip": False})
+            .sort("_id", pymongo.DESCENDING)
+            .limit(size)
+            .skip((page - 1) * size)
+        )
         data = list(data)
         for i in data:
             i["id"] = str(i["_id"])
@@ -172,8 +202,13 @@ class CommentMongoResource(CommentResource, Mongo):
             children_ids = item.get("children", [])
             condition = {"_id": {"$in": children_ids}, "deleted_at": {"$exists": False}, "type": "child"}
             children_count = self.db["comment"].count_documents(condition)
-            children_data = self.db["comment"].find(condition, self.projection) \
-                .sort("_id", pymongo.DESCENDING).limit(self.inner_size).skip((self.inner_page - 1) * self.inner_size)
+            children_data = (
+                self.db["comment"]
+                .find(condition, self.projection)
+                .sort("_id", pymongo.DESCENDING)
+                .limit(self.inner_size)
+                .skip((self.inner_page - 1) * self.inner_size)
+            )
             children_data = list(children_data)
             self.get_user_group(children_data)
             self.add_reactions(children_data)
@@ -200,8 +235,9 @@ class CommentMongoResource(CommentResource, Mongo):
         for comment in data:
             cid = comment.get("id") or comment.get("_id")
             cid = str(cid)
-            reactions = self.db["reactions"].find_one({"comment_id": cid},
-                                                      projection={"_id": False, "comment_id": False}) or {}
+            reactions = (
+                self.db["reactions"].find_one({"comment_id": cid}, projection={"_id": False, "comment_id": False}) or {}
+            )
             for verb, users in reactions.items():
                 if users:
                     comment.setdefault("reactions", []).append({"verb": verb, "users": users})
@@ -220,32 +256,41 @@ class CommentMongoResource(CommentResource, Mongo):
                     # 如果是子评论id，搜索子评论，会将整个父评论带出
                     {"children": {"$in": [ObjectId(comment_id)]}},
                     # 如果是父评论id，搜索父评论，并且排除子评论的记录
-                    {"_id": ObjectId(comment_id), "type": {"$ne": "child"}}
-                ]
+                    {"_id": ObjectId(comment_id), "type": {"$ne": "child"}},
+                ],
             }
 
         count = self.db["comment"].count_documents(condition)
-        data = self.db["comment"].find(condition, self.projection) \
-            .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
+        data = (
+            self.db["comment"]
+            .find(condition, self.projection)
+            .sort("_id", pymongo.DESCENDING)
+            .limit(size)
+            .skip((page - 1) * size)
+        )
         data = list(data)
         self.find_children(data)
         self.convert_objectid(data)
         self.get_user_group(data)
         self.add_reactions(data)
 
-        return {
-            "data": data,
-            "count": count,
-            "resource_id": resource_id
-        }
+        return {"data": data, "count": count, "resource_id": resource_id}
 
-    def add_comment(self, captcha: str, captcha_id: int, content: str, resource_id: int,
-                    ip: str, username: str, browser: str, parent_comment_id=None) -> dict:
+    def add_comment(
+        self,
+        captcha: str,
+        captcha_id: int,
+        content: str,
+        resource_id: int,
+        ip: str,
+        username: str,
+        browser: str,
+        parent_comment_id=None,
+    ) -> dict:
         user_data = self.db["users"].find_one({"username": username})
         # old user is allowed to comment without verification
         if not self.is_old_user(username) and user_data.get("email", {}).get("verified", False) is False:
-            return {"status_code": HTTPStatus.TEMPORARY_REDIRECT,
-                    "message": "你需要验证邮箱才能评论，请到个人中心进行验证"}
+            return {"status_code": HTTPStatus.TEMPORARY_REDIRECT, "message": "你需要验证邮箱才能评论，请到个人中心进行验证"}
         returned = {"status_code": 0, "message": ""}
         # check if this user is blocked
         reason = self.is_user_blocked(username)
@@ -258,7 +303,7 @@ class CommentMongoResource(CommentResource, Mongo):
                 "date": ts_date(),
                 "browser": browser,
                 "content": content,
-                "resource_id": resource_id
+                "resource_id": resource_id,
             }
             inserted_id = self.db["spam"].insert_one(document).inserted_id
             document["_id"] = str(inserted_id)
@@ -295,7 +340,7 @@ class CommentMongoResource(CommentResource, Mongo):
             "date": ts_date(),
             "browser": browser,
             "content": content,
-            "resource_id": resource_id
+            "resource_id": resource_id,
         }
         if parent_comment_id is None:
             basic_comment["type"] = "parent"
@@ -306,12 +351,12 @@ class CommentMongoResource(CommentResource, Mongo):
 
         if parent_comment_id is not None:
             # 对父评论的子评论，需要给父评论加children id
-            self.db["comment"].find_one_and_update({"_id": ObjectId(parent_comment_id)},
-                                                   {"$push": {"children": inserted_id}}
-                                                   )
-            self.db["comment"].find_one_and_update({"_id": ObjectId(inserted_id)},
-                                                   {"$set": {"parent_id": ObjectId(parent_comment_id)}}
-                                                   )
+            self.db["comment"].find_one_and_update(
+                {"_id": ObjectId(parent_comment_id)}, {"$push": {"children": inserted_id}}
+            )
+            self.db["comment"].find_one_and_update(
+                {"_id": ObjectId(inserted_id)}, {"$set": {"parent_id": ObjectId(parent_comment_id)}}
+            )
         returned["status_code"] = HTTPStatus.CREATED
         returned["message"] = "评论成功"
 
@@ -320,9 +365,7 @@ class CommentMongoResource(CommentResource, Mongo):
             # find username
 
             self.db["notification"].find_one_and_update(
-                {"username": exists["username"]},
-                {"$push": {"unread": inserted_id}},
-                upsert=True
+                {"username": exists["username"]}, {"$push": {"unread": inserted_id}}, upsert=True
             )
             # send email
             parent_comment = self.db["comment"].find_one({"_id": ObjectId(parent_comment_id)})
@@ -334,27 +377,36 @@ class CommentMongoResource(CommentResource, Mongo):
             if user_info:
                 subject = "[人人影视下载分享站] 你的评论有了新的回复"
                 pt_content = content.split("</reply>")[-1]
-                text = f"你的评论 {parent_comment['content']} 有了新的回复：<br>{pt_content}" \
-                       f"<br>你可以<a href='{link}'>点此链接</a>查看<br><br>请勿回复此邮件"
-                context = {
-                    "username": username,
-                    "text": text
-                }
+                text = (
+                    f"你的评论 {parent_comment['content']} 有了新的回复：<br>{pt_content}"
+                    f"<br>你可以<a href='{link}'>点此链接</a>查看<br><br>请勿回复此邮件"
+                )
+                context = {"username": username, "text": text}
                 send_mail(user_info["email"]["address"], subject, context)
         return returned
 
     def delete_comment(self, comment_id):
         current_time = ts_date()
-        count = self.db["comment"].update_one({"_id": ObjectId(comment_id), "deleted_at": {"$exists": False}},
-                                              {"$set": {"deleted_at": current_time}}).modified_count
+        count = (
+            self.db["comment"]
+            .update_one(
+                {"_id": ObjectId(comment_id), "deleted_at": {"$exists": False}}, {"$set": {"deleted_at": current_time}}
+            )
+            .modified_count
+        )
         # 找到子评论，全部标记删除
         parent_data = self.db["comment"].find_one({"_id": ObjectId(comment_id)})
         if parent_data:
             child_ids = parent_data.get("children", [])
         else:
             child_ids = []
-        count += self.db["comment"].update_many({"_id": {"$in": child_ids}, "deleted_at": {"$exists": False}},
-                                                {"$set": {"deleted_at": current_time}}).modified_count
+        count += (
+            self.db["comment"]
+            .update_many(
+                {"_id": {"$in": child_ids}, "deleted_at": {"$exists": False}}, {"$set": {"deleted_at": current_time}}
+            )
+            .modified_count
+        )
 
         returned = {"status_code": 0, "message": "", "count": -1}
         if count == 0:
@@ -368,7 +420,6 @@ class CommentMongoResource(CommentResource, Mongo):
 
 
 class CommentReactionMongoResource(CommentReactionResource, Mongo):
-
     def react_comment(self, username, data):
         # {"comment_id":"da23","😊":["user1","user2"]}
         comment_id = data["comment_id"]
@@ -378,24 +429,14 @@ class CommentReactionMongoResource(CommentReactionResource, Mongo):
             return {"status": False, "message": "Where is your comments?", "status_code": HTTPStatus.NOT_FOUND}
 
         if method == "POST":
-            self.db["reactions"].update_one({"comment_id": comment_id},
-                                            {
-                                                "$addToSet": {verb: username}
-                                            },
-                                            upsert=True
-                                            )
+            self.db["reactions"].update_one({"comment_id": comment_id}, {"$addToSet": {verb: username}}, upsert=True)
             code = HTTPStatus.CREATED
         elif method == "DELETE":
-            self.db["reactions"].update_one({"comment_id": comment_id},
-                                            {
-                                                "$pull": {verb: username}
-                                            }
-                                            )
+            self.db["reactions"].update_one({"comment_id": comment_id}, {"$pull": {verb: username}})
             code = HTTPStatus.ACCEPTED
         else:
             code = HTTPStatus.BAD_REQUEST
-        return {"status": True, "message": "success",
-                "status_code": code}
+        return {"status": True, "message": "success", "status_code": code}
 
 
 class CommentChildMongoResource(CommentChildResource, CommentMongoResource, Mongo):
@@ -409,8 +450,13 @@ class CommentChildMongoResource(CommentChildResource, CommentMongoResource, Mong
         condition = {"parent_id": ObjectId(parent_id), "deleted_at": {"$exists": False}, "type": "child"}
 
         count = self.db["comment"].count_documents(condition)
-        data = self.db["comment"].find(condition, self.projection) \
-            .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
+        data = (
+            self.db["comment"]
+            .find(condition, self.projection)
+            .sort("_id", pymongo.DESCENDING)
+            .limit(size)
+            .skip((page - 1) * size)
+        )
         data = list(data)
         self.convert_objectid(data)
         self.get_user_group(data)
@@ -431,8 +477,13 @@ class CommentNewestMongoResource(CommentNewestResource, CommentMongoResource, Mo
     def get_comment(self, page: int, size: int, keyword="") -> dict:
         # ID，时间，用户名，用户组，资源名，资源id
         count = self.db["comment"].count_documents(self.condition)
-        data = self.db["comment"].find(self.condition, self.projection) \
-            .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
+        data = (
+            self.db["comment"]
+            .find(self.condition, self.projection)
+            .sort("_id", pymongo.DESCENDING)
+            .limit(size)
+            .skip((page - 1) * size)
+        )
         data = list(data)
         self.convert_objectid(data)
         self.get_user_group(data)
@@ -451,13 +502,16 @@ class CommentNewestMongoResource(CommentNewestResource, CommentMongoResource, Mo
 
 
 class CommentSearchMongoResource(CommentNewestMongoResource):
-
     def get_comment(self, page: int, size: int, keyword="") -> dict:
         self.projection.pop("children")
-        self.condition.update(content={'$regex': f'.*{keyword}.*', "$options": "i"})
-        data = list(self.db["comment"].find(self.condition, self.projection).
-                    sort("_id", pymongo.DESCENDING).
-                    limit(size).skip((page - 1) * size))
+        self.condition.update(content={"$regex": f".*{keyword}.*", "$options": "i"})
+        data = list(
+            self.db["comment"]
+            .find(self.condition, self.projection)
+            .sort("_id", pymongo.DESCENDING)
+            .limit(size)
+            .skip((page - 1) * size)
+        )
         self.convert_objectid(data)
         self.get_user_group(data)
         self.extra_info(data)
@@ -472,8 +526,9 @@ class CommentSearchMongoResource(CommentNewestMongoResource):
     def fill_children(self, data):
         for item in data:
             child_id: "list" = item.get("children", [])
-            children = list(self.db["comment"].find(
-                {"_id": {"$in": child_id}}, self.projection).sort("_id", pymongo.DESCENDING))
+            children = list(
+                self.db["comment"].find({"_id": {"$in": child_id}}, self.projection).sort("_id", pymongo.DESCENDING)
+            )
             self.convert_objectid(children)
             self.get_user_group(children)
             self.extra_info(children)
@@ -490,10 +545,7 @@ class GrafanaQueryMongoResource(GrafanaQueryResource, Mongo):
 class MetricsMongoResource(MetricsResource, Mongo):
     def set_metrics(self, metrics_type: str):
         today = time.strftime("%Y-%m-%d", time.localtime())
-        self.db['metrics'].update_one(
-            {'date': today}, {'$inc': {metrics_type: 1}},
-            upsert=True
-        )
+        self.db["metrics"].update_one({"date": today}, {"$inc": {metrics_type: 1}}, upsert=True)
 
     def get_metrics(self, from_date: str, to_date: str) -> dict:
         start_int = [int(i) for i in from_date.split("-")]
@@ -502,13 +554,12 @@ class MetricsMongoResource(MetricsResource, Mongo):
         edate = date(*end_int)  # end date
         date_range = [str(sdate + timedelta(days=x)) for x in range((edate - sdate).days + 1)]
         condition = {"date": {"$in": date_range}}
-        result = self.db['metrics'].find(condition, {'_id': False}).sort("date", pymongo.DESCENDING)
+        result = self.db["metrics"].find(condition, {"_id": False}).sort("date", pymongo.DESCENDING)
 
         return dict(metrics=list(result))
 
 
 class NameMongoResource(NameResource, Mongo):
-
     def get_names(self, is_readable: [str, bool]) -> dict:
         if is_readable:
             aggregation = [
@@ -523,22 +574,22 @@ class NameMongoResource(NameResource, Mongo):
                                 " ",
                                 "$data.info.enname",
                                 " ",
-                                "$data.info.aliasname"
+                                "$data.info.aliasname",
                             ]
                         },
-                        "_id": False
+                        "_id": False,
                     }
                 }
             ]
             query_cursor = self.db["yyets"].aggregate(aggregation)
         else:
-            projection = {'_id': False,
-                          'data.info.cnname': True,
-                          'data.info.enname': True,
-                          'data.info.aliasname': True,
-                          'data.info.channel_cn': True,
-
-                          }
+            projection = {
+                "_id": False,
+                "data.info.cnname": True,
+                "data.info.enname": True,
+                "data.info.aliasname": True,
+                "data.info.channel_cn": True,
+            }
             query_cursor = self.db["yyets"].find({}, projection)
 
         data = []
@@ -562,9 +613,8 @@ class ResourceMongoResource(ResourceResource, Mongo):
 
     def get_resource_data(self, resource_id: int, username: str) -> dict:
         data: "dict" = self.db["yyets"].find_one_and_update(
-            {"data.info.id": resource_id},
-            {'$inc': {'data.info.views': 1}},
-            {'_id': False})
+            {"data.info.id": resource_id}, {"$inc": {"data.info.views": 1}}, {"_id": False}
+        )
         if not data:
             return {}
         if username:
@@ -575,23 +625,43 @@ class ResourceMongoResource(ResourceResource, Mongo):
                 data["is_like"] = False
         return data
 
-    def search_resource(self, keyword: str) -> dict:
-        order = os.getenv("ORDER", "YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline").split(",")
-        order.pop(0)
+    def search_resource(self, keyword: str, search_type: "str") -> dict:
+        if os.getenv("MEILISEARCH"):
+            return self.meili_search(keyword, search_type)
+        else:
+            return self.mongodb_search(keyword)
+
+    def meili_search(self, keyword: "str", search_type: "str") -> dict:
+        if search_type == "default":
+            yyets = self.engine.search_yyets(keyword)
+            comment = self.engine.search_comment(keyword)
+            print(yyets)
+            print(comment)
+        elif search_type == "douban":
+            douban = self.engine.search_douban(keyword)
+        elif search_type == "fansub":
+            fansub = self.search_extra(keyword)
+        else:
+            return {}
+
+    def mongodb_search(self, keyword: str) -> dict:
+        # convert any text to zh-hans - only for traditional search with MongoDB
+        keyword = zhconv.convert(keyword, "zh-hans")
+
         zimuzu_data = []
-        returned = {}
+        returned = {"data": [], "extra": [], "comment": []}
 
-        projection = {'_id': False,
-                      'data.info': True,
-                      }
+        projection = {"_id": False, "data.info": True}
 
-        resource_data = self.db["yyets"].find({
-            "$or": [
-                {"data.info.cnname": {'$regex': f'.*{keyword}.*', "$options": "i"}},
-                {"data.info.enname": {'$regex': f'.*{keyword}.*', "$options": "i"}},
-                {"data.info.aliasname": {'$regex': f'.*{keyword}.*', "$options": "i"}},
-            ]},
-            projection
+        resource_data = self.db["yyets"].find(
+            {
+                "$or": [
+                    {"data.info.cnname": {"$regex": f".*{keyword}.*", "$options": "i"}},
+                    {"data.info.enname": {"$regex": f".*{keyword}.*", "$options": "i"}},
+                    {"data.info.aliasname": {"$regex": f".*{keyword}.*", "$options": "i"}},
+                ]
+            },
+            projection,
         )
 
         for item in resource_data:
@@ -599,7 +669,7 @@ class ResourceMongoResource(ResourceResource, Mongo):
             zimuzu_data.append(item["data"]["info"])
 
         # get comment
-        r = CommentSearchMongoResource().get_comment(1, 2 ** 10, keyword)
+        r = CommentSearchMongoResource().get_comment(1, 2**10, keyword)
         c_search = []
         for c in r.get("data", []):
             comment_rid = c["resource_id"]
@@ -617,24 +687,26 @@ class ResourceMongoResource(ResourceResource, Mongo):
                         "hasAvatar": c["hasAvatar"],
                     }
                 )
-
+        # zimuzu -> comment -> extra
         if zimuzu_data:
-            returned = dict(data=zimuzu_data)
-            returned["extra"] = []
-        else:
+            returned["data"] = zimuzu_data
+        elif not c_search:
             # only returned when no data found
-            extra = []
-            with contextlib.suppress(requests.exceptions.RequestException):
-                for name in order:
-                    extra = self.fansub_search(name, keyword)
-                    if extra:
-                        break
-
-            returned["data"] = []
-            returned["extra"] = extra
+            returned["extra"] = self.search_extra(keyword)
         # comment data will always be returned
         returned["comment"] = c_search
         return returned
+
+    def search_extra(self, keyword: "str") -> list:
+        order = os.getenv("ORDER", "YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline").split(",")
+        order.pop(0)
+        extra = []
+        with contextlib.suppress(requests.exceptions.RequestException):
+            for name in order:
+                extra = self.fansub_search(name, keyword)
+                if extra:
+                    break
+        return extra
 
     def patch_resource(self, new_data: dict):
         rid = new_data["resource_id"]
@@ -654,10 +726,7 @@ class ResourceMongoResource(ResourceResource, Mongo):
                     for u in new_data["items"][user_format]:
                         season["items"][user_format].append(u)
 
-        self.db["yyets"].find_one_and_replace(
-            {"data.info.id": rid},
-            old_data
-        )
+        self.db["yyets"].find_one_and_replace({"data.info.id": rid}, old_data)
 
     def add_resource(self, new_data: dict):
         rid = self.get_appropriate_id()
@@ -673,8 +742,12 @@ class ResourceMongoResource(ResourceResource, Mongo):
             for season in db_data["data"]["list"]:
                 for episode in season["items"].values():
                     for v in episode:
-                        if v["episode"] == meta["episode"] and v["name"] == meta["name"] and \
-                                v["size"] == meta["size"] and v["dateline"] == meta["dateline"]:
+                        if (
+                            v["episode"] == meta["episode"]
+                            and v["name"] == meta["name"]
+                            and v["size"] == meta["size"]
+                            and v["dateline"] == meta["dateline"]
+                        ):
                             episode.remove(v)
             # replace it
             self.db["yyets"].find_one_and_replace({"data.info.id": rid}, db_data)
@@ -701,11 +774,11 @@ class ResourceMongoResource(ResourceResource, Mongo):
 
 
 class TopMongoResource(TopResource, Mongo):
-    projection = {'_id': False, 'data.info': True}
+    projection = {"_id": False, "data.info": True}
 
     def get_most(self) -> list:
         projection = {"_id": False, "like": True}
-        data = self.db['users'].find({}, projection)
+        data = self.db["users"].find({}, projection)
         most_like = {}
         for item in data:
             for _id in item.get("like", []):
@@ -719,8 +792,12 @@ class TopMongoResource(TopResource, Mongo):
         area_dict = dict(ALL={"$regex": ".*"}, US="美国", JP="日本", KR="韩国", UK="英国")
         all_data = {"ALL": "全部"}
         for abbr, area in area_dict.items():
-            data = self.db["yyets"].find({"data.info.area": area, "data.info.id": {"$ne": 233}}, self.projection). \
-                sort("data.info.views", pymongo.DESCENDING).limit(15)
+            data = (
+                self.db["yyets"]
+                .find({"data.info.area": area, "data.info.id": {"$ne": 233}}, self.projection)
+                .sort("data.info.views", pymongo.DESCENDING)
+                .limit(15)
+            )
             all_data[abbr] = list(data)
 
         all_data["class"] = area_dict
@@ -728,12 +805,15 @@ class TopMongoResource(TopResource, Mongo):
 
 
 class LikeMongoResource(LikeResource, Mongo):
-    projection = {'_id': False, 'data.info': True}
+    projection = {"_id": False, "data.info": True}
 
     def get_user_like(self, username: str) -> list:
         like_list = self.db["users"].find_one({"username": username}).get("like", [])
-        data = self.db["yyets"].find({"data.info.id": {"$in": like_list}}, self.projection) \
+        data = (
+            self.db["yyets"]
+            .find({"data.info.id": {"$in": like_list}}, self.projection)
             .sort("data.info.views", pymongo.DESCENDING)
+        )
         return list(data)
 
     def add_remove_fav(self, resource_id: int, username: str) -> dict:
@@ -749,12 +829,11 @@ class LikeMongoResource(LikeResource, Mongo):
             like_list.append(resource_id)
 
         value = dict(like=like_list)
-        self.db["users"].update_one({"username": username}, {'$set': value})
+        self.db["users"].update_one({"username": username}, {"$set": value})
         return returned
 
 
 class UserMongoResource(UserResource, Mongo):
-
     def login_user(self, username: str, password: str, captcha: str, captcha_id: str, ip: str, browser: str) -> dict:
         # verify captcha in the first place.
         redis = Redis().r
@@ -769,9 +848,11 @@ class UserMongoResource(UserResource, Mongo):
 
         data = self.db["users"].find_one({"username": username}) or {}
         if data.get("status", {}).get("disable"):
-            return {"status_code": HTTPStatus.FORBIDDEN,
-                    "status": False,
-                    "message": data.get("status", {}).get("reason")}
+            return {
+                "status_code": HTTPStatus.FORBIDDEN,
+                "status": False,
+                "message": data.get("status", {}).get("reason"),
+            }
 
         returned_value = {"status_code": 0, "message": ""}
 
@@ -791,9 +872,9 @@ class UserMongoResource(UserResource, Mongo):
             # register
             hash_value = pbkdf2_sha256.hash(password)
             try:
-                self.db["users"].insert_one(dict(username=username, password=hash_value,
-                                                 date=ts_date(), ip=ip, browser=browser)
-                                            )
+                self.db["users"].insert_one(
+                    dict(username=username, password=hash_value, date=ts_date(), ip=ip, browser=browser)
+                )
                 returned_value["status_code"] = HTTPStatus.CREATED
 
             except Exception as e:
@@ -812,9 +893,7 @@ class UserMongoResource(UserResource, Mongo):
         return data
 
     def update_user_last(self, username: str, now_ip: str) -> None:
-        self.db["users"].update_one({"username": username},
-                                    {"$set": {"lastDate": (ts_date()), "lastIP": now_ip}}
-                                    )
+        self.db["users"].update_one({"username": username}, {"$set": {"lastDate": (ts_date()), "lastIP": now_ip}})
 
     def update_user_info(self, username: str, data: dict) -> dict:
         redis = Redis().r
@@ -832,39 +911,31 @@ class UserMongoResource(UserResource, Mongo):
             user_email = valid_data.get("email")
             timeout_key = f"timeout-{username}"
             if redis.get(timeout_key):
-                return {"status_code": HTTPStatus.TOO_MANY_REQUESTS,
-                        "status": False,
-                        "message": f"验证次数过多，请于{redis.ttl(timeout_key)}秒后尝试"}
+                return {
+                    "status_code": HTTPStatus.TOO_MANY_REQUESTS,
+                    "status": False,
+                    "message": f"验证次数过多，请于{redis.ttl(timeout_key)}秒后尝试",
+                }
 
             verify_code = random.randint(10000, 99999)
             valid_data["email"] = {"verified": False, "address": user_email}
             # send email confirm
             subject = "[人人影视下载分享站] 请验证你的邮箱"
-            text = f"请输入如下验证码完成你的邮箱认证。验证码有效期为24小时。<br>" \
-                   f"如果您未有此请求，请忽略此邮件。<br><br>验证码： {verify_code}"
-            context = {
-                "username": username,
-                "text": text
-            }
+            text = f"请输入如下验证码完成你的邮箱认证。验证码有效期为24小时。<br>" f"如果您未有此请求，请忽略此邮件。<br><br>验证码： {verify_code}"
+            context = {"username": username, "text": text}
             send_mail(user_email, subject, context)
             # 发送成功才设置缓存
             redis.set(timeout_key, username, ex=1800)
             redis.hset(user_email, mapping={"code": verify_code, "wrong": 0})
             redis.expire(user_email, 24 * 3600)
 
-        self.db["users"].update_one(
-            {"username": username},
-            {"$set": valid_data}
-        )
+        self.db["users"].update_one({"username": username}, {"$set": valid_data})
         return {"status_code": HTTPStatus.CREATED, "status": True, "message": "邮件已经成功发送"}
 
 
 class UserAvatarMongoResource(UserMongoResource, Mongo):
-
     def add_avatar(self, username, avatar):
-        self.db["users"].update_one({"username": username},
-                                    {"$set": {"avatar": avatar}}
-                                    )
+        self.db["users"].update_one({"username": username}, {"$set": {"avatar": avatar}})
 
         return {"status_code": HTTPStatus.CREATED, "message": "头像上传成功"}
 
@@ -876,7 +947,6 @@ class UserAvatarMongoResource(UserMongoResource, Mongo):
 
 
 class DoubanMongoResource(DoubanResource, Mongo):
-
     def get_douban_data(self, rid: int) -> dict:
         with contextlib.suppress(Exception):
             return self.find_douban(rid)
@@ -909,7 +979,7 @@ class DoubanMongoResource(DoubanResource, Mongo):
 
         search_html = session.get(DOUBAN_SEARCH.format(cname)).text
         logging.info("Analysis search html...length %s", len(search_html))
-        soup = BeautifulSoup(search_html, 'html.parser')
+        soup = BeautifulSoup(search_html, "html.parser")
         douban_item = soup.find_all("div", class_="content")
 
         fwd_link = unquote(douban_item[0].a["href"])
@@ -924,7 +994,7 @@ class DoubanMongoResource(DoubanResource, Mongo):
         detail_link = DOUBAN_DETAIL.format(douban_id)
         detail_html = session.get(detail_link).text
         logging.info("Analysis detail html...%s", detail_link)
-        soup = BeautifulSoup(detail_html, 'html.parser')
+        soup = BeautifulSoup(detail_html, "html.parser")
 
         directors = [i.text for i in (soup.find_all("a", rel="v:directedBy"))]
         release_date = poster_image_link = rating = year_text = intro = writers = episode_count = episode_duration = ""
@@ -957,7 +1027,7 @@ class DoubanMongoResource(DoubanResource, Mongo):
                 "search_url": DOUBAN_SEARCH.format(cname),
                 "detail_url": detail_link,
                 "search_html": search_html,
-                "detail_html": detail_html
+                "detail_html": detail_html,
             },
             "doubanId": int(douban_id),
             "doubanLink": detail_link,
@@ -973,7 +1043,7 @@ class DoubanMongoResource(DoubanResource, Mongo):
             "episodeDuration": episode_duration,
             "writers": writers,
             "year": year_text,
-            "introduction": intro
+            "introduction": intro,
         }
         return final_data
 
@@ -990,9 +1060,11 @@ class DoubanReportMongoResource(DoubanReportResource, Mongo):
             returned["message"] = verify_result["message"]
             return returned
 
-        count = self.db["douban_error"].update_one(
-            {"resource_id": resource_id},
-            {"$push": {"content": content}}, upsert=True).matched_count
+        count = (
+            self.db["douban_error"]
+            .update_one({"resource_id": resource_id}, {"$push": {"content": content}}, upsert=True)
+            .matched_count
+        )
         return dict(count=count)
 
 
@@ -1001,25 +1073,19 @@ class NotificationMongoResource(NotificationResource, Mongo):
         # .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
         notify = self.db["notification"].find_one({"username": username}, projection={"_id": False})
         if not notify:
-            return {
-                "username": username,
-                "unread_item": [],
-                "read_item": [],
-                "unread_count": 0,
-                "read_count": 0
-            }
+            return {"username": username, "unread_item": [], "read_item": [], "unread_count": 0, "read_count": 0}
 
         # size is shared
         unread = notify.get("unread", [])
         id_list = []
-        for item in unread[(page - 1) * size:size * page]:
+        for item in unread[(page - 1) * size : size * page]:
             id_list.append(item)
         notify["unread_item"] = self.get_content(id_list)
 
         size = size - len(unread)
         read = notify.get("read", [])
         id_list = []
-        for item in read[(page - 1) * size:size * page]:
+        for item in read[(page - 1) * size : size * page]:
             id_list.append(item)
         notify["read_item"] = self.get_content(id_list)
 
@@ -1030,16 +1096,19 @@ class NotificationMongoResource(NotificationResource, Mongo):
         return notify
 
     def get_content(self, id_list):
-        comments = self.db["comment"].find({"_id": {"$in": id_list}},
-                                           projection={"ip": False, "parent_id": False}
-                                           ).sort("_id", pymongo.DESCENDING)
+        comments = (
+            self.db["comment"]
+            .find({"_id": {"$in": id_list}}, projection={"ip": False, "parent_id": False})
+            .sort("_id", pymongo.DESCENDING)
+        )
         comments = list(comments)
         for comment in comments:
             comment["id"] = str(comment["_id"])
             comment.pop("_id")
             reply_to_id = re.findall(r'"(.*)"', comment["content"])[0]
-            rtc = self.db["comment"].find_one({"_id": ObjectId(reply_to_id)},
-                                              projection={"content": True, "_id": False})
+            rtc = self.db["comment"].find_one(
+                {"_id": ObjectId(reply_to_id)}, projection={"content": True, "_id": False}
+            )
             comment["reply_to_content"] = rtc["content"]
 
         return comments
@@ -1050,11 +1119,7 @@ class NotificationMongoResource(NotificationResource, Mongo):
         else:
             v1, v2 = "unread", "read"
         self.db["notification"].find_one_and_update(
-            {"username": username},
-            {
-                "$push": {v1: ObjectId(comment_id)},
-                "$pull": {v2: ObjectId(comment_id)}
-            }
+            {"username": username}, {"$push": {v1: ObjectId(comment_id)}, "$pull": {v2: ObjectId(comment_id)}}
         )
 
         return {}
@@ -1068,24 +1133,24 @@ class UserEmailMongoResource(UserEmailResource, Mongo):
         wrong_count = int(verify_data["wrong"])
         MAX = 10
         if wrong_count >= MAX:
-            self.db["users"].update_one({"username": username},
-                                        {"$set": {"status": {"disable": True, "reason": "verify email crack"}}}
-                                        )
+            self.db["users"].update_one(
+                {"username": username}, {"$set": {"status": {"disable": True, "reason": "verify email crack"}}}
+            )
             return {"status": False, "status_code": HTTPStatus.FORBIDDEN, "message": "账户已被封锁"}
         correct_code = verify_data["code"]
 
         if correct_code == code:
             r.expire(email, 0)
             r.expire(f"timeout-{email}", 0)
-            self.db["users"].update_one({"username": username},
-                                        {"$set": {"email.verified": True}}
-                                        )
+            self.db["users"].update_one({"username": username}, {"$set": {"email.verified": True}})
             return {"status": True, "status_code": HTTPStatus.CREATED, "message": "邮箱已经验证成功"}
         else:
             r.hset(email, "wrong", wrong_count + 1)
-            return {"status": False,
-                    "status_code": HTTPStatus.FORBIDDEN,
-                    "message": f"验证码不正确。你还可以尝试 {MAX - wrong_count} 次"}
+            return {
+                "status": False,
+                "status_code": HTTPStatus.FORBIDDEN,
+                "message": f"验证码不正确。你还可以尝试 {MAX - wrong_count} 次",
+            }
 
 
 class CategoryMongoResource(CategoryResource, Mongo):
@@ -1104,8 +1169,9 @@ class CategoryMongoResource(CategoryResource, Mongo):
         f = []
         for item in data:
             if douban:
-                douban_data = self.db["douban"].find_one({"resourceId": item["data"]["info"]["id"]},
-                                                         projection=projection)
+                douban_data = self.db["douban"].find_one(
+                    {"resourceId": item["data"]["info"]["id"]}, projection=projection
+                )
                 if douban_data:
                     douban_data["posterData"] = base64.b64encode(douban_data["posterData"]).decode("u8")
                     item["data"]["info"]["douban"] = douban_data
@@ -1143,8 +1209,13 @@ class ResourceLatestMongoResource(ResourceLatestResource, Mongo):
                         res_name = res["data"]["info"]["cnname"]
                         name = "{}-{}".format(res_name, single["name"])
                         size = single["size"]
-                        episode_data[name] = {"timestamp": ts, "size": size, "resource_id": res["data"]["info"]["id"],
-                                              "res_name": res_name, "date": ts_date(int(ts))}
+                        episode_data[name] = {
+                            "timestamp": ts,
+                            "size": size,
+                            "resource_id": res["data"]["info"]["id"],
+                            "res_name": res_name,
+                            "date": ts_date(int(ts)),
+                        }
 
         sorted_res: list = sorted(episode_data.items(), key=lambda x: x[1]["timestamp"], reverse=True)
         limited_res = dict(sorted_res[:100])
@@ -1164,7 +1235,6 @@ class ResourceLatestMongoResource(ResourceLatestResource, Mongo):
 
 
 class SpamProcessMongoResource(Mongo):
-
     def ban_spam(self, obj_id: "str"):
         obj_id = ObjectId(obj_id)
         logging.info("Deleting spam %s", obj_id)
@@ -1194,17 +1264,11 @@ class SpamProcessMongoResource(Mongo):
             "reply_markup": {
                 "inline_keyboard": [
                     [
-                        {
-                            "text": "approve",
-                            "callback_data": f"approve{obj_id}"
-                        },
-                        {
-                            "text": "ban",
-                            "callback_data": f"ban{obj_id}"
-                        }
+                        {"text": "approve", "callback_data": f"approve{obj_id}"},
+                        {"text": "ban", "callback_data": f"ban{obj_id}"},
                     ]
                 ]
-            }
+            },
         }
         api = f"https://api.telegram.org/bot{token}/sendMessage"
         resp = requests.post(api, json=data).json()
@@ -1225,13 +1289,143 @@ class OAuthRegisterResource(Mongo):
         else:
             # 第一次oauth登录，假定一定会成功
             # TODO GitHub可以改用户名的，但是uid不会变，也许需要加unique index
-            self.db["users"].insert_one({
-                "username": username,
-                "date": ts_date(),
-                "ip": ip,
-                "browser": browser,
-                "oldUser": True,
-                "source": source,
-                "uid": uid
-            })
+            self.db["users"].insert_one(
+                {
+                    "username": username,
+                    "date": ts_date(),
+                    "ip": ip,
+                    "browser": browser,
+                    "oldUser": True,
+                    "source": source,
+                    "uid": uid,
+                }
+            )
             return {"status": "success", "message": "第三方登录成功，即将跳转首页", "username": username}
+
+
+class SearchEngine(Base):
+    yyets_projection = {
+        "data.info.cnname": 1,
+        "data.info.enname": 1,
+        "data.info.aliasname": 1,
+        "data.info.area": 1,
+        "data.info.id": 1,
+    }
+
+    douban_projection = {
+        "_id": 0,
+        "doubanLink": 0,
+        "posterLink": 0,
+        "posterData": 0,
+    }
+
+    comment_projection = {
+        "username": 1,
+        "date": 1,
+        "comment": "$content",
+        "_id": 0,
+        "commentID": {"$toString": "$_id"},
+        "origin": "comment",
+        "hasAvatar": {"$toBool": "$avatar"},
+        "resourceID": "$resource_id",
+        "resourceName": {"$first": "$resource.data.info.cnname"},
+        "id": {"$toString": "$_id"},
+    }
+    comment_lookup = {
+        "from": "yyets",
+        "localField": "resource_id",
+        "foreignField": "data.info.id",
+        "as": "resource",
+    }
+
+    def __init__(self):
+        self.search_client = meilisearch.Client(os.getenv("MEILISEARCH"), "masterKey")
+        self.yyets_index = self.search_client.index("yyets")
+        self.comment_index = self.search_client.index("comment")
+        self.douban_index = self.search_client.index("douban")
+        super().__init__()
+
+    def __get_yyets(self):
+        return self.db["yyets"].aggregate(
+            [
+                {"$project": self.yyets_projection},
+                {"$replaceRoot": {"newRoot": "$data.info"}},
+            ]
+        )
+
+    def __get_comment(self):
+        return self.db["comment"].aggregate(
+            [
+                {"$lookup": self.comment_lookup},
+                {"$project": self.comment_projection},
+            ]
+        )
+
+    def __get_douban(self):
+        return self.db["douban"].aggregate([{"$project": self.douban_projection}])
+
+    def add_yyets(self):
+        logging.info("Adding yyets data to search engine")
+        data = list(self.__get_yyets())
+        self.yyets_index.add_documents(data)
+
+    def add_comment(self):
+        logging.info("Adding comment data to search engine")
+        data = list(self.__get_comment())
+        self.comment_index.add_documents(data, primary_key="commentID")
+
+    def add_douban(self):
+        logging.info("Adding douban data to search engine")
+        data = list(self.__get_douban())
+        self.douban_index.add_documents(data, primary_key="resourceId")
+
+    def search_yyets(self, keyword: "str"):
+        return self.yyets_index.search(keyword, {"matchingStrategy": "all"})
+
+    def search_comment(self, keyword: "str"):
+        return self.comment_index.search(keyword, {"matchingStrategy": "all"})
+
+    def search_douban(self, keyword: "str"):
+        return self.douban_index.search(keyword, {"matchingStrategy": "all"})
+
+    def run_import(self):
+        t0 = time.time()
+        self.add_yyets()
+        self.add_comment()
+        self.add_douban()
+        logging.info(f"Imported data to search engine in {time.time() - t0:.2f}s")
+
+    def monitor_yyets(self):
+        cursor = self.db.yyets.watch()
+        for change in cursor:
+            with contextlib.suppress(Exception):
+                key = change["documentKey"]["_id"]
+                data = self.db.yyets.find_one({"_id": key}, projection=self.yyets_projection)
+                index = data["data"]["info"]
+                logging.info("Updating yyets index: %s", index["cnname"])
+                self.yyets_index.add_documents([index])
+
+    def monitor_douban(self):
+        cursor = self.db.douban.watch()
+        for change in cursor:
+            with contextlib.suppress(Exception):
+                key = change["documentKey"]["_id"]
+                data = self.db.douban.find_one({"_id": key}, projection=self.douban_projection)
+                logging.info("Updating douban index: %s", data["name"])
+                self.douban_index.add_documents([data], primary_key="resourceId")
+
+    def monitor_comment(self):
+        cursor = self.db.comment.watch()
+        for change in cursor:
+            with contextlib.suppress(Exception):
+                key = change["documentKey"]["_id"]
+                data = self.db.comment.aggregate(
+                    [
+                        {"$match": {"_id": key}},
+                        {"$lookup": self.comment_lookup},
+                        {"$project": self.comment_projection},
+                    ]
+                )
+                data = list(data)
+                logging.info("Updating comment index: %s", data[0]["commentID"])
+                self.comment_index.add_documents(data, primary_key="commentID")
