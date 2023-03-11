@@ -151,7 +151,7 @@ if __name__ == "__main__":
     scheduler.add_job(YYSub().run, trigger=CronTrigger.from_crontab("0 1 * * *"))
 
     scheduler.start()
-    logging.info("Dumping database and ingesting data for meilisearh...")
+    logging.info("Dumping database and ingesting data for Meilisearh...")
     if not os.getenv("PYTHON_DEV"):
         threading.Thread(target=entry_dump).start()
     # meilisearch tasks

@@ -18,6 +18,14 @@ services:
     ports:
       - "127.0.0.1:27017:27017"
 
+  meili:
+    image: getmeili/meilisearch:v1.0.2
+    restart: always
+    environment:
+      - MEILI_HTTP_PAYLOAD_SIZE_LIMIT=1073741824 #1GiB
+    volumes:
+      - meilisearch_data:/meili_data
+
   mysql:
     image: ubuntu/mysql:8.0-22.04_beta
     restart: on-failure
@@ -67,15 +75,6 @@ services:
       - "127.0.0.1:8888:8888"
       - "172.17.0.1:8888:8888"
 
-  meili:
-    image: getmeili/meilisearch:v1.0.2
-    restart: always
-    ports:
-      - "127.0.0.1:7700:7700"
-    environment:
-      - MEILI_HTTP_PAYLOAD_SIZE_LIMIT=1073741824 #1GiB
-    volumes:
-      - meilisearch_data:/meili_data
 
 volumes:
   meilisearch_data:
