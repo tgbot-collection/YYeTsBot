@@ -632,11 +632,14 @@ class ResourceMongoResource(ResourceResource, Mongo):
             return self.mongodb_search(keyword)
 
     def meili_search(self, keyword: "str", search_type: "str") -> dict:
+        returned = {"data": [], "comment": [], "extra": []}
         if search_type == "default":
             yyets = self.engine.search_yyets(keyword)
             comment = self.engine.search_comment(keyword)
-            print(yyets)
-            print(comment)
+            returned["data"] = yyets
+            returned["comment"] = comment
+            return returned
+        # TODO: add more search type
         elif search_type == "douban":
             douban = self.engine.search_douban(keyword)
         elif search_type == "fansub":
@@ -1310,6 +1313,8 @@ class SearchEngine(Base):
         "data.info.aliasname": 1,
         "data.info.area": 1,
         "data.info.id": 1,
+        "data.info.channel_cn": 1,
+        "data.info.channel": 1,
     }
 
     douban_projection = {
@@ -1349,7 +1354,7 @@ class SearchEngine(Base):
         return self.db["yyets"].aggregate(
             [
                 {"$project": self.yyets_projection},
-                {"$replaceRoot": {"newRoot": "$data.info"}},
+                {"$replaceRoot": {"newRoot": {"$mergeObjects": [{"origin": "yyets"}, "$data.info"]}}},
             ]
         )
 
@@ -1380,13 +1385,13 @@ class SearchEngine(Base):
         self.douban_index.add_documents(data, primary_key="resourceId")
 
     def search_yyets(self, keyword: "str"):
-        return self.yyets_index.search(keyword, {"matchingStrategy": "all"})
+        return self.yyets_index.search(keyword, {"matchingStrategy": "all"})["hits"]
 
     def search_comment(self, keyword: "str"):
-        return self.comment_index.search(keyword, {"matchingStrategy": "all"})
+        return self.comment_index.search(keyword, {"matchingStrategy": "all"})["hits"]
 
     def search_douban(self, keyword: "str"):
-        return self.douban_index.search(keyword, {"matchingStrategy": "all"})
+        return self.douban_index.search(keyword, {"matchingStrategy": "all"})["hits"]
 
     def run_import(self):
         t0 = time.time()
