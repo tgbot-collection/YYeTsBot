@@ -46,10 +46,10 @@ class Redis:
                 func_name = fun.__name__
                 cache_value = cls().r.get(func_name)
                 if cache_value:
-                    logging.info('Retrieving %s data from redis', func_name)
+                    logging.info("Retrieving %s data from redis", func_name)
                     return json.loads(cache_value)
                 else:
-                    logging.info('Cache expired. Executing %s', func_name)
+                    logging.info("Cache expired. Executing %s", func_name)
                     res = fun(*args, **kwargs)
                     cls().r.set(func_name, json.dumps(res), ex=timeout)
                     return res
@@ -59,7 +59,7 @@ class Redis:
         return func
 
 
-class OtherResource():
+class OtherResource:
     def reset_top(self):
         pass
 
@@ -79,7 +79,6 @@ class UserResource:
 
 
 class TopResource:
-
     def get_most(self) -> list:
         pass
 
@@ -104,8 +103,17 @@ class CommentResource:
     def get_comment(self, resource_id: int, page: int, size: int, **kwargs) -> dict:
         pass
 
-    def add_comment(self, captcha: str, captcha_id: int, content: str, resource_id: int, ip: str,
-                    username: str, browser: str, comment_id=None) -> dict:
+    def add_comment(
+        self,
+        captcha: str,
+        captcha_id: int,
+        content: str,
+        resource_id: int,
+        ip: str,
+        username: str,
+        browser: str,
+        comment_id=None,
+    ) -> dict:
         pass
 
     def delete_comment(self, comment_id: str):
@@ -113,7 +121,6 @@ class CommentResource:
 
 
 class CommentReactionResource:
-
     def react_comment(self, username, data):
         pass
 
@@ -161,7 +168,7 @@ class ResourceResource:
     def get_resource_data(self, resource_id: int, username: str) -> dict:
         pass
 
-    def search_resource(self, keyword: str) -> dict:
+    def search_resource(self, keyword: str, search_type: str) -> dict:
         pass
 
     def patch_resource(self, data: dict):
@@ -193,7 +200,6 @@ class AnnouncementResource:
 
 
 class DoubanResource:
-
     def get_douban_data(self, rid: int) -> dict:
         pass
 
@@ -202,7 +208,6 @@ class DoubanResource:
 
 
 class DoubanReportResource:
-
     def report_error(self, captcha: str, captcha_id: int, content: str, resource_id: int) -> dict:
         pass
 
@@ -211,7 +216,6 @@ class DoubanReportResource:
 
 
 class NotificationResource:
-
     def get_notification(self, username, page, size):
         pass
 
@@ -220,13 +224,11 @@ class NotificationResource:
 
 
 class UserEmailResource:
-
     def verify_email(self, username, code):
         pass
 
 
 class CategoryResource:
-
     def get_category(self, query: dict):
         pass
 
