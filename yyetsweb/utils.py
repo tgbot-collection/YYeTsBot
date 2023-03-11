@@ -26,24 +26,26 @@ from jinja2 import Template
 
 
 def setup_logger():
-    coloredlogs.install(level=logging.INFO,
-                        fmt='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] - %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S')
+    coloredlogs.install(
+        level=logging.INFO,
+        fmt="[%(asctime)s %(filename)s:%(lineno)d %(levelname).1s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
 
 def ts_date(ts=None):
     # all the time save in db should be CST
     timestamp = ts or time.time()
-    return datetime.fromtimestamp(timestamp, pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.fromtimestamp(timestamp, pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def _format_addr(s):
     name, addr = parseaddr(s)
-    return formataddr((Header(name, 'utf-8').encode(), addr))
+    return formataddr((Header(name, "utf-8").encode(), addr))
 
 
 def generate_body(context):
-    template = pathlib.Path(__file__).parent.joinpath('templates', "email_template.html")
+    template = pathlib.Path(__file__).parent.joinpath("templates", "email_template.html")
     with open(template) as f:
         return Template(f.read()).render(**context)
 
@@ -55,10 +57,10 @@ def send_mail(to: str, subject: str, context: dict):
     port = os.getenv("email_port", "1025")  # mailhog
     from_addr = os.getenv("from_addr", "yyets@dmesg.app")
 
-    msg = MIMEText(generate_body(context), 'html', 'utf-8')
-    msg['From'] = _format_addr('YYeTs <%s>' % from_addr)
-    msg['To'] = _format_addr(to)
-    msg['Subject'] = Header(subject, 'utf-8').encode()
+    msg = MIMEText(generate_body(context), "html", "utf-8")
+    msg["From"] = _format_addr("YYeTs <%s>" % from_addr)
+    msg["To"] = _format_addr(to)
+    msg["Subject"] = Header(subject, "utf-8").encode()
 
     logging.info("logging to mail server...")
     if port == "1025":
@@ -81,9 +83,9 @@ def check_spam(ip, ua, author, content) -> int:
         with contextlib.suppress(Exception):
             akismet = Akismet(token, blog="https://yyets.dmesg.app/")
 
-            return akismet.check(ip, ua, comment_author=author, blog_lang="zh_cn",
-                                 comment_type="comment",
-                                 comment_content=content)
+            return akismet.check(
+                ip, ua, comment_author=author, blog_lang="zh_cn", comment_type="comment", comment_content=content
+            )
     return 0
 
 
@@ -102,23 +104,15 @@ class Cloudflare:
         logging.info("Blacklisting IP %s", ip)
         expr = self.get_old_expr()
         if ip not in expr:
-            body = {
-                "id": self.filter_id,
-                "paused": False,
-                "expression": f"{expr} or (ip.src eq {ip})"
-            }
+            body = {"id": self.filter_id, "paused": False, "expression": f"{expr} or (ip.src eq {ip})"}
             resp = self.session.put(self.endpoint, json=body)
             logging.info(resp.json())
 
     def clear_fw(self):
         logging.info("Clearing firewall rules")
-        body = {
-            "id": self.filter_id,
-            "paused": False,
-            "expression": "(ip.src eq 192.168.2.1)"
-        }
+        body = {"id": self.filter_id, "paused": False, "expression": "(ip.src eq 192.168.2.1)"}
         self.session.put(self.endpoint, json=body)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     send_mail("benny.think@gmail.com", "主题", {"username": "test123", "text": "测试内容<b>不错</b>"})
