@@ -300,7 +300,10 @@ class ResourceHandler(BaseHandler):
     @run_on_executor()
     def search_resource(self):
         kw = self.get_query_argument("keyword").lower()
-        search_type = self.get_query_argument("type", "default")
+        # TODO 搜索模式支持
+        # search_type = self.get_query_argument("type", "default")
+        search_type = "default"
+        self.set_header("search-engine", "Meilisearch" if os.getenv("MEILISEARCH") else "MongoDB")
         return self.instance.search_resource(kw, search_type)
 
     @gen.coroutine
@@ -884,7 +887,6 @@ class DBDumpHandler(BaseHandler):
                 "date": value[1],
                 "size": value[2],
             }
-        print(result)
         return result
 
     @gen.coroutine

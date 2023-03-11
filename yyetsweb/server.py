@@ -155,7 +155,8 @@ if __name__ == "__main__":
     if not os.getenv("PYTHON_DEV"):
         threading.Thread(target=entry_dump).start()
     # meilisearch tasks
-    if os.getenv("MEILI_SEARCH"):
+    if os.getenv("MEILISEARCH"):
+        logging.info("%s Searching with Meilisearch. %s", "#" * 10, "#" * 10)
         threading.Thread(target=engine.run_import).start()
         threading.Thread(target=engine.monitor_yyets).start()
         threading.Thread(target=engine.monitor_douban).start()
