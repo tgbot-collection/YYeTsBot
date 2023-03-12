@@ -170,6 +170,8 @@ class YYSub(BaseSync):
     def get_channel_cn(self, channel, area):
         if len(area) == 2 and channel == "tv":
             return f"{area[0]}剧"
+        if channel == "movie":
+            return "电影"
         return ""
 
     def run(self):
