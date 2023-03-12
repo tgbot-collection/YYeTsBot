@@ -36,28 +36,26 @@ class BaseSync:
                     "show_type": "",
                     "expire": "",
                     "views": 0,
-                    "year": []
+                    "year": [],
                 },
                 "list": [
                     {
                         "season_num": "101",
                         "season_cn": "单剧",
-                        "items": {
-                            "MP4": []
-                        },
+                        "items": {"MP4": []},
                         "formats": [
                             "MP4",
-                        ]
+                        ],
                     }
-                ]
-            }
+                ],
+            },
         }
         self.session = requests.Session()
         self.session.headers.update(
             {
-                "User-Agent":
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36"
-            })
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36"
+            }
+        )
 
     @staticmethod
     def sleep(times=1):
@@ -65,11 +63,9 @@ class BaseSync:
 
 
 class Zhuixinfan(BaseSync):
-
     def run(self):
         zhuixinfan = "http://www.fanxinzhui.com/rr/{}"
-        start = (self.sync.find_one({"name": "zhuixinfan"}) or {}). \
-            get("resource_id", os.getenv("ZHUIXINFAN_START", 20))
+        start = (self.sync.find_one({"name": "zhuixinfan"}) or {}).get("resource_id", os.getenv("ZHUIXINFAN_START", 20))
         end = os.getenv("ZHUIXINFAN_END", 2500)
         for i in range(start, end):
             url = zhuixinfan.format(i)
@@ -115,7 +111,7 @@ class Zhuixinfan(BaseSync):
                 "size": "unknown",
                 "yyets_trans": 0,
                 "dateline": str(int(time.time())),
-                "files": []
+                "files": [],
             }
 
             res = p.find("p", class_="way")
@@ -125,42 +121,16 @@ class Zhuixinfan(BaseSync):
             for item in links:
                 content = item["href"]
                 if "ed2k" in content:
-                    resource["files"].append(
-                        {
-                            "way": "1",
-                            "way_cn": "电驴",
-                            "address": content,
-                            "passwd": ""
-                        }
-                    )
+                    resource["files"].append({"way": "1", "way_cn": "电驴", "address": content, "passwd": ""})
                 elif "magnet" in content:
-                    resource["files"].append(
-                        {
-                            "way": "2",
-                            "way_cn": "磁力",
-                            "address": content,
-                            "passwd": ""
-                        }
-                    )
+                    resource["files"].append({"way": "2", "way_cn": "磁力", "address": content, "passwd": ""})
                 elif "pan.baidu" in content:
                     baidu_password = res.span.a.nextSibling.nextSibling.text
                     resource["files"].append(
-                        {
-                            "way": "13",
-                            "way_cn": "百度网盘",
-                            "address": content,
-                            "passwd": baidu_password
-                        }
+                        {"way": "13", "way_cn": "百度网盘", "address": content, "passwd": baidu_password}
                     )
                 elif "weiyun" in content:
-                    resource["files"].append(
-                        {
-                            "way": "14",
-                            "way_cn": "微云",
-                            "address": content,
-                            "passwd": ""
-                        }
-                    )
+                    resource["files"].append({"way": "14", "way_cn": "微云", "address": content, "passwd": ""})
                 else:
                     logging.debug("Unknown link: %s", content)
 
@@ -197,6 +167,11 @@ class YYSub(BaseSync):
         x = soup.find("div", class_="resource-showlist has-point")
         return int(x.ul.li.div.a["href"].split("/")[-1])
 
+    def get_channel_cn(self, channel, area):
+        if len(area) == 2 and channel == "tv":
+            return f"{area[0]}剧"
+        return ""
+
     def run(self):
         logging.info("Starting to sync YYSub...")
         structure = deepcopy(self.structure)
@@ -212,12 +187,13 @@ class YYSub(BaseSync):
             data = resp.json()["data"]
             if data.get("cnname"):
                 logging.info("Found valid resource: %s - %s", data["cnname"], i)
+                channel_cn = self.get_channel_cn(data["channel"], data["area"])
                 structure["data"]["info"]["id"] = i
                 structure["data"]["info"]["cnname"] = data["cnname"]
                 structure["data"]["info"]["enname"] = data["enname"]
                 structure["data"]["info"]["aliasname"] = data["aliasname"]
                 structure["data"]["info"]["channel"] = data["channel"]
-                structure["data"]["info"]["channel_cn"] = data["channel_cn"]
+                structure["data"]["info"]["channel_cn"] = data["channel_cn"] or channel_cn
                 structure["data"]["info"]["area"] = data["area"]
                 structure["data"]["list"] = []
                 structure["data"]["info"]["source"] = f"https://www.yysub.net/resource/{i}"
@@ -231,7 +207,7 @@ class YYSub(BaseSync):
         self.yyets.update_one({"data.info.id": rid}, {"$set": data}, upsert=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     a = Zhuixinfan()
     # a.build_data(open("1.html").read(), "https://www.zhuixinfan.com/resource/1.html")
     a.run()
