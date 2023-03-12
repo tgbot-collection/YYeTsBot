@@ -639,13 +639,17 @@ class ResourceMongoResource(ResourceResource, Mongo):
             returned["data"] = yyets
             returned["comment"] = comment
             return returned
-        # TODO: add more search type
         elif search_type == "douban":
             douban = self.engine.search_douban(keyword)
+            returned["data"] = douban
+            return returned
         elif search_type == "fansub":
-            fansub = self.search_extra(keyword)
+            # TODO disable fansub for now
+            # fansub = self.search_extra(keyword)
+            # returned["extra"] = fansub
+            return returned
         else:
-            return {}
+            return returned
 
     def mongodb_search(self, keyword: str) -> dict:
         # convert any text to zh-hans - only for traditional search with MongoDB
@@ -1319,11 +1323,27 @@ class SearchEngine(Base):
 
     douban_projection = {
         "_id": 0,
-        "doubanLink": 0,
-        "posterLink": 0,
-        "posterData": 0,
+        "id": "$resourceId",
+        "cnname": {"$first": "$resource.data.info.cnname"},
+        "enname": {"$first": "$resource.data.info.enname"},
+        "aliasname": {"$first": "$resource.data.info.aliasname"},
+        "area": {"$first": "$resource.data.info.area"},
+        "channel_cn": {"$first": "$resource.data.info.channel_cn"},
+        "channel": {"$first": "$resource.data.info.channel"},
+        "origin": "yyets",
+        "actors": 1,
+        "directors": 1,
+        "genres": 1,
+        "writers": 1,
+        "introduction": 1,
     }
 
+    douban_lookup = {
+        "from": "yyets",
+        "localField": "resourceId",
+        "foreignField": "data.info.id",
+        "as": "resource",
+    }
     comment_projection = {
         "username": 1,
         "date": 1,
@@ -1367,7 +1387,12 @@ class SearchEngine(Base):
         )
 
     def __get_douban(self):
-        return self.db["douban"].aggregate([{"$project": self.douban_projection}])
+        return self.db["douban"].aggregate(
+            [
+                {"$lookup": self.douban_lookup},
+                {"$project": self.douban_projection},
+            ]
+        )
 
     def add_yyets(self):
         logging.info("Adding yyets data to search engine")
@@ -1382,7 +1407,7 @@ class SearchEngine(Base):
     def add_douban(self):
         logging.info("Adding douban data to search engine")
         data = list(self.__get_douban())
-        self.douban_index.add_documents(data, primary_key="resourceId")
+        self.douban_index.add_documents(data)
 
     def search_yyets(self, keyword: "str"):
         return self.yyets_index.search(keyword, {"matchingStrategy": "all"})["hits"]
@@ -1415,7 +1440,14 @@ class SearchEngine(Base):
         for change in cursor:
             with contextlib.suppress(Exception):
                 key = change["documentKey"]["_id"]
-                data = self.db.douban.find_one({"_id": key}, projection=self.douban_projection)
+                data = self.db.douban.aggregate(
+                    [
+                        {"$match": {"_id": key}},
+                        {"$lookup": self.douban_lookup},
+                        {"$project": self.douban_projection},
+                    ]
+                )
+                data = next(data)
                 logging.info("Updating douban index: %s", data["name"])
                 self.douban_index.add_documents([data], primary_key="resourceId")
 

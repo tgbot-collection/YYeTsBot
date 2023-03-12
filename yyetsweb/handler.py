@@ -300,9 +300,7 @@ class ResourceHandler(BaseHandler):
     @run_on_executor()
     def search_resource(self):
         kw = self.get_query_argument("keyword").lower()
-        # TODO 搜索模式支持
-        # search_type = self.get_query_argument("type", "default")
-        search_type = "default"
+        search_type = self.get_query_argument("type", "default")
         self.set_header("search-engine", "Meilisearch" if os.getenv("MEILISEARCH") else "MongoDB")
         return self.instance.search_resource(kw, search_type)
 
