@@ -127,14 +127,13 @@ logs/*
 /yyetsweb/yyets_sqlite.db
 /yyetsweb/yyetsweb
 /yyetsweb/assets.go
-/yyetsweb/templates/static/*
 /yyetsweb/templates/sponsor/*
 /yyetsweb/templates/svg/*
 /yyetsweb/templates/index.css
 /yyetsweb/templates/logo*
 /yyetsweb/templates/*.json
 
-
+/yyetsweb/templates/*
 /yyetsweb/templates/data/*
 /yyetsweb/builds/
 /builds/checksum-sha256sum.txt
@@ -144,3 +143,6 @@ logs/*
 /env/yyets.env
 !/docker-compose.override.yml
 /docker-compose.override.yml
+/yyetsweb/templates/dump/yyets_mongo.gz
+/yyetsweb/templates/dump/yyets_mysql.zip
+/yyetsweb/templates/dump/yyets_sqlite.zip

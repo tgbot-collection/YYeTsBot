@@ -1319,10 +1319,12 @@ class SearchEngine(Base):
         "data.info.id": 1,
         "data.info.channel_cn": 1,
         "data.info.channel": 1,
+        "_id": {"$toString": "$_id"},
+        "origin": "yyets",
     }
 
     douban_projection = {
-        "_id": 0,
+        "_id": {"$toString": "$_id"},
         "id": "$resourceId",
         "cnname": {"$first": "$resource.data.info.cnname"},
         "enname": {"$first": "$resource.data.info.enname"},
@@ -1348,13 +1350,12 @@ class SearchEngine(Base):
         "username": 1,
         "date": 1,
         "comment": "$content",
-        "_id": 0,
         "commentID": {"$toString": "$_id"},
         "origin": "comment",
         "hasAvatar": {"$toBool": "$avatar"},
         "resourceID": "$resource_id",
         "resourceName": {"$first": "$resource.data.info.cnname"},
-        "id": {"$toString": "$_id"},
+        "_id": {"$toString": "$_id"},
     }
     comment_lookup = {
         "from": "yyets",
@@ -1374,7 +1375,7 @@ class SearchEngine(Base):
         return self.db["yyets"].aggregate(
             [
                 {"$project": self.yyets_projection},
-                {"$replaceRoot": {"newRoot": {"$mergeObjects": [{"origin": "yyets"}, "$data.info"]}}},
+                {"$replaceRoot": {"newRoot": {"$mergeObjects": [{"origin": "yyets"}, "$data.info", {"_id": "$_id"}]}}},
             ]
         )
 
@@ -1397,17 +1398,17 @@ class SearchEngine(Base):
     def add_yyets(self):
         logging.info("Adding yyets data to search engine")
         data = list(self.__get_yyets())
-        self.yyets_index.add_documents(data)
+        self.yyets_index.add_documents(data, primary_key="_id")
 
     def add_comment(self):
         logging.info("Adding comment data to search engine")
         data = list(self.__get_comment())
-        self.comment_index.add_documents(data, primary_key="commentID")
+        self.comment_index.add_documents(data, primary_key="_id")
 
     def add_douban(self):
         logging.info("Adding douban data to search engine")
         data = list(self.__get_douban())
-        self.douban_index.add_documents(data)
+        self.douban_index.add_documents(data, primary_key="_id")
 
     def search_yyets(self, keyword: "str"):
         return self.yyets_index.search(keyword, {"matchingStrategy": "all"})["hits"]
@@ -1423,46 +1424,53 @@ class SearchEngine(Base):
         self.add_yyets()
         self.add_comment()
         self.add_douban()
-        logging.info(f"Imported data to search engine in {time.time() - t0:.2f}s")
+        logging.info(f"Import data to search engine in {time.time() - t0:.2f}s")
+
+    def __monitor(self, col, fun):
+        cursor = self.db[col].watch()
+        for change in cursor:
+            op_type = change["operationType"]
+            _id = change["documentKey"]["_id"]
+            search_index = getattr(self, f"{col}_index")
+            logging.info("%s %s change stream for %s", col, op_type, _id)
+
+            if op_type == "delete":
+                search_index.delete_document(_id)
+            else:
+                data = fun(_id)
+                search_index.add_documents(data, primary_key="_id")
 
     def monitor_yyets(self):
-        cursor = self.db.yyets.watch()
-        for change in cursor:
-            with contextlib.suppress(Exception):
-                key = change["documentKey"]["_id"]
-                data = self.db.yyets.find_one({"_id": key}, projection=self.yyets_projection)
-                index = data["data"]["info"]
-                logging.info("Updating yyets index: %s", index["cnname"])
-                self.yyets_index.add_documents([index])
+        def get_data(_id) -> list:
+            data = self.db.yyets.find_one({"_id": _id}, projection=self.yyets_projection)["data"]["info"]
+            data["_id"] = str(_id)
+            data["origin"] = "yyets"
+            return [data]
+
+        self.__monitor("yyets", get_data)
 
     def monitor_douban(self):
-        cursor = self.db.douban.watch()
-        for change in cursor:
-            with contextlib.suppress(Exception):
-                key = change["documentKey"]["_id"]
-                data = self.db.douban.aggregate(
-                    [
-                        {"$match": {"_id": key}},
-                        {"$lookup": self.douban_lookup},
-                        {"$project": self.douban_projection},
-                    ]
-                )
-                data = next(data)
-                logging.info("Updating douban index: %s", data["name"])
-                self.douban_index.add_documents([data], primary_key="resourceId")
+        def get_data(_id) -> list:
+            data = self.db.douban.aggregate(
+                [
+                    {"$match": {"_id": _id}},
+                    {"$lookup": self.douban_lookup},
+                    {"$project": self.douban_projection},
+                ]
+            )
+            return list(data)
+
+        self.__monitor("douban", get_data)
 
     def monitor_comment(self):
-        cursor = self.db.comment.watch()
-        for change in cursor:
-            with contextlib.suppress(Exception):
-                key = change["documentKey"]["_id"]
-                data = self.db.comment.aggregate(
-                    [
-                        {"$match": {"_id": key}},
-                        {"$lookup": self.comment_lookup},
-                        {"$project": self.comment_projection},
-                    ]
-                )
-                data = list(data)
-                logging.info("Updating comment index: %s", data[0]["commentID"])
-                self.comment_index.add_documents(data, primary_key="commentID")
+        def get_data(_id) -> list:
+            data = self.db.comment.aggregate(
+                [
+                    {"$match": {"_id": _id}},
+                    {"$lookup": self.comment_lookup},
+                    {"$project": self.comment_projection},
+                ]
+            )
+            return list(data)
+
+        self.__monitor("comment", get_data)
