@@ -16,11 +16,11 @@ import requests
 lib_path = pathlib.Path(__file__).parent.parent.resolve().as_posix()
 sys.path.append(lib_path)
 
-from Mongo import DoubanMongoResource
+from databases.douban import DoubanMongoResource
 
-parser = argparse.ArgumentParser(description='豆瓣数据修复')
-parser.add_argument('resource_id', metavar='r', type=int, help='resource id')
-parser.add_argument('douban_id', metavar='d', type=int, help='douban id')
+parser = argparse.ArgumentParser(description="豆瓣数据修复")
+parser.add_argument("resource_id", metavar="r", type=int, help="resource id")
+parser.add_argument("douban_id", metavar="d", type=int, help="douban id")
 args = parser.parse_args()
 resource_id = args.resource_id
 douban_id = args.douban_id

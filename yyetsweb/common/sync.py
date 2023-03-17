@@ -10,8 +10,8 @@ from copy import deepcopy
 import requests
 from bs4 import BeautifulSoup
 
-from Mongo import Mongo
-from utils import setup_logger
+from common.utils import setup_logger
+from databases.base import Mongo
 
 setup_logger()
 

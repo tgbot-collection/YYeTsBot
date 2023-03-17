@@ -14,9 +14,9 @@ import openpyxl
 
 web_path = pathlib.Path(__file__).parent.parent.resolve().as_posix()
 sys.path.append(web_path)
-from Mongo import Mongo
+from databases.base import Mongo
 from tqdm import tqdm
-from yyetsweb.utils import ts_date
+from common.utils import ts_date
 
 wb = openpyxl.open("aliyun.xlsx")
 
@@ -37,7 +37,7 @@ template = {
     "browser": "cli",
     "content": "",
     "resource_id": 234,
-    "type": "parent"
+    "type": "parent",
 }
 col = Mongo().db["comment"]
 share_doc = {
@@ -54,10 +54,10 @@ share_doc = {
             "area": "",
             "show_type": "",
             "expire": "1610401225",
-            "views": 0
+            "views": 0,
         },
-        "list": []
-    }
+        "list": [],
+    },
 }
 
 Mongo().db["yyets"].update_one({"data.info.id": 234}, {"$set": share_doc}, upsert=True)

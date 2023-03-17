@@ -18,7 +18,7 @@ from tqdm import tqdm
 logging.basicConfig(level=logging.INFO)
 lib_path = pathlib.Path(__file__).parent.parent.resolve().as_posix()
 sys.path.append(lib_path)
-from Mongo import DoubanMongoResource
+from databases.douban import DoubanMongoResource
 
 
 def sync_douban():
@@ -42,5 +42,5 @@ def sync_douban():
     logging.info("ALL FINISH!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sync_douban()
