@@ -45,7 +45,7 @@ def _format_addr(s):
 
 
 def generate_body(context):
-    template = pathlib.Path(__file__).parent.joinpath("templates", "email_template.html")
+    template = pathlib.Path(__file__).parent.parent.joinpath("templates", "email_template.html")
     with open(template) as f:
         return Template(f.read()).render(**context)
 
