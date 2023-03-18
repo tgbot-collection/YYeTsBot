@@ -42,7 +42,7 @@ class Like(Mongo):
         return returned
 
 
-class User(Mongo):
+class User(Mongo, Redis):
     def login_user(
         self,
         username: str,
@@ -53,8 +53,7 @@ class User(Mongo):
         browser: str,
     ) -> dict:
         # verify captcha in the first place.
-        redis = Redis().r
-        correct_captcha = redis.get(captcha_id)
+        correct_captcha = self.r.get(captcha_id)
         if correct_captcha is None:
             return {
                 "status_code": HTTPStatus.BAD_REQUEST,
@@ -62,7 +61,7 @@ class User(Mongo):
                 "status": False,
             }
         elif correct_captcha.lower() == captcha.lower():
-            redis.expire(captcha_id, 0)
+            self.r.expire(captcha_id, 0)
         else:
             return {
                 "status_code": HTTPStatus.FORBIDDEN,
@@ -82,7 +81,6 @@ class User(Mongo):
         returned_value = {"status_code": 0, "message": ""}
 
         if data:
-            # try to login
             stored_password = data["password"]
             if pbkdf2_sha256.verify(password, stored_password):
                 returned_value["status_code"] = HTTPStatus.OK
@@ -93,7 +91,6 @@ class User(Mongo):
         else:
             if os.getenv("DISABLE_REGISTER"):
                 return {"status_code": HTTPStatus.BAD_REQUEST, "message": "本站已经暂停注册"}
-
             # register
             hash_value = pbkdf2_sha256.hash(password)
             try:
@@ -107,7 +104,6 @@ class User(Mongo):
                     )
                 )
                 returned_value["status_code"] = HTTPStatus.CREATED
-
             except Exception as e:
                 returned_value["status_code"] = HTTPStatus.INTERNAL_SERVER_ERROR
                 returned_value["message"] = str(e)

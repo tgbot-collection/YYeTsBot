@@ -18,7 +18,7 @@ class UserHandler(BaseHandler):
         self.set_secure_cookie("username", username, 365)
 
     @run_on_executor()
-    def login_user(self):
+    def login(self):
         data = self.json
         username = data["username"]
         password = data["password"]
@@ -54,7 +54,7 @@ class UserHandler(BaseHandler):
 
     @gen.coroutine
     def post(self):
-        resp = yield self.login_user()
+        resp = yield self.login()
         self.write(resp)
 
     @gen.coroutine

@@ -32,6 +32,7 @@ class BaseHandler(web.RequestHandler):
             self.json: dict = json.loads(self.request.body)
         class_name = self.__class__.__name__.split("Handler")[0]
         module = importlib.import_module(f"databases.{self.filename}")
+
         self.instance = getattr(module, class_name)()
         self.r = Redis().r
 

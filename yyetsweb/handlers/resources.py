@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # coding: utf-8
 import os
-import uuid
 from http import HTTPStatus
 from pathlib import Path
 
-from tornado import gen, web
+from tornado import gen
 from tornado.concurrent import run_on_executor
 
 from handlers.base import BaseHandler
@@ -47,39 +46,6 @@ class ResourceHandler(BaseHandler):
         else:
             resp = "error"
         self.write(resp)
-
-    # patch and post are available to every login user
-    # these are rare operations, so no gen.coroutine and run_on_executor
-    @web.authenticated
-    def patch(self):
-        if self.instance.is_admin(self.get_current_user()):
-            # may consider add admin restrictions
-            pass
-        for item in self.json["items"].values():
-            for i in item:
-                i["creator"] = self.get_current_user()
-                i["itemid"] = uuid.uuid4().hex
-        self.instance.patch_resource(self.json)
-        self.set_status(HTTPStatus.CREATED)
-        self.write({})
-
-    @web.authenticated
-    def post(self):
-        self.json["data"]["list"] = []
-        self.json["data"]["info"]["creator"] = self.get_current_user()
-        self.set_status(HTTPStatus.CREATED)
-        resp = self.instance.add_resource(self.json)
-        self.write(resp)
-
-    @web.authenticated
-    def delete(self):
-        if not self.instance.is_admin(self.get_current_user()):
-            self.set_status(HTTPStatus.FORBIDDEN)
-            self.write({"status": False, "message": "admin only"})
-            return
-        self.instance.delete_resource(self.json)
-        self.set_status(HTTPStatus.ACCEPTED)
-        self.write({})
 
 
 class ResourceLatestHandler(BaseHandler):
