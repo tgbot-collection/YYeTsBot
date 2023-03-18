@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # coding: utf-8
-import logging
 import os
 import uuid
 from http import HTTPStatus
@@ -32,20 +31,8 @@ class ResourceHandler(BaseHandler):
 
         return data
 
-    def make_some_fun(self):
-        referer = self.request.headers.get("referer")
-        if not referer and os.getenv("GIFT"):
-            self.set_header("Content-Type", "text/html")
-            self.set_header("Content-Encoding", "gzip")
-            with open("../templates/gift.gzip", "rb") as f:
-                return f.read()
-
     @run_on_executor()
     def search_resource(self):
-        if gift := self.make_some_fun():
-            logging.warning("Good luck to %s!", self.get_real_ip())
-            return gift
-
         kw = self.get_query_argument("keyword").lower()
         search_type = self.get_query_argument("type", "default")
         self.set_header("search-engine", "Meilisearch" if os.getenv("MEILISEARCH") else "MongoDB")
