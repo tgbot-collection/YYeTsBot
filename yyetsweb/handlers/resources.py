@@ -34,7 +34,9 @@ class ResourceHandler(BaseHandler):
     def search_resource(self):
         kw = self.get_query_argument("keyword").lower()
         search_type = self.get_query_argument("type", "default")
-        self.set_header("search-engine", "Meilisearch" if os.getenv("MEILISEARCH") else "MongoDB")
+        self.set_header(
+            "search-engine", "Meilisearch" if os.getenv("MEILISEARCH") else "MongoDB"
+        )
         return self.instance.search_resource(kw, search_type)
 
     @gen.coroutine

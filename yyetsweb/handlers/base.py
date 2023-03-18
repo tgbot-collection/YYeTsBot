@@ -9,13 +9,15 @@ from concurrent.futures import ThreadPoolExecutor
 from http import HTTPStatus
 from pathlib import Path
 
+from databases.base import Redis
 from tornado import gen, web
 from tornado.concurrent import run_on_executor
 
-from databases.base import Redis
 from handlers import cf
 
-index = pathlib.Path(__file__).parent.parent.joinpath("templates", "index.html").as_posix()
+index = (
+    pathlib.Path(__file__).parent.parent.joinpath("templates", "index.html").as_posix()
+)
 filename = Path(__file__).name.split(".")[0]
 
 

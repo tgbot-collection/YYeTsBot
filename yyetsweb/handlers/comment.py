@@ -19,7 +19,9 @@ class CommentHandler(BaseHandler):
     def hide_phone(data: list):
         for item in data:
             if item["username"].isdigit() and len(item["username"]) == 11:
-                item["username"] = re.sub(r"(\d{3})\d{4}(\d{4})", r"\g<1>****\g<2>", item["username"])
+                item["username"] = re.sub(
+                    r"(\d{3})\d{4}(\d{4})", r"\g<1>****\g<2>", item["username"]
+                )
         return data
 
     @run_on_executor()

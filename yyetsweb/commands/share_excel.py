@@ -16,6 +16,7 @@ web_path = pathlib.Path(__file__).parent.parent.resolve().as_posix()
 sys.path.append(web_path)
 from databases.base import Mongo
 from tqdm import tqdm
+
 from common.utils import ts_date
 
 wb = openpyxl.open("aliyun.xlsx")

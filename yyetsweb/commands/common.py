@@ -14,8 +14,12 @@ import pymongo
 
 class Mongo:
     def __init__(self):
-        self.client = pymongo.MongoClient(host=os.getenv("MONGO", "localhost"), connect=False,
-                                          connectTimeoutMS=5000, serverSelectionTimeoutMS=5000)
+        self.client = pymongo.MongoClient(
+            host=os.getenv("MONGO", "localhost"),
+            connect=False,
+            connectTimeoutMS=5000,
+            serverSelectionTimeoutMS=5000,
+        )
         self.db = self.client["zimuzu"]
 
     def __del__(self):

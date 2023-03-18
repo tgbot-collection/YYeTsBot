@@ -27,7 +27,9 @@ class UserHandler(BaseHandler):
         ip = self.get_real_ip()
         browser = self.request.headers["user-agent"]
 
-        response = self.instance.login_user(username, password, captcha, captcha_id, ip, browser)
+        response = self.instance.login_user(
+            username, password, captcha, captcha_id, ip, browser
+        )
         if response["status_code"] in (HTTPStatus.CREATED, HTTPStatus.OK):
             self.set_login(username)
         else:

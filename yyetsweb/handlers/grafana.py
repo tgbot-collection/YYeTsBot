@@ -38,7 +38,9 @@ class MetricsHandler(BaseHandler):
         if to_date is None:
             to_date = time.strftime("%Y-%m-%d", time.localtime())
         if from_date is None:
-            from_date = time.strftime("%Y-%m-%d", time.localtime(time.time() - 3600 * 24 * 7))
+            from_date = time.strftime(
+                "%Y-%m-%d", time.localtime(time.time() - 3600 * 24 * 7)
+            )
 
         return self.instance.get_metrics(from_date, to_date)
 
@@ -115,7 +117,11 @@ class GrafanaQueryHandler(BaseHandler):
             result = self.instance.get_grafana_data(date_series)
             i: dict
             for i in result:
-                datum = [i[target], self.time_str_int(i["date"]) * 1000] if i.get(target) else []
+                datum = (
+                    [i[target], self.time_str_int(i["date"]) * 1000]
+                    if i.get(target)
+                    else []
+                )
                 data_points.append(datum)
             temp = {"target": target, "datapoints": data_points}
             grafana_data.append(temp)

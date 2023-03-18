@@ -36,7 +36,9 @@ def setup_logger():
 def ts_date(ts=None):
     # all the time save in db should be CST
     timestamp = ts or time.time()
-    return datetime.fromtimestamp(timestamp, pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.fromtimestamp(timestamp, pytz.timezone("Asia/Shanghai")).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
 
 
 def _format_addr(s):
@@ -45,7 +47,9 @@ def _format_addr(s):
 
 
 def generate_body(context):
-    template = pathlib.Path(__file__).parent.parent.joinpath("templates", "email_template.html")
+    template = pathlib.Path(__file__).parent.parent.joinpath(
+        "templates", "email_template.html"
+    )
     with open(template) as f:
         return Template(f.read()).render(**context)
 
@@ -84,7 +88,12 @@ def check_spam(ip, ua, author, content) -> int:
             akismet = Akismet(token, blog="https://yyets.dmesg.app/")
 
             return akismet.check(
-                ip, ua, comment_author=author, blog_lang="zh_cn", comment_type="comment", comment_content=content
+                ip,
+                ua,
+                comment_author=author,
+                blog_lang="zh_cn",
+                comment_type="comment",
+                comment_content=content,
             )
     return 0
 
@@ -95,7 +104,9 @@ class Cloudflare:
         self.filter_id = "9e1e9139bcbe400c8b2620ac117a77d8"
         self.endpoint = f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/filters/{self.filter_id}"
         self.session = requests.Session()
-        self.session.headers.update({"Authorization": "Bearer %s" % os.getenv("CF_TOKEN")})
+        self.session.headers.update(
+            {"Authorization": "Bearer %s" % os.getenv("CF_TOKEN")}
+        )
 
     def get_old_expr(self):
         return self.session.get(self.endpoint).json()["result"]["expression"]
@@ -104,15 +115,25 @@ class Cloudflare:
         logging.info("Blacklisting IP %s", ip)
         expr = self.get_old_expr()
         if ip not in expr:
-            body = {"id": self.filter_id, "paused": False, "expression": f"{expr} or (ip.src eq {ip})"}
+            body = {
+                "id": self.filter_id,
+                "paused": False,
+                "expression": f"{expr} or (ip.src eq {ip})",
+            }
             resp = self.session.put(self.endpoint, json=body)
             logging.info(resp.json())
 
     def clear_fw(self):
         logging.info("Clearing firewall rules")
-        body = {"id": self.filter_id, "paused": False, "expression": "(ip.src eq 192.168.2.1)"}
+        body = {
+            "id": self.filter_id,
+            "paused": False,
+            "expression": "(ip.src eq 192.168.2.1)",
+        }
         self.session.put(self.endpoint, json=body)
 
 
 if __name__ == "__main__":
-    send_mail("benny.think@gmail.com", "主题", {"username": "test123", "text": "测试内容<b>不错</b>"})
+    send_mail(
+        "benny.think@gmail.com", "主题", {"username": "test123", "text": "测试内容<b>不错</b>"}
+    )

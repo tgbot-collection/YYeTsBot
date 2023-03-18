@@ -52,10 +52,14 @@ class DoubanReportHandler(BaseHandler):
         captcha_id = data["id"]
         content = data["content"]
         resource_id = data["resource_id"]
-        returned = self.instance.report_error(user_captcha, captcha_id, content, resource_id)
+        returned = self.instance.report_error(
+            user_captcha, captcha_id, content, resource_id
+        )
         status_code = returned.get("status_code", HTTPStatus.CREATED)
         self.set_status(status_code)
-        return self.instance.report_error(user_captcha, captcha_id, content, resource_id)
+        return self.instance.report_error(
+            user_captcha, captcha_id, content, resource_id
+        )
 
     @gen.coroutine
     def post(self):

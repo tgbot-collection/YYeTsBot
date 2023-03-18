@@ -32,7 +32,9 @@ class Douban(Mongo):
 
         douban_col = self.db["douban"]
         yyets_col = self.db["yyets"]
-        data = douban_col.find_one({"resourceId": resource_id}, {"_id": False, "raw": False})
+        data = douban_col.find_one(
+            {"resourceId": resource_id}, {"_id": False, "raw": False}
+        )
         if data:
             logging.info("Existing data for %s", resource_id)
             return data
@@ -55,8 +57,12 @@ class Douban(Mongo):
         douban_item = soup.find_all("div", class_="content")
 
         fwd_link = unquote(douban_item[0].a["href"])
-        douban_id = re.findall(r"https://movie\.douban\.com/subject/(\d*)/.*", fwd_link)[0]
-        final_data = self.get_craw_data(cname, douban_id, resource_id, search_html, session)
+        douban_id = re.findall(
+            r"https://movie\.douban\.com/subject/(\d*)/.*", fwd_link
+        )[0]
+        final_data = self.get_craw_data(
+            cname, douban_id, resource_id, search_html, session
+        )
         douban_col.insert_one(final_data.copy())
         final_data.pop("raw")
         return final_data
@@ -69,7 +75,9 @@ class Douban(Mongo):
         soup = BeautifulSoup(detail_html, "html.parser")
 
         directors = [i.text for i in (soup.find_all("a", rel="v:directedBy"))]
-        release_date = poster_image_link = rating = year_text = intro = writers = episode_count = episode_duration = ""
+        release_date = (
+            poster_image_link
+        ) = rating = year_text = intro = writers = episode_count = episode_duration = ""
         with contextlib.suppress(IndexError):
             episode_duration = soup.find_all("span", property="v:runtime")[0].text
         for i in soup.find_all("span", class_="pl"):
@@ -83,15 +91,21 @@ class Douban(Mongo):
         genre = [i.text for i in soup.find_all("span", property="v:genre")]
 
         with contextlib.suppress(IndexError):
-            release_date = soup.find_all("span", property="v:initialReleaseDate")[0].text
+            release_date = soup.find_all("span", property="v:initialReleaseDate")[
+                0
+            ].text
         with contextlib.suppress(IndexError):
             poster_image_link = soup.find_all("div", id="mainpic")[0].a.img["src"]
         with contextlib.suppress(IndexError):
             rating = soup.find_all("strong", class_="ll rating_num")[0].text
         with contextlib.suppress(IndexError):
-            year_text = re.sub(r"[()]", "", soup.find_all("span", class_="year")[0].text)
+            year_text = re.sub(
+                r"[()]", "", soup.find_all("span", class_="year")[0].text
+            )
         with contextlib.suppress(IndexError):
-            intro = re.sub(r"\s", "", soup.find_all("span", property="v:summary")[0].text)
+            intro = re.sub(
+                r"\s", "", soup.find_all("span", property="v:summary")[0].text
+            )
 
         final_data = {
             "name": cname,
@@ -124,7 +138,9 @@ class DoubanReport(Mongo):
     def get_error(self) -> dict:
         return dict(data=list(self.db["douban_error"].find(projection={"_id": False})))
 
-    def report_error(self, captcha: str, captcha_id: int, content: str, resource_id: int) -> dict:
+    def report_error(
+        self, captcha: str, captcha_id: int, content: str, resource_id: int
+    ) -> dict:
         returned = {"status_code": 0, "message": ""}
         verify_result = CaptchaResource().verify_code(captcha, captcha_id)
         if not verify_result["status"]:

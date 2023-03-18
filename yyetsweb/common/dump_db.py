@@ -225,7 +225,9 @@ def zip_file():
         zf.write(sqlite_file, "yyets_sqlite.db")
 
     logging.info("Dumping MySQL...")
-    subprocess.check_output("mysqldump -h mysql -u root -proot zimuzu > zimuzu.sql", shell=True)
+    subprocess.check_output(
+        "mysqldump -h mysql -u root -proot zimuzu > zimuzu.sql", shell=True
+    )
     p = data_path.joinpath("yyets_mysql.zip")
     logging.info("Zipping MySQL...")
     with zipfile.ZipFile(p, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -233,7 +235,8 @@ def zip_file():
 
     logging.info("Dumping MongoDB")
     subprocess.check_output(
-        "mongodump -h mongo -d share --gzip --archive=" + data_path.joinpath("yyets_mongo.gz").as_posix(),
+        "mongodump -h mongo -d share --gzip --archive="
+        + data_path.joinpath("yyets_mongo.gz").as_posix(),
         shell=True,
     )
 
