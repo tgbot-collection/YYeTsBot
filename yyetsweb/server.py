@@ -22,7 +22,7 @@ from tornado.log import enable_pretty_logging
 from commands.douban_sync import sync_douban
 from common.dump_db import entry_dump
 from common.sync import YYSub
-from common.utils import Cloudflare, setup_logger
+from common.utils import setup_logger
 from databases.base import SearchEngine
 from databases.other import Other
 from databases.resources import ResourceLatest
@@ -66,7 +66,7 @@ from handlers.user import LikeHandler, UserAvatarHandler, UserEmailHandler, User
 
 enable_pretty_logging()
 setup_logger()
-cf = Cloudflare()
+
 if os.getenv("debug"):
     logging.getLogger().setLevel(logging.DEBUG)
 
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     scheduler.add_job(entry_dump, trigger=CronTrigger.from_crontab("2 2 1 * *"))
     scheduler.add_job(ResourceLatest().refresh_latest_resource, "interval", hours=1)
     scheduler.add_job(Other().import_ban_user, "interval", seconds=300)
-    scheduler.add_job(cf.clear_fw, trigger=CronTrigger.from_crontab("0 0 */5 * *"))
+    # scheduler.add_job(cf.clear_fw, trigger=CronTrigger.from_crontab("0 0 */5 * *"))
     scheduler.add_job(YYSub().run, trigger=CronTrigger.from_crontab("0 1 * * *"))
 
     scheduler.start()
