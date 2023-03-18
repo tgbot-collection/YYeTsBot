@@ -4,15 +4,18 @@ import logging
 import os
 import uuid
 from http import HTTPStatus
+from pathlib import Path
 
 from tornado import gen, web
 from tornado.concurrent import run_on_executor
 
 from handlers.base import BaseHandler
 
+filename = Path(__file__).name.split(".")[0]
+
 
 class ResourceHandler(BaseHandler):
-    class_name = "ResourceResource"
+    filename = filename
 
     @run_on_executor()
     def get_resource_data(self):
@@ -93,7 +96,7 @@ class ResourceHandler(BaseHandler):
 
 
 class ResourceLatestHandler(BaseHandler):
-    class_name = "ResourceLatestResource"
+    filename = filename
 
     @run_on_executor()
     def get_latest(self):
@@ -109,7 +112,7 @@ class ResourceLatestHandler(BaseHandler):
 
 
 class TopHandler(BaseHandler):
-    class_name = "TopResource"
+    filename = filename
 
     def get_user_like(self) -> list:
         username = self.get_current_user()
@@ -129,7 +132,7 @@ class TopHandler(BaseHandler):
 
 
 class NameHandler(BaseHandler):
-    class_name = "NameResource"
+    filename = filename
 
     @run_on_executor()
     def get_names(self):

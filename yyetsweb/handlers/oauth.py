@@ -2,6 +2,7 @@
 # coding: utf-8
 import logging
 import os
+from pathlib import Path
 from urllib.parse import urlencode
 
 import requests
@@ -9,9 +10,11 @@ from tornado.auth import GoogleOAuth2Mixin, OAuth2Mixin, TwitterMixin
 
 from handlers.base import BaseHandler
 
+filename = Path(__file__).name.split(".")[0]
+
 
 class OAuth2Handler(BaseHandler, OAuth2Mixin):
-    class_name = "OAuthRegisterResource"
+    filename = filename
     _OAUTH_AUTHORIZE_URL = ""
     _OAUTH_ACCESS_TOKEN_URL = ""
     _OAUTH_API_REQUEST_URL = ""

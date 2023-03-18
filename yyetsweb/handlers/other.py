@@ -6,19 +6,20 @@ import pathlib
 import time
 from hashlib import sha1
 from http import HTTPStatus
+from pathlib import Path
 
-from databases.database import CaptchaResource
 from tornado import gen, web
 from tornado.concurrent import run_on_executor
 
 from databases.base import Redis
+from databases.other import Captcha
 from handlers.base import BaseHandler
 
+filename = Path(__file__).name.split(".")[0]
 
-# YYeTsBot - other.py
-# 2023-03-17  19:50
+
 class AnnouncementHandler(BaseHandler):
-    class_name = "AnnouncementResource"
+    filename = filename
 
     @run_on_executor()
     def get_announcement(self):
@@ -117,7 +118,7 @@ class DBDumpHandler(BaseHandler):
 
 
 class CategoryHandler(BaseHandler):
-    class_name = "CategoryResource"
+    filename = filename
 
     @run_on_executor()
     def get_data(self):
@@ -133,7 +134,7 @@ class CategoryHandler(BaseHandler):
         self.write(resp)
 
 
-class CaptchaHandler(BaseHandler, CaptchaResource):
+class CaptchaHandler(BaseHandler, Captcha):
     @run_on_executor()
     def verify_captcha(self):
         data = self.json
@@ -169,7 +170,7 @@ class CaptchaHandler(BaseHandler, CaptchaResource):
 
 
 class BlacklistHandler(BaseHandler):
-    class_name = "BlacklistResource"
+    filename = filename
 
     @run_on_executor()
     def get_black_list(self):
@@ -182,7 +183,7 @@ class BlacklistHandler(BaseHandler):
 
 
 class SpamProcessHandler(BaseHandler):
-    class_name = "SpamProcessResource"
+    filename = filename
 
     def process(self, method):
         obj_id = self.json.get("obj_id")

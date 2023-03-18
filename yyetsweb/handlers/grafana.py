@@ -4,15 +4,18 @@ import json
 import time
 from datetime import date, timedelta
 from http import HTTPStatus
+from pathlib import Path
 
 from tornado import gen
 from tornado.concurrent import run_on_executor
 
 from handlers.base import BaseHandler
 
+filename = Path(__file__).name.split(".")[0]
+
 
 class MetricsHandler(BaseHandler):
-    class_name = "MetricsResource"
+    filename = filename
 
     @run_on_executor()
     def set_metrics(self):
@@ -80,7 +83,7 @@ class GrafanaSearchHandler(BaseHandler):
 
 
 class GrafanaQueryHandler(BaseHandler):
-    class_name = "GrafanaQueryResource"
+    filename = filename
 
     @staticmethod
     def generate_date_series(start: str, end: str) -> list:

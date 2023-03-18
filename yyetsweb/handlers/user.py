@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 # coding: utf-8
 from http import HTTPStatus
+from pathlib import Path
 
 from tornado import gen, web
 from tornado.concurrent import run_on_executor
 
 from handlers.base import BaseHandler
 
+filename = Path(__file__).name.split(".")[0]
+
 
 class UserHandler(BaseHandler):
-    class_name = "UserResource"
+    filename = filename
 
     def set_login(self, username):
         self.set_secure_cookie("username", username, 365)
@@ -73,7 +76,7 @@ class UserHandler(BaseHandler):
 
 
 class UserAvatarHandler(BaseHandler):
-    class_name = "UserAvatarResource"
+    filename = filename
 
     @run_on_executor()
     def update_avatar(self):
@@ -115,7 +118,7 @@ class UserAvatarHandler(BaseHandler):
 
 
 class LikeHandler(BaseHandler):
-    class_name = "LikeResource"
+    filename = filename
 
     @run_on_executor()
     def like_data(self):
@@ -150,7 +153,7 @@ class LikeHandler(BaseHandler):
 
 
 class UserEmailHandler(BaseHandler):
-    class_name = "UserEmailResource"
+    filename = filename
 
     @run_on_executor()
     def verify_email(self):

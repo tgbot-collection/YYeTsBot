@@ -18,11 +18,11 @@ from tqdm import tqdm
 logging.basicConfig(level=logging.INFO)
 lib_path = pathlib.Path(__file__).parent.parent.resolve().as_posix()
 sys.path.append(lib_path)
-from databases.douban import DoubanMongoResource
+from databases.douban import Douban
 
 
 def sync_douban():
-    douban = DoubanMongoResource()
+    douban = Douban()
     session = requests.Session()
     ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
     session.headers.update({"User-Agent": ua})

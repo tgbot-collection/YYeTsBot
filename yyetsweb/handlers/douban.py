@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 from http import HTTPStatus
+from pathlib import Path
 
 import filetype
 from tornado import gen
@@ -8,9 +9,11 @@ from tornado.concurrent import run_on_executor
 
 from handlers.base import BaseHandler
 
+filename = Path(__file__).name.split(".")[0]
+
 
 class DoubanHandler(BaseHandler):
-    class_name = "DoubanResource"
+    filename = filename
 
     @run_on_executor()
     def douban_data(self):

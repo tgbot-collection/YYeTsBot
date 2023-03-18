@@ -10,8 +10,7 @@ from bson import ObjectId
 
 from common.utils import check_spam, send_mail, ts_date
 from databases.base import Mongo
-from databases.other import SpamProcess
-from other import Captcha
+from databases.other import SpamProcess, Captcha
 
 
 class Comment(Mongo):

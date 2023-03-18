@@ -2,15 +2,18 @@
 # coding: utf-8
 import re
 from http import HTTPStatus
+from pathlib import Path
 
 from tornado import gen, web
 from tornado.concurrent import run_on_executor
 
 from handlers.base import BaseHandler
 
+filename = Path(__file__).name.split(".")[0]
+
 
 class CommentHandler(BaseHandler):
-    class_name = "CommentResource"
+    filename = filename
 
     @staticmethod
     def hide_phone(data: list):
@@ -103,7 +106,7 @@ class CommentHandler(BaseHandler):
 
 
 class CommentReactionHandler(BaseHandler):
-    class_name = "CommentReactionResource"
+    filename = filename
 
     @run_on_executor()
     def comment_reaction(self):
@@ -127,7 +130,7 @@ class CommentReactionHandler(BaseHandler):
 
 
 class CommentChildHandler(CommentHandler):
-    class_name = "CommentChildResource"
+    filename = filename
 
     @run_on_executor()
     def get_comment(self):
@@ -149,7 +152,7 @@ class CommentChildHandler(CommentHandler):
 
 
 class CommentNewestHandler(CommentHandler):
-    class_name = "CommentNewestResource"
+    filename = filename
 
     @run_on_executor()
     def get_comment(self):
@@ -167,7 +170,7 @@ class CommentNewestHandler(CommentHandler):
 
 
 class CommentSearchHandler(CommentHandler):
-    class_name = "CommentSearchResource"
+    filename = filename
 
     @run_on_executor()
     def search_comment(self):
@@ -185,7 +188,7 @@ class CommentSearchHandler(CommentHandler):
 
 
 class NotificationHandler(BaseHandler):
-    class_name = "NotificationResource"
+    filename = filename
 
     @run_on_executor()
     def get_notification(self):

@@ -4,7 +4,7 @@ import json
 
 from tornado import escape
 
-from common.utils import setup_logger, Cloudflare
+from common.utils import Cloudflare, setup_logger
 
 setup_logger()
 cf = Cloudflare()

@@ -7,6 +7,7 @@ import logging
 import pathlib
 from concurrent.futures import ThreadPoolExecutor
 from http import HTTPStatus
+from pathlib import Path
 
 from tornado import gen, web
 from tornado.concurrent import run_on_executor
@@ -14,13 +15,13 @@ from tornado.concurrent import run_on_executor
 from databases.base import Redis
 from handlers import cf
 
-index = pathlib.Path(__file__).parent.joinpath("templates", "index.html").as_posix()
-
-from pathlib import Path
+index = pathlib.Path(__file__).parent.parent.joinpath("templates", "index.html").as_posix()
+filename = Path(__file__).name.split(".")[0]
 
 
 class BaseHandler(web.RequestHandler):
     key = "user_blacklist"
+    filename = filename
 
     executor = ThreadPoolExecutor(200)
 
@@ -29,10 +30,9 @@ class BaseHandler(web.RequestHandler):
         self.json = {}
         with contextlib.suppress(ValueError):
             self.json: dict = json.loads(self.request.body)
-        filename = Path(__file__).name.split(".")[0]
         class_name = self.__class__.__name__.split("Handler")[0]
-        self.instance = importlib.import_module(f"databases.{filename}", class_name)
-
+        module = importlib.import_module(f"databases.{self.filename}")
+        self.instance = getattr(module, class_name)()
         self.r = Redis().r
 
     def prepare(self):

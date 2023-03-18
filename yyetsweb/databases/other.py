@@ -23,8 +23,6 @@ predefined_str = re.sub(r"[1l0oOI]", "", string.ascii_letters + string.digits)
 import random
 
 
-# YYeTsBot - other.py
-# 2023-03-17  19:49
 class Announcement(Mongo):
     def get_announcement(self, page: int, size: int) -> dict:
         condition = {}
