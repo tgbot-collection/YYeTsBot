@@ -4,6 +4,7 @@ import base64
 import json
 import logging
 import os
+import random
 import re
 import string
 import time
@@ -19,8 +20,6 @@ from databases.base import Mongo, Redis
 
 captcha_ex = 60 * 10
 predefined_str = re.sub(r"[1l0oOI]", "", string.ascii_letters + string.digits)
-
-import random
 
 
 class Announcement(Mongo):

@@ -12,13 +12,11 @@ import zhconv
 from tqdm import tqdm
 
 from common.utils import ts_date
-from databases.base import Mongo, Redis
+from databases.base import Mongo, Redis, SearchEngine
 from databases.comment import CommentSearch
 
 
-class Resource(Mongo):
-    redis = Redis().r
-
+class Resource(SearchEngine):
     def fansub_search(self, class_name: str, kw: str):
         class_ = globals().get(class_name)
         result = class_().search_preview(kw)
@@ -53,13 +51,13 @@ class Resource(Mongo):
     def meili_search(self, keyword: "str", search_type: "str") -> dict:
         returned = {"data": [], "comment": [], "extra": []}
         if search_type == "default":
-            yyets = self.engine.search_yyets(keyword)
-            comment = self.engine.search_comment(keyword)
+            yyets = self.search_yyets(keyword)
+            comment = self.search_comment(keyword)
             returned["data"] = yyets
             returned["comment"] = comment
             return returned
         elif search_type == "douban":
-            douban = self.engine.search_douban(keyword)
+            douban = self.search_douban(keyword)
             returned["data"] = douban
             return returned
         elif search_type == "fansub":

@@ -12,7 +12,6 @@ from tornado import gen, web
 from tornado.concurrent import run_on_executor
 
 from databases.base import Redis
-from databases.other import Captcha
 from handlers.base import BaseHandler
 
 filename = Path(__file__).name.split(".")[0]
@@ -134,7 +133,9 @@ class CategoryHandler(BaseHandler):
         self.write(resp)
 
 
-class CaptchaHandler(BaseHandler, Captcha):
+class CaptchaHandler(BaseHandler):
+    filename = filename
+
     @run_on_executor()
     def verify_captcha(self):
         data = self.json
@@ -143,7 +144,7 @@ class CaptchaHandler(BaseHandler, Captcha):
         if captcha_id is None or userinput is None:
             self.set_status(HTTPStatus.BAD_REQUEST)
             return "Please supply id or captcha parameter."
-        returned = self.verify_code(userinput, captcha_id)
+        returned = self.instance.verify_code(userinput, captcha_id)
         status_code = returned.get("status")
         if not status_code:
             self.set_status(HTTPStatus.FORBIDDEN)
@@ -156,7 +157,7 @@ class CaptchaHandler(BaseHandler, Captcha):
             self.set_status(HTTPStatus.BAD_REQUEST)
             return "Please supply id parameter."
 
-        return self.get_captcha(request_id)
+        return self.instance.get_captcha(request_id)
 
     @gen.coroutine
     def get(self):
