@@ -33,9 +33,13 @@ date_series = generate_date_series("2021-02-01", "2021-03-14")
 
 inserted = []
 for date in date_series:
-    inserted.append({"date": date,
-                     "access": random.randint(1, 50),
-                     "search": random.randint(1, 50),
-                     "resource": random.randint(1, 50)})
+    inserted.append(
+        {
+            "date": date,
+            "access": random.randint(1, 50),
+            "search": random.randint(1, 50),
+            "resource": random.randint(1, 50),
+        }
+    )
 
 col.insert_many(inserted)

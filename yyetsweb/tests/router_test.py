@@ -17,12 +17,11 @@ class YYeTsTest(AsyncHTTPTestCase):
 
 
 class TestIndex(YYeTsTest):
-
     def test_homepage(self):
-        response = self.fetch('/')
+        response = self.fetch("/")
         self.assertEqual(response.code, 200)
-        self.assertTrue(b'<!doctype html>' in response.body)
+        self.assertTrue(b"<!doctype html>" in response.body)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

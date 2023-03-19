@@ -19,49 +19,52 @@ from apscheduler.triggers.cron import CronTrigger
 from tornado import httpserver, ioloop, options, web
 from tornado.log import enable_pretty_logging
 
-from Mongo import OtherMongoResource, ResourceLatestMongoResource, SearchEngine
-from commands.douban_sync import sync_douban
-from dump_db import entry_dump
-from handler import (
-    AnnouncementHandler,
-    BlacklistHandler,
-    CaptchaHandler,
-    CategoryHandler,
+from common.dump_db import entry_dump
+from common.sync import YYSub, sync_douban
+from common.utils import setup_logger
+from databases.base import SearchEngine
+from databases.other import Other
+from handlers.base import IndexHandler, NotFoundHandler
+from handlers.comment import (
     CommentChildHandler,
     CommentHandler,
     CommentNewestHandler,
     CommentReactionHandler,
-    DBDumpHandler,
-    DoubanHandler,
-    DoubanReportHandler,
-    FacebookAuth2LoginHandler,
-    GitHubOAuth2LoginHandler,
-    GoogleOAuth2LoginHandler,
+    NotificationHandler,
+)
+from handlers.douban import DoubanHandler, DoubanReportHandler
+from handlers.grafana import (
     GrafanaIndexHandler,
     GrafanaQueryHandler,
     GrafanaSearchHandler,
-    IndexHandler,
-    LikeHandler,
     MetricsHandler,
+)
+from handlers.oauth import (
+    FacebookAuth2LoginHandler,
+    GitHubOAuth2LoginHandler,
+    GoogleOAuth2LoginHandler,
     MSOAuth2LoginHandler,
+    TwitterOAuth2LoginHandler,
+)
+from handlers.other import (
+    AnnouncementHandler,
+    BlacklistHandler,
+    CaptchaHandler,
+    CategoryHandler,
+    DBDumpHandler,
+    SpamProcessHandler,
+)
+from handlers.resources import (
     NameHandler,
-    NotFoundHandler,
-    NotificationHandler,
     ResourceHandler,
     ResourceLatestHandler,
-    SpamProcessHandler,
     TopHandler,
-    TwitterOAuth2LoginHandler,
-    UserAvatarHandler,
-    UserEmailHandler,
-    UserHandler,
 )
-from sync import YYSub
-from utils import Cloudflare, setup_logger
+from handlers.user import LikeHandler, UserAvatarHandler, UserEmailHandler, UserHandler
 
 enable_pretty_logging()
 setup_logger()
-cf = Cloudflare()
+
 if os.getenv("debug"):
     logging.getLogger().setLevel(logging.DEBUG)
 
@@ -111,10 +114,22 @@ class RunServer:
         "cookie_secret": os.getenv("cookie_secret", "eo2kcgpKwXj8Q3PKYj6nIL1J4j3b58DX"),
         "default_handler_class": NotFoundHandler,
         "login_url": "/login",
-        "google_oauth": {"key": os.getenv("GOOGLE_CLIENT_ID"), "secret": os.getenv("GOOGLE_CLIENT_SECRET")},
-        "github_oauth": {"key": os.getenv("GITHUB_CLIENT_ID"), "secret": os.getenv("GITHUB_CLIENT_SECRET")},
-        "ms_oauth": {"key": os.getenv("MS_CLIENT_ID"), "secret": os.getenv("MS_CLIENT_SECRET")},
-        "fb_oauth": {"key": os.getenv("FB_CLIENT_ID"), "secret": os.getenv("FB_CLIENT_SECRET")},
+        "google_oauth": {
+            "key": os.getenv("GOOGLE_CLIENT_ID"),
+            "secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+        },
+        "github_oauth": {
+            "key": os.getenv("GITHUB_CLIENT_ID"),
+            "secret": os.getenv("GITHUB_CLIENT_SECRET"),
+        },
+        "ms_oauth": {
+            "key": os.getenv("MS_CLIENT_ID"),
+            "secret": os.getenv("MS_CLIENT_SECRET"),
+        },
+        "fb_oauth": {
+            "key": os.getenv("FB_CLIENT_ID"),
+            "secret": os.getenv("FB_CLIENT_SECRET"),
+        },
         "twitter_consumer_key": os.getenv("TWITTER_CONSUMER_KEY"),
         "twitter_consumer_secret": os.getenv("TWITTER_CONSUMER_SECRET"),
     }
@@ -142,12 +157,10 @@ if __name__ == "__main__":
     timez = pytz.timezone("Asia/Shanghai")
     engine = SearchEngine()
     scheduler = BackgroundScheduler(timezone=timez)
-    scheduler.add_job(OtherMongoResource().reset_top, trigger=CronTrigger.from_crontab("0 0 1 * *"))
+    scheduler.add_job(Other().reset_top, trigger=CronTrigger.from_crontab("0 0 1 * *"))
     scheduler.add_job(sync_douban, trigger=CronTrigger.from_crontab("1 1 1 * *"))
     scheduler.add_job(entry_dump, trigger=CronTrigger.from_crontab("2 2 1 * *"))
-    scheduler.add_job(ResourceLatestMongoResource().refresh_latest_resource, "interval", hours=1)
-    scheduler.add_job(OtherMongoResource().import_ban_user, "interval", seconds=300)
-    scheduler.add_job(cf.clear_fw, trigger=CronTrigger.from_crontab("0 0 */5 * *"))
+    scheduler.add_job(Other().import_ban_user, "interval", seconds=300)
     scheduler.add_job(YYSub().run, trigger=CronTrigger.from_crontab("0 1 * * *"))
 
     scheduler.start()

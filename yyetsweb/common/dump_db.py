@@ -22,10 +22,10 @@ import pymysql
 import pymysql.cursors
 from tqdm import tqdm
 
-from utils import setup_logger
+from common.utils import setup_logger
 
 setup_logger()
-data_path = pathlib.Path(__file__).parent.joinpath("templates", "dump")
+data_path = pathlib.Path(__file__).parent.parent.joinpath("templates", "dump")
 data_path.mkdir(exist_ok=True)
 sqlite_file = data_path.joinpath("yyets.db")
 
@@ -47,17 +47,52 @@ def MongoDB():
 def read_resource():
     logging.info("Reading resource from mongo")
     client = MongoDB()
-    data = client["zimuzu"]["yyets"].find(projection={"_id": False})
+    data = client["zimuzu"]["yyets"].aggregate(
+        [
+            {
+                "$project": {
+                    "data.info.id": 1,
+                    "data.info.cnname": 1,
+                    "data.info.enname": 1,
+                    "data.info.aliasname": 1,
+                    "data.info.views": 1,
+                    "data.info.area": 1,
+                    "fullDocument": "$data",
+                }
+            },
+            {
+                "$replaceRoot": {
+                    "newRoot": {
+                        "$mergeObjects": [
+                            "$data.info",
+                            {"data": "$fullDocument"},
+                        ]
+                    }
+                }
+            },
+        ]
+    )
     return data
 
 
 def read_comment():
-    logging.info("Reding comment from mongo")
+    logging.info("Reading comment from mongo")
     client = MongoDB()
-    data = client["zimuzu"]["comment"].find(
-        projection={"_id": False, "username": False, "ip": False, "browser": False}
+    res = client["zimuzu"]["comment"].aggregate(
+        [
+            {
+                "$project": {
+                    "_id": 0,
+                    "content": 1,
+                    "date": 1,
+                    "resource_id": 1,
+                    "browser": "browser",
+                    "username": "username",
+                }
+            }
+        ]
     )
-    return data
+    return res
 
 
 def prepare_mysql():
@@ -72,17 +107,14 @@ def prepare_mysql():
             aliasname   varchar(256) null,
             area varchar(32),
             views int null,
-            data        longtext     null,
-            douban longtext null,
-            image blob null
+            data        longtext     null
         ) charset utf8mb4;
         """
     comment_sql = """
         create table comment
         (
-            content  longtext null,
             date     varchar(256) null,
-            id     int null,
+            content  longtext null,
             resource_id     varchar(256) null,
             browser     varchar(256) null,
             username     varchar(256) null
@@ -111,17 +143,15 @@ def prepare_sqlite():
                 aliasname   varchar(256) null,
                 area varchar(32),
                 views int null,
-                data        longtext     null,
-                douban longtext null,
-                image blob null
+                data        longtext     null
             );
             """
     comment_sql = """
             create table comment
             (
+             date     varchar(256) null,
                 content  longtext null,
-                date     varchar(256) null,
-                id     int null,
+               
                 resource_id     varchar(256) null,
                 browser     varchar(256) null,
                 username     varchar(256) null
@@ -142,22 +172,13 @@ def dump_resource():
     client = MongoDB()
     db = client["zimuzu"]
     for each in tqdm(res, total=db["yyets"].count_documents({})):
-        data = each["data"]["info"]
-        resource_id = data["id"]
-        cnname = data["cnname"]
-        enname = data["enname"]
-        aliasname = data["aliasname"]
-        views = data["views"]
-        area = data["area"]
-        data = json.dumps(each, ensure_ascii=False)
-
-        batch_data.append(
-            (resource_id, cnname, enname, aliasname, area, views, data, "", "")
-        )
+        line = list(each.values())
+        line[-1] = json.dumps(line[-1], ensure_ascii=False)
+        batch_data.append(line)
         mb.append(each)
         if len(batch_data) == CHUNK_SIZE:
-            sql1 = "insert into yyets values (%s, %s, %s, %s, %s, %s, %s, %s,%s)"
-            sql2 = "insert into yyets values (?, ?, ?, ?, ?,?,?,?,?)"
+            sql1 = "insert into yyets values (%s, %s, %s, %s, %s, %s, %s)"
+            sql2 = "insert into yyets values (?, ?, ?, ?, ?,?,?)"
             insert_func(batch_data, mb, sql1, sql2, "yyets")
             batch_data = []
             mb = []
@@ -187,18 +208,11 @@ def dump_comment():
     mb = []
     client = MongoDB()
     for each in tqdm(res, total=client["zimuzu"]["comment"].count_documents({})):
-        content = each["content"]
-        date = each["date"]
-        id = each.get("id", 0)
-        resource_id = each["resource_id"]
-        browser = "Fake Browser"
-        username = "Anonymous"
-        batch_data.append((content, date, id, resource_id, browser, username))
-        each.update(browser=browser, username=username)
+        batch_data.append(list(each.values()))
         mb.append(each)
         if len(batch_data) == CHUNK_SIZE:
-            sql1 = "insert into comment values (%s, %s, %s, %s, %s, %s)"
-            sql2 = "insert into comment values ( ?, ?, ?,?, ?,?)"
+            sql1 = "insert into comment values (%s, %s, %s, %s,%s)"
+            sql2 = "insert into comment values ( ?, ?, ?, ?,?)"
             insert_func(batch_data, mb, sql1, sql2, "comment")
             batch_data = []
             mb = []
@@ -256,4 +270,6 @@ def entry_dump():
 
 
 if __name__ == "__main__":
+    t0 = time.time()
     entry_dump()
+    logging.info("Total time used: %.2fs" % (time.time() - t0))
