@@ -13,8 +13,8 @@ import pymongo
 import requests
 from bson import ObjectId
 from captcha.image import ImageCaptcha
-from common.utils import ts_date
 
+from common.utils import ts_date
 from databases import cf
 from databases.base import Mongo, Redis
 

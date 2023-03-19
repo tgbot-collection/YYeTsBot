@@ -19,9 +19,8 @@ from apscheduler.triggers.cron import CronTrigger
 from tornado import httpserver, ioloop, options, web
 from tornado.log import enable_pretty_logging
 
-from commands.douban_sync import sync_douban
 from common.dump_db import entry_dump
-from common.sync import YYSub
+from common.sync import YYSub, sync_douban
 from common.utils import setup_logger
 from databases.base import SearchEngine
 from databases.other import Other
@@ -162,9 +161,7 @@ if __name__ == "__main__":
     scheduler.add_job(Other().reset_top, trigger=CronTrigger.from_crontab("0 0 1 * *"))
     scheduler.add_job(sync_douban, trigger=CronTrigger.from_crontab("1 1 1 * *"))
     scheduler.add_job(entry_dump, trigger=CronTrigger.from_crontab("2 2 1 * *"))
-    scheduler.add_job(ResourceLatest().refresh_latest_resource, "interval", hours=1)
     scheduler.add_job(Other().import_ban_user, "interval", seconds=300)
-    # scheduler.add_job(cf.clear_fw, trigger=CronTrigger.from_crontab("0 0 */5 * *"))
     scheduler.add_job(YYSub().run, trigger=CronTrigger.from_crontab("0 1 * * *"))
 
     scheduler.start()

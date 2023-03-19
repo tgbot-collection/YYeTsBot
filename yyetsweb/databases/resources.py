@@ -9,9 +9,9 @@ import random
 import pymongo
 import requests
 import zhconv
-from common.utils import ts_date
 from tqdm import tqdm
 
+from common.utils import ts_date
 from databases.base import Mongo, Redis, SearchEngine
 from databases.comment import CommentSearch
 

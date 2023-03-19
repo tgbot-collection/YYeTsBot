@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf-8
+import contextlib
 import logging
 import os
 import random
@@ -9,11 +10,10 @@ from copy import deepcopy
 
 import requests
 from bs4 import BeautifulSoup
+from tqdm import tqdm
+
 from databases.base import Mongo
-
-from common.utils import setup_logger
-
-setup_logger()
+from databases.douban import Douban
 
 
 class BaseSync:
@@ -231,6 +231,38 @@ class YYSub(BaseSync):
     def insert_data(self, data):
         rid = data["data"]["info"]["id"]
         self.yyets.update_one({"data.info.id": rid}, {"$set": data}, upsert=True)
+
+
+def sync_douban():
+    douban = Douban()
+    session = requests.Session()
+    ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4280.88 Safari/537.36"
+    session.headers.update({"User-Agent": ua})
+
+    yyets_data = douban.db["yyets"].aggregate(
+        [
+            {"$group": {"_id": None, "ids": {"$push": "$data.info.id"}}},
+            {"$project": {"_id": 0, "ids": 1}},
+        ]
+    )
+    douban_data = douban.db["douban"].aggregate(
+        [
+            {"$group": {"_id": None, "ids": {"$push": "$resourceId"}}},
+            {"$project": {"_id": 0, "ids": 1}},
+        ]
+    )
+
+    id1 = next(yyets_data)["ids"]
+    id2 = next(douban_data)["ids"]
+    rids = list(set(id1).difference(id2))
+    rids.remove(233)
+    logging.info("resource id complete %d", len(rids))
+    for rid in tqdm(rids):
+        with contextlib.suppress(Exception):
+            d = douban.find_douban(rid)
+            logging.info("Processed %s, length %d", rid, len(d))
+
+    logging.info("ALL FINISH!")
 
 
 if __name__ == "__main__":

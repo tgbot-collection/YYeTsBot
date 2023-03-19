@@ -2,8 +2,9 @@
 # coding: utf-8
 import json
 
-from common.utils import Cloudflare, setup_logger
 from tornado import escape
+
+from common.utils import Cloudflare, setup_logger
 
 setup_logger()
 cf = Cloudflare()

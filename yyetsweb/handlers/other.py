@@ -8,10 +8,10 @@ from hashlib import sha1
 from http import HTTPStatus
 from pathlib import Path
 
-from databases.base import Redis
 from tornado import gen, web
 from tornado.concurrent import run_on_executor
 
+from databases.base import Redis
 from handlers.base import BaseHandler
 
 filename = Path(__file__).name.split(".")[0]

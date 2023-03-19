@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf-8
 from common.utils import ts_date
-
 from databases.base import Mongo
 
 
