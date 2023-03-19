@@ -77,12 +77,7 @@ class Category(Mongo):
             query_dict[f"data.info.{key}"] = value
         logging.info("Query dict %s", query_dict)
         projection = {"_id": False, "data.list": False}
-        data = (
-            self.db["yyets"]
-            .find(query_dict, projection=projection)
-            .limit(size)
-            .skip((page - 1) * size)
-        )
+        data = self.db["yyets"].find(query_dict, projection=projection).limit(size).skip((page - 1) * size)
         count = self.db["yyets"].count_documents(query_dict)
         f = []
         for item in data:
@@ -91,9 +86,7 @@ class Category(Mongo):
                     {"resourceId": item["data"]["info"]["id"]}, projection=projection
                 )
                 if douban_data:
-                    douban_data["posterData"] = base64.b64encode(
-                        douban_data["posterData"]
-                    ).decode("u8")
+                    douban_data["posterData"] = base64.b64encode(douban_data["posterData"]).decode("u8")
                     item["data"]["info"]["douban"] = douban_data
                 else:
                     item["data"]["info"]["douban"] = {}
@@ -152,11 +145,7 @@ class Other(Mongo):
         self.db["history"].insert_one(json_data)
         # save all the views data to history
         projection = {"_id": False, "data.info.views": True, "data.info.id": True}
-        data = (
-            self.db["yyets"]
-            .find({}, projection)
-            .sort("data.info.views", pymongo.DESCENDING)
-        )
+        data = self.db["yyets"].find({}, projection).sort("data.info.views", pymongo.DESCENDING)
         result = {"date": last_month, "type": "detail"}
         for datum in data:
             rid = str(datum["data"]["info"]["id"])
@@ -167,9 +156,7 @@ class Other(Mongo):
         self.db["yyets"].update_many({}, {"$set": {"data.info.views": 0}})
 
     def import_ban_user(self):
-        usernames = self.db["users"].find(
-            {"status.disable": True}, projection={"username": True}
-        )
+        usernames = self.db["users"].find({"status.disable": True}, projection={"username": True})
         r = Redis().r
         r.delete("user_blacklist")
         logging.info("Importing ban users to redis...%s", usernames)
@@ -184,9 +171,7 @@ class Captcha(Redis):
         image = ImageCaptcha()
         data = image.generate(chars)
         self.r.set(captcha_id, chars, ex=captcha_ex)
-        return (
-            f"data:image/png;base64,{base64.b64encode(data.getvalue()).decode('ascii')}"
-        )
+        return f"data:image/png;base64,{base64.b64encode(data.getvalue()).decode('ascii')}"
 
     def verify_code(self, user_input, captcha_id) -> dict:
         correct_code = self.r.get(captcha_id)
