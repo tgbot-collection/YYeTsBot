@@ -24,7 +24,6 @@ from common.sync import YYSub, sync_douban
 from common.utils import setup_logger
 from databases.base import SearchEngine
 from databases.other import Other
-from databases.resources import ResourceLatest
 from handlers.base import IndexHandler, NotFoundHandler
 from handlers.comment import (
     CommentChildHandler,
