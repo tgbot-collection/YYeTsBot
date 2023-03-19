@@ -102,9 +102,7 @@ class Resource(SearchEngine):
         c_search = []
         for c in r.get("data", []):
             comment_rid = c["resource_id"]
-            d = self.db["yyets"].find_one(
-                {"data.info.id": comment_rid}, projection={"data.info": True}
-            )
+            d = self.db["yyets"].find_one({"data.info.id": comment_rid}, projection={"data.info": True})
             if d:
                 c_search.append(
                     {
@@ -129,9 +127,7 @@ class Resource(SearchEngine):
         return returned
 
     def search_extra(self, keyword: "str") -> list:
-        order = os.getenv(
-            "ORDER", "YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline"
-        ).split(",")
+        order = os.getenv("ORDER", "YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline").split(",")
         order.pop(0)
         extra = []
         with contextlib.suppress(requests.exceptions.RequestException):
@@ -202,7 +198,6 @@ class Resource(SearchEngine):
 
     @staticmethod
     def convert_season(number: [int, str]):
-        pass
         if number in (0, "0"):
             return "正片"
         else:
@@ -221,11 +216,7 @@ class Top(Mongo):
                 most_like[_id] = most_like.get(_id, 0) + 1
         most = sorted(most_like, key=most_like.get)
         most.reverse()
-        most_like_data = (
-            self.db["yyets"]
-            .find({"data.info.id": {"$in": most}}, self.projection)
-            .limit(15)
-        )
+        most_like_data = self.db["yyets"].find({"data.info.id": {"$in": most}}, self.projection).limit(15)
         return list(most_like_data)
 
     def get_top_resource(self) -> dict:
@@ -283,9 +274,7 @@ class ResourceLatest(Mongo):
                             "date": ts_date(int(ts)),
                         }
 
-        sorted_res: list = sorted(
-            episode_data.items(), key=lambda x: x[1]["timestamp"], reverse=True
-        )
+        sorted_res: list = sorted(episode_data.items(), key=lambda x: x[1]["timestamp"], reverse=True)
         limited_res = dict(sorted_res[:100])
         ok = []
         for k, v in limited_res.items():

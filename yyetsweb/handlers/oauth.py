@@ -28,9 +28,7 @@ class OAuth2Handler(BaseHandler, OAuth2Mixin):
             self.set_secure_cookie("username", username, 365)
         self.redirect("/login?" + urlencode(result))
 
-    def get_authenticated_user(
-        self, client_id: str, client_secret: str, code: str, extra_fields: dict = None
-    ):
+    def get_authenticated_user(self, client_id: str, client_secret: str, code: str, extra_fields: dict = None):
         args = {"code": code, "client_id": client_id, "client_secret": client_secret}
         if extra_fields:
             args.update(extra_fields)
@@ -79,12 +77,8 @@ class GitHubOAuth2LoginHandler(OAuth2Handler):
 
 
 class MSOAuth2LoginHandler(OAuth2Handler):
-    _OAUTH_AUTHORIZE_URL = (
-        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
-    )
-    _OAUTH_ACCESS_TOKEN_URL = (
-        "https://login.microsoftonline.com/common/oauth2/v2.0/token"
-    )
+    _OAUTH_AUTHORIZE_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+    _OAUTH_ACCESS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
     _OAUTH_API_REQUEST_URL = "https://graph.microsoft.com/v1.0/me"
 
     def get(self):
@@ -116,9 +110,7 @@ class GoogleOAuth2LoginHandler(GoogleOAuth2Mixin, OAuth2Handler):
         redirect_uri = os.getenv("DOMAIN") + self.request.path
         code = self.get_argument("code", None)
         if code:
-            access = await self.get_authenticated_user(
-                redirect_uri=redirect_uri, code=code
-            )
+            access = await self.get_authenticated_user(redirect_uri=redirect_uri, code=code)
             user = await self.oauth2_request(
                 "https://www.googleapis.com/oauth2/v1/userinfo",
                 access_token=access["access_token"],
@@ -156,12 +148,8 @@ class FacebookAuth2LoginHandler(OAuth2Handler):
         client_id, client_secret, redirect_uri = self.get_secret("fb_oauth")
         code = self.get_argument("code", None)
         if code:
-            access = self.get_authenticated_user(
-                client_id, client_secret, code, {"redirect_uri": redirect_uri}
-            )
-            resp = self.oauth2_sync_request(
-                access["access_token"], {"fields": "name,id"}
-            )
+            access = self.get_authenticated_user(client_id, client_secret, code, {"redirect_uri": redirect_uri})
+            resp = self.oauth2_sync_request(access["access_token"], {"fields": "name,id"})
             # Facebook doesn't allow to get email except for business accounts
             uid = resp["id"]
             email = "{}_{}".format(resp["name"], uid)

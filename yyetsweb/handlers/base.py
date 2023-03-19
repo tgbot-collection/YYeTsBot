@@ -15,9 +15,7 @@ from tornado.concurrent import run_on_executor
 from databases.base import Redis
 from handlers import cf
 
-index = (
-    pathlib.Path(__file__).parent.parent.joinpath("templates", "index.html").as_posix()
-)
+index = pathlib.Path(__file__).parent.parent.joinpath("templates", "index.html").as_posix()
 filename = Path(__file__).name.split(".")[0]
 
 
@@ -35,7 +33,7 @@ class BaseHandler(web.RequestHandler):
         class_name = self.__class__.__name__.split("Handler")[0]
         module = importlib.import_module(f"databases.{self.filename}")
 
-        self.instance = getattr(module, class_name)()
+        self.instance = getattr(module, class_name, lambda: 1)()
         self.r = Redis().r
 
     def prepare(self):

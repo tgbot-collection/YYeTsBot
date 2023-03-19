@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 import logging
+import mmap
 import os
 from http import HTTPStatus
 from pathlib import Path
@@ -32,16 +33,26 @@ class ResourceHandler(BaseHandler):
 
         return data
 
+    def make_some_fun(self):
+        referer = self.request.headers.get("referer")
+        if not referer and os.getenv("GIFT"):
+            ip = self.get_real_ip()
+            logging.warning("Good luck to %s!", ip)
+            cf.ban_new_ip(ip)
+            self.set_header("Content-Type", "text/html")
+            self.set_header("Content-Encoding", "gzip")
+            with open("templates/gift.gzip", "rb") as f:
+                mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
+                return mm.read()
+
     @run_on_executor()
     def search_resource(self):
-        referer = self.request.headers.get("referer")
-        if not referer:
-            cf.ban_new_ip(self.get_real_ip())
+        if gift := self.make_some_fun():
+            return gift
+
         kw = self.get_query_argument("keyword").lower()
         search_type = self.get_query_argument("type", "default")
-        self.set_header(
-            "search-engine", "Meilisearch" if os.getenv("MEILISEARCH") else "MongoDB"
-        )
+        self.set_header("search-engine", "Meilisearch" if os.getenv("MEILISEARCH") else "MongoDB")
         return self.instance.search_resource(kw, search_type)
 
     @gen.coroutine

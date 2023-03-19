@@ -34,23 +34,3 @@ class OAuthRegister(Mongo):
                 "message": "第三方登录成功，即将跳转首页",
                 "username": username,
             }
-
-
-class GitHubOAuth2Login(OAuthRegister):
-    pass
-
-
-class GoogleOAuth2Login(OAuthRegister):
-    pass
-
-
-class TwitterOAuth2Login(OAuthRegister):
-    pass
-
-
-class MSOAuth2Login(OAuthRegister):
-    pass
-
-
-class FacebookAuth2Login(OAuthRegister):
-    pass

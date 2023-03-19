@@ -28,9 +28,7 @@ class Mongo:
         self.client.close()
 
     def is_admin(self, username: str) -> bool:
-        data = self.db["users"].find_one(
-            {"username": username, "group": {"$in": ["admin"]}}
-        )
+        data = self.db["users"].find_one({"username": username, "group": {"$in": ["admin"]}})
         if data:
             return True
 
@@ -46,9 +44,7 @@ class Mongo:
 class Redis:
     def __init__(self):
         try:
-            self.r = redis.StrictRedis(
-                host=os.getenv("REDIS", "localhost"), decode_responses=True
-            )
+            self.r = redis.StrictRedis(host=os.getenv("REDIS", "localhost"), decode_responses=True)
             self.r.ping()
         except redis.exceptions.ConnectionError:
             logging.warning("%s Using fakeredis now... %s", "#" * 10, "#" * 10)
@@ -223,9 +219,7 @@ class SearchEngine(Mongo):
 
     def monitor_yyets(self):
         def get_data(_id) -> list:
-            data = self.db.yyets.find_one(
-                {"_id": _id}, projection=self.yyets_projection
-            )["data"]["info"]
+            data = self.db.yyets.find_one({"_id": _id}, projection=self.yyets_projection)["data"]["info"]
             data["_id"] = str(_id)
             data["origin"] = "yyets"
             return [data]
@@ -257,15 +251,3 @@ class SearchEngine(Mongo):
             return list(data)
 
         self.__monitor("comment", get_data)
-
-
-class DBDump:
-    pass
-
-
-class Index:
-    pass
-
-
-class NotFound:
-    pass
