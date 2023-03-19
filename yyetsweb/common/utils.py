@@ -96,35 +96,31 @@ def check_spam(ip, ua, author, content) -> int:
 
 class Cloudflare:
     def __init__(self):
-        self.zone_id = "b8e2d2fa75c6f7dc3c2e478e27f3061b"
-        self.filter_id = "9e1e9139bcbe400c8b2620ac117a77d8"
-        self.endpoint = f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/filters/{self.filter_id}"
+        self.account_id = "e8d3ba82fe9e9a41cceb0047c2a2ab4f"
+        self.item_id = "3740654e0b104053b3e5d0a71fe87b33"
+        self.endpoint = "https://api.cloudflare.com/client/v4/accounts/{}/rules/lists/{}/items".format(
+            self.account_id, self.item_id
+        )
         self.session = requests.Session()
         self.session.headers.update({"Authorization": "Bearer %s" % os.getenv("CF_TOKEN")})
 
-    def get_old_expr(self):
-        return self.session.get(self.endpoint).json()["result"]["expression"]
+    def get_old_ips(self) -> list:
+        data = self.session.get(self.endpoint).json()["result"]
+        result = [i["ip"] for i in data if data]
+        return result or []
 
     def ban_new_ip(self, ip):
         logging.warning("Adding %s to cloudflare managed challenge list", ip)
-        expr = self.get_old_expr()
-        if ip not in expr:
-            body = {
-                "id": self.filter_id,
-                "paused": False,
-                "expression": f"{expr} or (ip.src eq {ip})",
-            }
+        with contextlib.suppress(Exception):
+            old_ips = self.get_old_ips()
+            old_ips.append(ip)
+            body = [{"ip": i} for i in set(old_ips)]
             resp = self.session.put(self.endpoint, json=body)
             logging.info(resp.json())
 
     def clear_fw(self):
         logging.info("Clearing firewall rules")
-        body = {
-            "id": self.filter_id,
-            "paused": False,
-            "expression": "(ip.src eq 192.168.2.1)",
-        }
-        self.session.put(self.endpoint, json=body)
+        self.session.put(self.endpoint, json=[{"ip": "192.168.3.1"}])
 
 
 if __name__ == "__main__":

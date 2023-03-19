@@ -104,7 +104,8 @@ class RunServer:
         (r"/auth/microsoft", MSOAuth2LoginHandler),
         (r"/auth/facebook", FacebookAuth2LoginHandler),
         (
-            r"/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|" r".*\.svg|.*\.json|.*\.txt)",
+            r"/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|"
+            r".*\.svg|.*\.json|.*\.txt)",
             web.StaticFileHandler,
             {"path": static_path},
         ),
@@ -159,7 +160,7 @@ if __name__ == "__main__":
     scheduler.add_job(sync_douban, trigger=CronTrigger.from_crontab("1 1 1 * *"))
     scheduler.add_job(entry_dump, trigger=CronTrigger.from_crontab("2 2 1 * *"))
     scheduler.add_job(Other().import_ban_user, "interval", seconds=300)
-    scheduler.add_job(Cloudflare().clear_fw, "interval", seconds=7200)
+    scheduler.add_job(Cloudflare().clear_fw, trigger=CronTrigger.from_crontab("0 0 * * *"))
     scheduler.add_job(YYSub().run, trigger=CronTrigger.from_crontab("0 1 * * *"))
 
     scheduler.start()
