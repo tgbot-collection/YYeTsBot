@@ -8,8 +8,8 @@ from pathlib import Path
 from tornado import gen
 from tornado.concurrent import run_on_executor
 
-from handlers.base import BaseHandler
 from handlers import cf
+from handlers.base import BaseHandler
 
 filename = Path(__file__).name.split(".")[0]
 
@@ -39,7 +39,9 @@ class ResourceHandler(BaseHandler):
             cf.ban_new_ip(self.get_real_ip())
         kw = self.get_query_argument("keyword").lower()
         search_type = self.get_query_argument("type", "default")
-        self.set_header("search-engine", "Meilisearch" if os.getenv("MEILISEARCH") else "MongoDB")
+        self.set_header(
+            "search-engine", "Meilisearch" if os.getenv("MEILISEARCH") else "MongoDB"
+        )
         return self.instance.search_resource(kw, search_type)
 
     @gen.coroutine
