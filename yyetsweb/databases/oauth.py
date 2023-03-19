@@ -5,7 +5,7 @@ from common.utils import ts_date
 from databases.base import Mongo
 
 
-class OAuthRegisterResource(Mongo):
+class OAuthRegister(Mongo):
     def add_user(self, username, ip, browser, uid, source: "str"):
         uid = str(uid)
         # username = "Benny"
@@ -35,3 +35,23 @@ class OAuthRegisterResource(Mongo):
                 "message": "第三方登录成功，即将跳转首页",
                 "username": username,
             }
+
+
+class GitHubOAuth2Login(OAuthRegister):
+    pass
+
+
+class GoogleOAuth2Login(OAuthRegister):
+    pass
+
+
+class TwitterOAuth2Login(OAuthRegister):
+    pass
+
+
+class MSOAuth2Login(OAuthRegister):
+    pass
+
+
+class FacebookAuth2Login(OAuthRegister):
+    pass
