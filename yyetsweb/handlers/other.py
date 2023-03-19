@@ -11,6 +11,7 @@ from pathlib import Path
 from tornado import gen, web
 from tornado.concurrent import run_on_executor
 
+from common.utils import ts_date
 from databases.base import Redis
 from handlers.base import BaseHandler
 
@@ -64,22 +65,6 @@ class DBDumpHandler(BaseHandler):
         return "%.1f%s%s" % (num, "Yi", suffix)
 
     @staticmethod
-    def ts_date(ts):
-        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts))
-
-    def file_info(self, file_path) -> dict:
-        result = {}
-        for fp in file_path:
-            try:
-                checksum = self.checksum(fp)
-                creation = self.ts_date(os.stat(fp).st_ctime)
-                size = self.sizeof_fmt(os.stat(fp).st_size)
-                result[fp] = [checksum, creation, size]
-            except Exception as e:
-                result[fp] = str(e), "", ""
-        return result
-
-    @staticmethod
     def checksum(file_path) -> str:
         sha = sha1()
         try:
@@ -100,14 +85,16 @@ class DBDumpHandler(BaseHandler):
             "templates/dump/yyets_sqlite.zip",
         ]
         result = {}
-        data = self.file_info(file_list)
-        for file, value in data.items():
-            filename = pathlib.Path(file).name
-            result[filename] = {
-                "checksum": value[0],
-                "date": value[1],
-                "size": value[2],
+        for fp in file_list:
+            checksum = self.checksum(fp)
+            creation = ts_date(os.stat(fp).st_ctime)
+            size = self.sizeof_fmt(os.stat(fp).st_size)
+            result[Path(fp).name] = {
+                "checksum": checksum,
+                "date": creation,
+                "size": size,
             }
+
         return result
 
     @gen.coroutine

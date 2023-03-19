@@ -34,11 +34,9 @@ def setup_logger():
 
 
 def ts_date(ts=None):
-    # all the time save in db should be CST
+    # Let's always set the timezone to CST
     timestamp = ts or time.time()
-    return datetime.fromtimestamp(timestamp, pytz.timezone("Asia/Shanghai")).strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
+    return datetime.fromtimestamp(timestamp, pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def _format_addr(s):
@@ -47,9 +45,7 @@ def _format_addr(s):
 
 
 def generate_body(context):
-    template = pathlib.Path(__file__).parent.parent.joinpath(
-        "templates", "email_template.html"
-    )
+    template = pathlib.Path(__file__).parent.parent.joinpath("templates", "email_template.html")
     with open(template) as f:
         return Template(f.read()).render(**context)
 
@@ -104,9 +100,7 @@ class Cloudflare:
         self.filter_id = "9e1e9139bcbe400c8b2620ac117a77d8"
         self.endpoint = f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/filters/{self.filter_id}"
         self.session = requests.Session()
-        self.session.headers.update(
-            {"Authorization": "Bearer %s" % os.getenv("CF_TOKEN")}
-        )
+        self.session.headers.update({"Authorization": "Bearer %s" % os.getenv("CF_TOKEN")})
 
     def get_old_expr(self):
         return self.session.get(self.endpoint).json()["result"]["expression"]
@@ -134,6 +128,4 @@ class Cloudflare:
 
 
 if __name__ == "__main__":
-    send_mail(
-        "benny.think@gmail.com", "主题", {"username": "test123", "text": "测试内容<b>不错</b>"}
-    )
+    send_mail("benny.think@gmail.com", "主题", {"username": "test123", "text": "测试内容<b>不错</b>"})
