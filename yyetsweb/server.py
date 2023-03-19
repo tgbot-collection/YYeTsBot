@@ -11,8 +11,8 @@ import logging
 import os
 import pathlib
 import threading
+from zoneinfo import ZoneInfo
 
-import pytz
 import tornado.autoreload
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -154,8 +154,7 @@ class RunServer:
 
 
 if __name__ == "__main__":
-    timez = pytz.timezone("Asia/Shanghai")
-    engine = SearchEngine()
+    timez = ZoneInfo("Asia/Shanghai")
     scheduler = BackgroundScheduler(timezone=timez)
     scheduler.add_job(Other().reset_top, trigger=CronTrigger.from_crontab("0 0 1 * *"))
     scheduler.add_job(sync_douban, trigger=CronTrigger.from_crontab("1 1 1 * *"))
@@ -170,6 +169,7 @@ if __name__ == "__main__":
     # meilisearch tasks
     if os.getenv("MEILISEARCH"):
         logging.info("%s Searching with Meilisearch. %s", "#" * 10, "#" * 10)
+        engine = SearchEngine()
         threading.Thread(target=engine.run_import).start()
         threading.Thread(target=engine.monitor_yyets).start()
         threading.Thread(target=engine.monitor_douban).start()
