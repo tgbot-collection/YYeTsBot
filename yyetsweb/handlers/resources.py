@@ -37,7 +37,10 @@ class ResourceHandler(BaseHandler):
         if not referer and os.getenv("GIFT"):
             ip = self.get_real_ip()
             logging.warning("Good luck to %s!", ip)
-            cf.ban_new_ip(ip)
+            try:
+                cf.ban_new_ip(ip)
+            except Exception as e:
+                logging.error("Failed to ban %s: %s", ip, e)
             self.set_header("Content-Type", "text/html")
             self.set_header("Content-Encoding", "gzip")
             with open("templates/gift.gz", "rb") as f:
