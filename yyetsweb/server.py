@@ -21,7 +21,7 @@ from tornado.log import enable_pretty_logging
 
 from common.dump_db import entry_dump
 from common.sync import YYSub, sync_douban
-from common.utils import setup_logger, Cloudflare
+from common.utils import Cloudflare, setup_logger
 from databases.base import SearchEngine
 from databases.other import Other
 from handlers.base import IndexHandler, NotFoundHandler

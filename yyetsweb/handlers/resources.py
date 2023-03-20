@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf-8
 import logging
-import mmap
 import os
 from http import HTTPStatus
 from pathlib import Path
@@ -41,9 +40,8 @@ class ResourceHandler(BaseHandler):
             cf.ban_new_ip(ip)
             self.set_header("Content-Type", "text/html")
             self.set_header("Content-Encoding", "gzip")
-            with open("templates/gift.gzip", "rb") as f:
-                mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
-                return mm.read()
+            with open("templates/gift.gz", "rb") as f:
+                return f.read()
 
     @run_on_executor()
     def search_resource(self):
