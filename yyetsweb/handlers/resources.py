@@ -36,10 +36,7 @@ class ResourceHandler(BaseHandler):
         referer = self.request.headers.get("referer")
         ip = self.get_real_ip()
         if not referer:
-            try:
-                cf.ban_new_ip(ip)
-            except Exception as e:
-                logging.error("Failed to ban %s: %s", ip, e)
+            cf.ban_new_ip(ip)
             if os.getenv("GIFT"):
                 self.set_header("Content-Type", "text/html")
                 self.set_header("Content-Encoding", "gzip")

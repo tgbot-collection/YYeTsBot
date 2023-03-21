@@ -99,6 +99,7 @@ def check_spam(ip, ua, author, content) -> int:
 
 class Cloudflare(Redis):
     key = "cf-blacklist-ip"
+    expire = "cf-expire"
 
     def __init__(self):
         self.account_id = "e8d3ba82fe9e9a41cceb0047c2a2ab4f"
@@ -135,9 +136,10 @@ class Cloudflare(Redis):
         old_ips.append(ip)
         body = [{"ip": i} for i in set(old_ips)]
         self.r.set(self.key, json.dumps(body))
-        logging.warning("Adding %s to cloudflare managed challenge list", ip)
-        resp = self.session.put(self.endpoint, json=body)
-        logging.info(resp.json())
+        if not self.r.exists(self.expire):
+            resp = self.session.put(self.endpoint, json=body)
+            logging.info(resp.json())
+            self.r.set(self.expire, 1, ex=60)
 
     def clear_fw(self):
         logging.info("Clearing firewall rules")
