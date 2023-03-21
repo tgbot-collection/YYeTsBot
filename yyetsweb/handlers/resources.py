@@ -34,17 +34,17 @@ class ResourceHandler(BaseHandler):
 
     def make_some_fun(self):
         referer = self.request.headers.get("referer")
-        if not referer and os.getenv("GIFT"):
-            ip = self.get_real_ip()
-            logging.warning("Good luck to %s!", ip)
+        ip = self.get_real_ip()
+        if not referer:
             try:
                 cf.ban_new_ip(ip)
             except Exception as e:
                 logging.error("Failed to ban %s: %s", ip, e)
-            self.set_header("Content-Type", "text/html")
-            self.set_header("Content-Encoding", "gzip")
-            with open("templates/gift.gz", "rb") as f:
-                return f.read()
+            if os.getenv("GIFT"):
+                self.set_header("Content-Type", "text/html")
+                self.set_header("Content-Encoding", "gzip")
+                with open("templates/gift.gz", "rb") as f:
+                    return f.read()
 
     @run_on_executor()
     def search_resource(self):

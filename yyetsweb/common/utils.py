@@ -129,6 +129,8 @@ class Cloudflare(Redis):
             return result
 
     def ban_new_ip(self, ip):
+        if ":" in ip:
+            ip = ip.rsplit(":", 4)[0] + "::/64"
         old_ips = [d["ip"] for d in self.get_old_ips()]
         old_ips.append(ip)
         body = [{"ip": i} for i in set(old_ips)]
