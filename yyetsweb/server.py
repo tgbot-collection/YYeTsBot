@@ -160,7 +160,7 @@ if __name__ == "__main__":
     scheduler.add_job(sync_douban, trigger=CronTrigger.from_crontab("1 1 1 * *"))
     scheduler.add_job(entry_dump, trigger=CronTrigger.from_crontab("2 2 1 * *"))
     scheduler.add_job(Other().import_ban_user, "interval", seconds=300)
-    scheduler.add_job(Cloudflare().clear_fw, trigger=CronTrigger.from_crontab("0 0 * * 1"))
+    scheduler.add_job(Cloudflare().clear_fw, trigger=CronTrigger.from_crontab("0 0 */3 * *"))
     scheduler.add_job(YYSub().run, trigger=CronTrigger.from_crontab("0 1 * * *"))
 
     scheduler.start()

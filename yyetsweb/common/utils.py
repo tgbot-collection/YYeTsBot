@@ -139,7 +139,7 @@ class Cloudflare(Redis):
         if not self.r.exists(self.expire):
             resp = self.session.put(self.endpoint, json=body)
             logging.info(resp.json())
-            self.r.set(self.expire, 1, ex=60)
+            self.r.set(self.expire, 1, ex=120)
 
     def clear_fw(self):
         logging.info("Clearing firewall rules")
