@@ -112,3 +112,14 @@ class NameHandler(BaseHandler):
     def get(self):
         resp = yield self.get_names()
         self.write(resp)
+
+
+class AdsenseStatusHandler(BaseHandler):
+    @run_on_executor()
+    def get_adsense_status(self):
+        return {"data": os.getenv("HIDE_ADSENSE", "").split(",")}
+
+    @gen.coroutine
+    def get(self):
+        resp = yield self.get_adsense_status()
+        self.write(resp)

@@ -58,6 +58,7 @@ from handlers.resources import (
     NameHandler,
     ResourceHandler,
     ResourceLatestHandler,
+    AdsenseStatusHandler,
     TopHandler,
 )
 from handlers.user import LikeHandler, UserAvatarHandler, UserEmailHandler, UserHandler
@@ -81,6 +82,7 @@ class RunServer:
         (r"/api/user/avatar/?(.*)", UserAvatarHandler),
         (r"/api/user/email", UserEmailHandler),
         (r"/api/name", NameHandler),
+        (r"/api/adsense", AdsenseStatusHandler),
         (r"/api/comment", CommentHandler),
         (r"/api/comment/reaction", CommentReactionHandler),
         (r"/api/comment/child", CommentChildHandler),
