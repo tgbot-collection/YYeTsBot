@@ -81,7 +81,12 @@ universal:
 	file $(WEB)/builds/yyetsweb-darwin-universal
 
 release:
-	git tag $(shell git rev-parse --short HEAD)
+	git tag golang-$(shell git rev-parse --short HEAD)
+	git tag tauri-$(shell git rev-parse --short HEAD)
+	git push --tags
+
+tauri:
+	git tag tauri-$(shell git rev-parse --short HEAD)
 	git push --tags
 
 ci-test:

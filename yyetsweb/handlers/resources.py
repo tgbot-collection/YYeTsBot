@@ -35,7 +35,7 @@ class ResourceHandler(BaseHandler):
     def make_some_fun(self):
         referer = self.request.headers.get("referer")
         ip = self.get_real_ip()
-        if not referer:
+        if not referer and self.request.headers.get("origin") != "tauri://localhost":
             cf.ban_new_ip(ip)
             if os.getenv("GIFT"):
                 self.set_header("Content-Type", "text/html")

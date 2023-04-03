@@ -37,6 +37,7 @@ class BaseHandler(web.RequestHandler):
         self.r = Redis().r
 
     def prepare(self):
+        self.set_header("Access-Control-Allow-Origin", "tauri://localhost")
         if self.check_request():
             self.set_status(HTTPStatus.FORBIDDEN)
             self.finish()
