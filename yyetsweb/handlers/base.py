@@ -36,7 +36,14 @@ class BaseHandler(web.RequestHandler):
         self.instance = getattr(module, class_name, lambda: 1)()
         self.r = Redis().r
 
+    def add_tauri(self):
+        origin = self.request.headers.get("origin", "")
+        allow_origins = ["tauri://localhost", "https://tauri.localhost"]
+        if origin in allow_origins:
+            self.set_header("Access-Control-Allow-Origin", origin)
+
     def prepare(self):
+        self.add_tauri()
         if self.check_request():
             self.set_status(HTTPStatus.FORBIDDEN)
             self.finish()

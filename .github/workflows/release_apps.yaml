@@ -1,0 +1,112 @@
+name: Publish Executable Application
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  publish-tauri-apps:
+    name: Publish Tauri Apps
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ macos-latest, ubuntu-22.04, windows-latest ]
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Install nodejs
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: install dependencies (macos only)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          rustup target add aarch64-apple-darwin
+
+      - name: Run tauri hooks
+        env:
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          REACT_APP_SENTRY_DSN: ${{ secrets.REACT_APP_SENTRY_DSN }}
+          REACT_APP_DOMAIN: ${{ secrets.REACT_APP_DOMAIN }}
+          REACT_APP_GA: ${{ secrets.REACT_APP_GA }}
+          GENERATE_SOURCEMAP: ${{ secrets.GENERATE_SOURCEMAP }}
+        run: |
+          bash scripts/pre_build.sh
+          echo "REACT_APP_TAURI=https://yyets.dmesg.app" >> YYeTsFE/.env
+
+      - name: Install yarn
+        run: |
+          npm install -g yarn
+          cd YYeTsFE
+          yarn --network-timeout 1000000
+          cd ${{ env.GITHUB_WORKSPACE }}
+
+      - name: Setup macos universal binary env
+        if: matrix.platform == 'macos-latest'
+        run: echo "BUILD_ARGS=--target universal-apple-darwin" >> $GITHUB_ENV
+
+      - uses: tauri-apps/tauri-action@e537a6f7bc75cbe74c6668f28a9836bd8d0eac36
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: yyetsbot-app-v__VERSION__
+          releaseName: 'YYeTsBot App v__VERSION__'
+          releaseDraft: false
+          prerelease: false
+          projectPath: "YYeTsFE"
+          includeDebug: false
+          args: ${{ env.BUILD_ARGS }}
+
+
+  publish-golang-apps:
+    name: Publish Golang Apps
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Install nodejs
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Build Golang binary
+        run: |
+          npm install -g yarn
+          make all
+          ls yyetsweb/builds/
+
+      - name: Upload Golang files
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "YYeTsBot 离线一键运行包"
+          files: yyetsweb/builds/*

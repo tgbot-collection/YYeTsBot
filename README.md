@@ -78,19 +78,28 @@ yyets_offline - 人人影视离线数据
 # 小白使用
 
 想要自己留一份资源，但是又不懂编程？ 没关系！目前提供两种方式，请根据自己情况选择
+“离线使用” 意味着可以断网使用，但是不会自动更新资源，需要手动更新数据库；“在线应用” 意味着需要有互联网才可以使用。
 
-## 一键安装包
+## 离线  完整运行包
 
-这个版本是新的UI，拥有全部的最新功能。
+这个版本是新的UI，拥有全部的最新功能。运行在你本地的电脑上，不依赖外界环境。
 [参考文档](https://github.com/tgbot-collection/YYeTsBot/blob/master/DEVELOPMENT.md#%E4%B8%80%E9%94%AE%E8%84%9A%E6%9C%AC)
 
-## 一键运行包
+## 离线  一键运行包
 
-这个版本使用起来也很简单，也同样是最新的UI，只不过只有最基础的搜索功能。步骤如下
+一键运行包。拥有比较新的UI，只不过只有最基础的搜索、查看资源的功能。使用方法步骤如下
 
-1. 请到 [GitHub Release](https://github.com/tgbot-collection/YYeTsBot/releases) 根据自己平台下载最新的一键运行包
+1. 请到 [GitHub Release](https://github.com/tgbot-collection/YYeTsBot/releases) ，找最新的 `YYeTsBot 离线一键运行包`
 2. windows：双击第一步下载的exe文件； macos/Linux，cd到你的目录, `chmod +x yyetsweb ; ./yyetsweb`
-3. 程序会自动下载数据库并启动。等到出现启动banner时， 打开浏览器 http://127.0.0.1:8888 就可以看到熟悉的搜索界面啦！
+3. 程序会自动下载数据库并启动。等到出现启动提示时， 打开浏览器 http://127.0.0.1:8888 就可以看到熟悉的搜索界面啦！
+
+## 在线 原生应用程序
+
+使用tauri封装的网页。内容等同于 `https://yyets.dmesg.app`，只不过是原生的App。使用方法如下
+
+1. 请到 [GitHub Release](https://github.com/tgbot-collection/YYeTsBot/releases) ，找最新的 `YYeTsBot App`
+2. windows下载msi，macos下载dmg或tar.gz，Linux下载AppImage或deb（Debian based）
+3. 安装后，打开App，就可以看到熟悉的搜索界面啦！
 
 # 开发
 

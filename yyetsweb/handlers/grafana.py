@@ -52,6 +52,13 @@ class MetricsHandler(BaseHandler):
         resp = yield self.set_metrics()
         self.write(resp)
 
+    @gen.coroutine
+    def options(self):
+        self.add_tauri()
+        self.set_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+        self.set_status(HTTPStatus.NO_CONTENT)
+        self.finish()
+
 
 class GrafanaIndexHandler(BaseHandler):
     filename = filename

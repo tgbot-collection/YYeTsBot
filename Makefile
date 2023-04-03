@@ -84,6 +84,7 @@ release:
 	git tag $(shell git rev-parse --short HEAD)
 	git push --tags
 
+
 ci-test:
 	docker run --rm bennythink/yyetsbot /bin/sh -c "cd /YYeTsBot/yyetsweb/tests;python -m unittest discover -p '*_test.py'"
 
