@@ -144,6 +144,8 @@ class Cloudflare(Redis):
     def clear_fw(self):
         logging.info("Clearing firewall rules")
         self.session.put(self.endpoint, json=[{"ip": "192.168.3.1"}])
+        logging.info("Clearing cache from redis")
+        self.r.delete(self.key)
 
 
 if __name__ == "__main__":

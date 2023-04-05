@@ -107,7 +107,9 @@ def prepare_mysql():
             aliasname   varchar(256) null,
             area varchar(32),
             views int null,
-            data        longtext     null
+            data        longtext     null,
+            douban longtext null,
+            image blob null
         ) charset utf8mb4;
         """
     comment_sql = """
@@ -143,7 +145,9 @@ def prepare_sqlite():
                 aliasname   varchar(256) null,
                 area varchar(32),
                 views int null,
-                data        longtext     null
+                data        longtext     null,
+                douban longtext null,
+                image blob null
             );
             """
     comment_sql = """
@@ -174,11 +178,12 @@ def dump_resource():
     for each in tqdm(res, total=db["yyets"].count_documents({})):
         line = list(each.values())
         line[-1] = json.dumps(line[-1], ensure_ascii=False)
+        line.extend(["", ""])
         batch_data.append(line)
         mb.append(each)
         if len(batch_data) == CHUNK_SIZE:
-            sql1 = "insert into yyets values (%s, %s, %s, %s, %s, %s, %s)"
-            sql2 = "insert into yyets values (?, ?, ?, ?, ?,?,?)"
+            sql1 = "insert into yyets values (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            sql2 = "insert into yyets values (?, ?, ?, ?, ?,?,?,?,?)"
             insert_func(batch_data, mb, sql1, sql2, "yyets")
             batch_data = []
             mb = []
@@ -225,9 +230,7 @@ def zip_file():
         zf.write(sqlite_file, "yyets_sqlite.db")
 
     logging.info("Dumping MySQL...")
-    subprocess.check_output(
-        "mysqldump -h mysql -u root -proot zimuzu > zimuzu.sql", shell=True
-    )
+    subprocess.check_output("mysqldump -h mysql -u root -proot zimuzu > zimuzu.sql", shell=True)
     p = data_path.joinpath("yyets_mysql.zip")
     logging.info("Zipping MySQL...")
     with zipfile.ZipFile(p, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -235,8 +238,7 @@ def zip_file():
 
     logging.info("Dumping MongoDB")
     subprocess.check_output(
-        "mongodump -h mongo -d share --gzip --archive="
-        + data_path.joinpath("yyets_mongo.gz").as_posix(),
+        "mongodump -h mongo -d share --gzip --archive=" + data_path.joinpath("yyets_mongo.gz").as_posix(),
         shell=True,
     )
 

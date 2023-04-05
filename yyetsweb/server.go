@@ -102,8 +102,9 @@ func resource(c *gin.Context) {
 	var data map[string]interface{}
 	json.Unmarshal([]byte(result), &data)
 
-	c.JSON(200, data)
-
+	c.JSON(200, gin.H{
+		"data": data,
+	})
 }
 
 func entrance(c *gin.Context) {
@@ -168,6 +169,7 @@ func douban(c *gin.Context) {
 		c.Writer.Header().Add("content-type", "image/jpeg")
 		_, _ = c.Writer.Write(doubanPoster)
 	} else {
+		c.Writer.Header().Add("content-type", "application/json")
 		c.String(http.StatusOK, doubanInfo)
 	}
 
