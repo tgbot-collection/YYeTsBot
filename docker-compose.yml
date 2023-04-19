@@ -28,7 +28,7 @@ services:
 
   mysql:
     image: ubuntu/mysql:8.0-22.04_beta
-    restart: on-failure
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: 'root'
     logging:
@@ -37,7 +37,7 @@ services:
 
   socat:
     image: bennythink/socat
-    restart: always
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     entrypoint: [ "socat", "tcp-listen:2375,fork,reuseaddr","unix-connect:/var/run/docker.sock" ]
