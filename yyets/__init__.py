@@ -14,13 +14,12 @@ API = "https://yyets.dmesg.app/api/resource?"
 
 logging.basicConfig(
     level=logging.INFO,
-    format='[%(asctime)s %(filename)s:%(lineno)d %(levelname).1s] %(message)s',
-    datefmt="%Y-%m-%d %H:%M:%S"
+    format="[%(asctime)s %(filename)s:%(lineno)d %(levelname).1s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 
 class Resource:
-
     def __init__(self):
         self.enname = None
         self.cnname = None
@@ -39,9 +38,8 @@ class YYeTs:
 
     def search(self):
         data = requests.get(self.search_api).json()
-        for item in data["data"]:
+        for info in data["data"]:
             r = Resource()
-            info = item["data"]["info"]
             setattr(r, "list", self.fetch(info))
             for k, v in info.items():
                 setattr(r, k, v)
@@ -58,7 +56,7 @@ class YYeTs:
         return f"{self.keyword} - {self.search_api}"
 
 
-if __name__ == '__main__':
-    ins = YYeTs("逃避")
+if __name__ == "__main__":
+    ins = YYeTs("逃避可耻")
     for i in ins.result:
         print(i)
