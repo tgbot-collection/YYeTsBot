@@ -28,6 +28,7 @@ from handlers.base import IndexHandler, NotFoundHandler
 from handlers.comment import (
     CommentChildHandler,
     CommentHandler,
+    CommentSearchHandler,
     CommentNewestHandler,
     CommentReactionHandler,
     NotificationHandler,
@@ -84,6 +85,7 @@ class RunServer:
         (r"/api/name", NameHandler),
         (r"/api/adsense", AdsenseStatusHandler),
         (r"/api/comment", CommentHandler),
+        (r"/api/comment/search", CommentSearchHandler),
         (r"/api/comment/reaction", CommentReactionHandler),
         (r"/api/comment/child", CommentChildHandler),
         (r"/api/comment/newest", CommentNewestHandler),
