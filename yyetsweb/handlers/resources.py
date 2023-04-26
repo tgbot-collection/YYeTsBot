@@ -19,7 +19,8 @@ class ResourceHandler(BaseHandler):
 
     @run_on_executor()
     def get_resource_data(self):
-        resource_id = int(self.get_query_argument("id"))
+        query = self.get_query_argument("id", None)
+        resource_id = int(query) if query.isdigit() else 0
         username = self.get_current_user()
         if str(resource_id) in os.getenv("HIDDEN_RESOURCE", "").split(","):
             self.set_status(HTTPStatus.NOT_FOUND)

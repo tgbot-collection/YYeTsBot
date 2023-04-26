@@ -8,6 +8,7 @@ import random
 import re
 import string
 import time
+from hashlib import sha256
 
 import pymongo
 import requests
@@ -164,6 +165,15 @@ class Other(Mongo):
         for username in [u["username"] for u in usernames]:
             r.hset("user_blacklist", username, 100)
         r.close()
+
+    def fill_user_hash(self):
+        users = self.db["users"].find({"hash": {"$exists": False}}, projection={"username": True})
+        # do it old school
+        for user in users:
+            logging.info("Filling hash for %s", user)
+            username = user["username"]
+            hash_value = sha256(username.encode("u8")).hexdigest()
+            self.db["users"].update_one({"username": username}, {"$set": {"hash": hash_value}})
 
 
 class Captcha(Redis):

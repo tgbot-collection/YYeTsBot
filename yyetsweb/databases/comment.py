@@ -74,16 +74,11 @@ class Comment(Mongo):
             cid = comment.get("id") or comment.get("_id")
             cid = str(cid)
             reactions = (
-                self.db["reactions"].find_one(
-                    {"comment_id": cid}, projection={"_id": False, "comment_id": False}
-                )
-                or {}
+                self.db["reactions"].find_one({"comment_id": cid}, projection={"_id": False, "comment_id": False}) or {}
             )
             for verb, users in reactions.items():
                 if users:
-                    comment.setdefault("reactions", []).append(
-                        {"verb": verb, "users": users}
-                    )
+                    comment.setdefault("reactions", []).append({"verb": verb, "users": users})
 
     def get_comment(self, resource_id: int, page: int, size: int, **kwargs) -> dict:
         self.inner_page = kwargs.get("inner_page", 1)
@@ -136,10 +131,7 @@ class Comment(Mongo):
     ) -> dict:
         user_data = self.db["users"].find_one({"username": username})
         # old user is allowed to comment without verification
-        if (
-            not self.is_old_user(username)
-            and user_data.get("email", {}).get("verified", False) is False
-        ):
+        if not self.is_old_user(username) and user_data.get("email", {}).get("verified", False) is False:
             return {
                 "status_code": HTTPStatus.TEMPORARY_REDIRECT,
                 "message": "你需要验证邮箱才能评论，请到个人中心进行验证",
@@ -228,16 +220,12 @@ class Comment(Mongo):
                 upsert=True,
             )
             # send email
-            parent_comment = self.db["comment"].find_one(
-                {"_id": ObjectId(parent_comment_id)}
-            )
+            parent_comment = self.db["comment"].find_one({"_id": ObjectId(parent_comment_id)})
             if resource_id == 233:
                 link = f"https://yyets.dmesg.app/discuss#{parent_comment_id}"
             else:
                 link = f"https://yyets.dmesg.app/resource?id={resource_id}#{parent_comment_id}"
-            user_info = self.db["users"].find_one(
-                {"username": parent_comment["username"], "email.verified": True}
-            )
+            user_info = self.db["users"].find_one({"username": parent_comment["username"], "email.verified": True})
             if user_info:
                 subject = "[人人影视下载分享站] 你的评论有了新的回复"
                 pt_content = content.split("</reply>")[-1]
@@ -299,14 +287,10 @@ class CommentReaction(Mongo):
             }
 
         if method == "POST":
-            self.db["reactions"].update_one(
-                {"comment_id": comment_id}, {"$addToSet": {verb: username}}, upsert=True
-            )
+            self.db["reactions"].update_one({"comment_id": comment_id}, {"$addToSet": {verb: username}}, upsert=True)
             code = HTTPStatus.CREATED
         elif method == "DELETE":
-            self.db["reactions"].update_one(
-                {"comment_id": comment_id}, {"$pull": {verb: username}}
-            )
+            self.db["reactions"].update_one({"comment_id": comment_id}, {"$pull": {verb: username}})
             code = HTTPStatus.ACCEPTED
         else:
             code = HTTPStatus.BAD_REQUEST
@@ -405,9 +389,7 @@ class CommentSearch(CommentNewest):
         for item in data:
             child_id: "list" = item.get("children", [])
             children = list(
-                self.db["comment"]
-                .find({"_id": {"$in": child_id}}, self.projection)
-                .sort("_id", pymongo.DESCENDING)
+                self.db["comment"].find({"_id": {"$in": child_id}}, self.projection).sort("_id", pymongo.DESCENDING)
             )
             self.convert_objectid(children)
             self.get_user_group(children)
@@ -418,9 +400,7 @@ class CommentSearch(CommentNewest):
 class Notification(Mongo):
     def get_notification(self, username, page, size):
         # .sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
-        notify = self.db["notification"].find_one(
-            {"username": username}, projection={"_id": False}
-        )
+        notify = self.db["notification"].find_one({"username": username}, projection={"_id": False})
         if not notify:
             return {
                 "username": username,
@@ -453,9 +433,7 @@ class Notification(Mongo):
     def get_content(self, id_list):
         comments = (
             self.db["comment"]
-            .find(
-                {"_id": {"$in": id_list}}, projection={"ip": False, "parent_id": False}
-            )
+            .find({"_id": {"$in": id_list}}, projection={"ip": False, "parent_id": False})
             .sort("_id", pymongo.DESCENDING)
         )
         comments = list(comments)
@@ -467,7 +445,7 @@ class Notification(Mongo):
                 {"_id": ObjectId(reply_to_id)},
                 projection={"content": True, "_id": False},
             )
-            comment["reply_to_content"] = rtc["content"]
+            comment["reply_to_content"] = getattr(rtc, "content", "")
 
         return comments
 

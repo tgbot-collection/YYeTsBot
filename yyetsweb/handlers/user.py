@@ -27,9 +27,7 @@ class UserHandler(BaseHandler):
         ip = self.get_real_ip()
         browser = self.request.headers["user-agent"]
 
-        response = self.instance.login_user(
-            username, password, captcha, captcha_id, ip, browser
-        )
+        response = self.instance.login_user(username, password, captcha, captcha_id, ip, browser)
         if response["status_code"] in (HTTPStatus.CREATED, HTTPStatus.OK):
             self.set_login(username)
         else:
@@ -96,7 +94,8 @@ class UserAvatarHandler(BaseHandler):
 
     @run_on_executor()
     def get_avatar(self, username):
-        data = self.instance.get_avatar(username)
+        user_hash = self.get_query_argument("hash", None)
+        data = self.instance.get_avatar(username, user_hash)
         if data["image"]:
             self.set_header("Content-Type", data["content_type"])
             return data["image"]
