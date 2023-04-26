@@ -19,14 +19,14 @@ class CommentHandler(BaseHandler):
     def hide_phone(data: list):
         for item in data:
             if item["username"].isdigit() and len(item["username"]) == 11:
-                item["username"] = re.sub(
-                    r"(\d{3})\d{4}(\d{4})", r"\g<1>****\g<2>", item["username"]
-                )
+                item["username"] = re.sub(r"(\d{3})\d{4}(\d{4})", r"\g<1>****\g<2>", item["username"])
         return data
 
     @run_on_executor()
     def get_comment(self):
-        resource_id = int(self.get_argument("resource_id", "0"))
+        query_id = self.get_argument("resource_id", "0")
+        resource_id = int(query_id) if query_id.isdigit() else 0
+
         size = int(self.get_argument("size", "5"))
         page = int(self.get_argument("page", "1"))
         inner_size = int(self.get_argument("inner_size", "3"))

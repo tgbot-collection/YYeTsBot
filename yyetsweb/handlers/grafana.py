@@ -20,7 +20,7 @@ class MetricsHandler(BaseHandler):
     @run_on_executor()
     def set_metrics(self):
         payload = self.json
-        metrics_type = payload["type"]
+        metrics_type = payload.get("type", self.get_query_argument("type", "unknown"))
 
         self.instance.set_metrics(metrics_type)
         self.set_status(HTTPStatus.CREATED)

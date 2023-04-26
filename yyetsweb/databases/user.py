@@ -27,9 +27,7 @@ class Like(Mongo):
 
     def add_remove_fav(self, resource_id: int, username: str) -> dict:
         returned = {"status_code": 0, "message": ""}
-        like_list: list = (
-            self.db["users"].find_one({"username": username}).get("like", [])
-        )
+        like_list: list = self.db["users"].find_one({"username": username}).get("like", [])
         if resource_id in like_list:
             returned["status_code"] = HTTPStatus.OK
             returned["message"] = "已取消收藏"
@@ -136,9 +134,7 @@ class User(Mongo, Redis):
                 valid_data[field] = data[field]
 
         email_regex = r"@gmail\.com|@outlook\.com|@qq\.com|@163\.com"
-        if valid_data.get("email") and not re.findall(
-            email_regex, valid_data.get("email"), re.IGNORECASE
-        ):
+        if valid_data.get("email") and not re.findall(email_regex, valid_data.get("email"), re.IGNORECASE):
             return {
                 "status_code": HTTPStatus.BAD_REQUEST,
                 "status": False,
@@ -159,10 +155,7 @@ class User(Mongo, Redis):
             valid_data["email"] = {"verified": False, "address": user_email}
             # send email confirm
             subject = "[人人影视下载分享站] 请验证你的邮箱"
-            text = (
-                f"请输入如下验证码完成你的邮箱认证。验证码有效期为24小时。<br>"
-                f"如果您未有此请求，请忽略此邮件。<br><br>验证码： {verify_code}"
-            )
+            text = f"请输入如下验证码完成你的邮箱认证。验证码有效期为24小时。<br>" f"如果您未有此请求，请忽略此邮件。<br><br>验证码： {verify_code}"
             context = {"username": username, "text": text}
             send_mail(user_email, subject, context)
             # 发送成功才设置缓存
@@ -180,9 +173,7 @@ class User(Mongo, Redis):
 
 class UserAvatar(User, Mongo):
     def add_avatar(self, username, avatar):
-        self.db["users"].update_one(
-            {"username": username}, {"$set": {"avatar": avatar}}
-        )
+        self.db["users"].update_one({"username": username}, {"$set": {"avatar": avatar}})
 
         return {"status_code": HTTPStatus.CREATED, "message": "头像上传成功"}
 
@@ -215,9 +206,7 @@ class UserEmail(Mongo):
         if correct_code == code:
             r.expire(email, 0)
             r.expire(f"timeout-{email}", 0)
-            self.db["users"].update_one(
-                {"username": username}, {"$set": {"email.verified": True}}
-            )
+            self.db["users"].update_one({"username": username}, {"$set": {"email.verified": True}})
             return {
                 "status": True,
                 "status_code": HTTPStatus.CREATED,

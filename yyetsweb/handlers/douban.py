@@ -19,7 +19,9 @@ class DoubanHandler(BaseHandler):
     def douban_data(self):
         rid = self.get_query_argument("resource_id")
         data = self.instance.get_douban_data(int(rid))
-        data.pop("posterData")
+        data.pop("posterData", None)
+        if not data:
+            self.set_status(HTTPStatus.NOT_FOUND)
         return data
 
     def get_image(self) -> bytes:
@@ -52,14 +54,10 @@ class DoubanReportHandler(BaseHandler):
         captcha_id = data["id"]
         content = data["content"]
         resource_id = data["resource_id"]
-        returned = self.instance.report_error(
-            user_captcha, captcha_id, content, resource_id
-        )
+        returned = self.instance.report_error(user_captcha, captcha_id, content, resource_id)
         status_code = returned.get("status_code", HTTPStatus.CREATED)
         self.set_status(status_code)
-        return self.instance.report_error(
-            user_captcha, captcha_id, content, resource_id
-        )
+        return self.instance.report_error(user_captcha, captcha_id, content, resource_id)
 
     @gen.coroutine
     def post(self):
