@@ -116,7 +116,7 @@ class SearchEngine(Mongo):
         "comment": "$content",
         "commentID": {"$toString": "$_id"},
         "origin": "comment",
-        "hasAvatar": {"$toBool": "$avatar"},
+        "hasAvatar": "yes",
         "resourceID": "$resource_id",
         "resourceName": {"$first": "$resource.data.info.cnname"},
         "_id": {"$toString": "$_id"},

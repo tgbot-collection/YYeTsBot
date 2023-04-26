@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # coding: utf-8
-import re
 from http import HTTPStatus
 from pathlib import Path
 
 from tornado import gen, web
 from tornado.concurrent import run_on_executor
 
+from common.utils import hide_phone
 from handlers.base import BaseHandler
 
 filename = Path(__file__).name.split(".")[0]
@@ -14,13 +14,6 @@ filename = Path(__file__).name.split(".")[0]
 
 class CommentHandler(BaseHandler):
     filename = filename
-
-    @staticmethod
-    def hide_phone(data: list):
-        for item in data:
-            if item["username"].isdigit() and len(item["username"]) == 11:
-                item["username"] = re.sub(r"(\d{3})\d{4}(\d{4})", r"\g<1>****\g<2>", item["username"])
-        return data
 
     @run_on_executor()
     def get_comment(self):
@@ -44,7 +37,7 @@ class CommentHandler(BaseHandler):
             inner_page=inner_page,
             comment_id=comment_id,
         )
-        self.hide_phone((comment_data["data"]))
+        hide_phone((comment_data["data"]))
         return comment_data
 
     @run_on_executor()
@@ -144,7 +137,7 @@ class CommentChildHandler(CommentHandler):
             self.set_status(HTTPStatus.BAD_REQUEST)
             return {"status": False, "message": "请提供 parent_id"}
         comment_data = self.instance.get_comment(parent_id, page, size)
-        self.hide_phone((comment_data["data"]))
+        hide_phone((comment_data["data"]))
         return comment_data
 
     @gen.coroutine
@@ -162,7 +155,7 @@ class CommentNewestHandler(CommentHandler):
         page = int(self.get_argument("page", "1"))
 
         comment_data = self.instance.get_comment(page, size)
-        self.hide_phone((comment_data["data"]))
+        hide_phone((comment_data["data"]))
         return comment_data
 
     @gen.coroutine
@@ -180,7 +173,7 @@ class CommentSearchHandler(CommentHandler):
         page = int(self.get_argument("page", "1"))
         keyword = self.get_argument("keyword", "")
         comment_data = self.instance.get_comment(page, size, keyword)
-        self.hide_phone((comment_data["data"]))
+        hide_phone((comment_data["data"]))
         return comment_data
 
     @gen.coroutine

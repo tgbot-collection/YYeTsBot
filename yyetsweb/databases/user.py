@@ -3,10 +3,12 @@
 import os
 import random
 import re
+from hashlib import md5, sha256
 from http import HTTPStatus
 
 import filetype
 import pymongo
+import requests
 from passlib.handlers.pbkdf2 import pbkdf2_sha256
 
 from common.utils import send_mail, ts_date
@@ -101,6 +103,7 @@ class User(Mongo, Redis):
                         date=ts_date(),
                         ip=ip,
                         browser=browser,
+                        hash=sha256(username.encode("u8")).hexdigest(),
                     )
                 )
                 returned_value["status_code"] = HTTPStatus.CREATED
@@ -177,11 +180,23 @@ class UserAvatar(User, Mongo):
 
         return {"status_code": HTTPStatus.CREATED, "message": "头像上传成功"}
 
-    def get_avatar(self, username):
-        user = self.db["users"].find_one({"username": username})
-        img = user.get("avatar", b"")
-        mime = filetype.guess_mime(img)
-        return {"image": img, "content_type": mime}
+    def get_avatar(self, username, user_hash=None):
+        if user_hash:
+            user = self.db["users"].find_one({"hash": user_hash})
+        else:
+            user = self.db["users"].find_one({"username": username})
+        if user:
+            img = user.get("avatar", b"")
+            mime = filetype.guess_mime(img)
+            return {"image": img, "content_type": mime}
+        elif "@" in username:
+            # fallback to gravatar
+            url = f"https://gravatar.webp.se/avatar/{md5(username.encode('u8')).hexdigest()}"
+            img = requests.get(url).content
+            mime = filetype.guess_mime(img)
+            return {"image": img, "content_type": mime}
+        else:
+            return {"image": None, "content_type": None}
 
 
 class UserEmail(Mongo):

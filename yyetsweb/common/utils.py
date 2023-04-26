@@ -12,12 +12,14 @@ import json
 import logging
 import os
 import pathlib
+import re
 import smtplib
 import time
 from datetime import datetime
 from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import formataddr, parseaddr
+from hashlib import sha256
 
 import coloredlogs
 import pytz
@@ -34,6 +36,18 @@ def setup_logger():
         fmt="[%(asctime)s %(filename)s:%(lineno)d %(levelname).1s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
+
+
+def hide_phone(data: list):
+    for item in data:
+        if item["username"].isdigit() and len(item["username"]) == 11:
+            item["hash"] = sha256(item["username"].encode("u8")).hexdigest()
+            item["username"] = mask_phone(item["username"])
+    return data
+
+
+def mask_phone(num):
+    return re.sub(r"(\d{3})\d{4}(\d{4})", r"\g<1>****\g<2>", num)
 
 
 def ts_date(ts=None):

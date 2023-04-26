@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
+from hashlib import sha256
+
 from common.utils import ts_date
 from databases.base import Mongo
 
@@ -27,6 +29,7 @@ class OAuthRegister(Mongo):
                     "oldUser": True,
                     "source": source,
                     "uid": uid,
+                    "hash": sha256(username.encode("u8")).hexdigest(),
                 }
             )
             return {
@@ -40,17 +43,17 @@ class GitHubOAuth2Login(OAuthRegister):
     pass
 
 
-class MSOAuth2Login:
+class MSOAuth2Login(OAuthRegister):
     pass
 
 
-class GoogleOAuth2Login:
+class GoogleOAuth2Login(OAuthRegister):
     pass
 
 
-class TwitterOAuth2Login:
+class TwitterOAuth2Login(OAuthRegister):
     pass
 
 
-class FacebookAuth2Login:
+class FacebookAuth2Login(OAuthRegister):
     pass

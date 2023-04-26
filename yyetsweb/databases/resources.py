@@ -11,7 +11,7 @@ import requests
 import zhconv
 from tqdm import tqdm
 
-from common.utils import ts_date
+from common.utils import hide_phone, ts_date
 from databases.base import Mongo, Redis, SearchEngine
 from databases.comment import CommentSearch
 
@@ -52,7 +52,7 @@ class Resource(SearchEngine):
         returned = {"data": [], "comment": [], "extra": []}
         if search_type == "default":
             yyets = self.search_yyets(keyword)
-            comment = self.search_comment(keyword)
+            comment = hide_phone(self.search_comment(keyword))
             returned["data"] = yyets
             returned["comment"] = comment
             return returned
@@ -98,12 +98,13 @@ class Resource(SearchEngine):
             zimuzu_data.append(item["data"]["info"])
 
         # get comment
-        r = CommentSearch().get_comment(1, 2**10, keyword)
         c_search = []
-        for c in r.get("data", []):
+        comments = CommentSearch().get_comment(1, 2**10, keyword)
+        hide_phone(comments.get("data", []))
+        for c in comments.get("data", []):
             comment_rid = c["resource_id"]
-            d = self.db["yyets"].find_one({"data.info.id": comment_rid}, projection={"data.info": True})
-            if d:
+            res = self.db["yyets"].find_one({"data.info.id": comment_rid}, projection={"data.info": True})
+            if res:
                 c_search.append(
                     {
                         "username": c["username"],
@@ -111,9 +112,10 @@ class Resource(SearchEngine):
                         "comment": c["content"],
                         "commentID": c["id"],
                         "resourceID": comment_rid,
-                        "resourceName": d["data"]["info"]["cnname"],
+                        "resourceName": res["data"]["info"]["cnname"],
                         "origin": "comment",
                         "hasAvatar": c["hasAvatar"],
+                        "hash": c["hash"],
                     }
                 )
         # zimuzu -> comment -> extra
