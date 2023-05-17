@@ -2,7 +2,7 @@
 # YYeTsBot - config.py
 # 2019/8/15 18:42
 
-__author__ = 'Benny <benny.think@gmail.com>'
+__author__ = "Benny <benny.think@gmail.com>"
 
 import os
 
@@ -28,7 +28,8 @@ ZHUIXINFAN_RESOURCE = "http://www.fanxinzhui.com{}"
 # yyets website
 DOMAIN = "https://yyets.dmesg.app/"
 WORKERS = f"{DOMAIN}resource?id=" + "{}"
-
+# https://yyets.dmesg.app/discuss#6464d5b1b27861fa44647e7e
+DISCUSS = f"{DOMAIN}discuss#" + "{}"
 # new zmz
 NEWZMZ_SEARCH = "https://newzmz.com/subres/index/getres.html?keyword={}"
 NEWZMZ_RESOURCE = "https://ysfx.tv/view/{}"
@@ -51,4 +52,4 @@ MONGO = os.getenv("MONGO", "mongo")
 MAINTAINER = os.getenv("OWNER")
 REPORT = os.getenv("REPORT", False)
 # This name must match class name, other wise this bot won't running.
-FANSUB_ORDER: str = os.getenv("ORDER") or 'YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline,XL720,BD2020'
+FANSUB_ORDER: str = os.getenv("ORDER") or "YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline,XL720,BD2020"
