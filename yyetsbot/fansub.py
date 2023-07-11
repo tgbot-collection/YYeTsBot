@@ -230,8 +230,8 @@ class YYeTsOffline(BaseFansub):
     def search_result(self, resource_url) -> dict:
         # yyets offline
 
-        # resource: https://yyets.dmesg.app/resource.html?id=37089
-        # comment: 'https://yyets.dmesg.app/resource.html?id=233#61893ae51e9152e43fa24124'
+        # resource: https://yyets.click/resource.html?id=37089
+        # comment: 'https://yyets.click/resource.html?id=233#61893ae51e9152e43fa24124'
         if "#" in resource_url:
             cid = resource_url.split("#")[1]
             data: dict = self.db["comment"].find_one(

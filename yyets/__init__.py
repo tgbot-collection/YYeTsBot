@@ -7,10 +7,11 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import requests
 import logging
 
-API = "https://yyets.dmesg.app/api/resource?"
+import requests
+
+API = "https://yyets.click/api/resource?"
 
 logging.basicConfig(
     level=logging.INFO,

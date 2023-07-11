@@ -1,4 +1,4 @@
-const baseURL = "https://yyets.dmesg.app/";
+const baseURL = "https://yyets.click/";
 const resourceURL = baseURL + "resource.html?id=";
 const indexURL = baseURL + "?id=index";
 

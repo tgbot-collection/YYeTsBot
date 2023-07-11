@@ -10,7 +10,7 @@
 
 # 导入数据
 
-从 [这里](https://yyets.dmesg.app/database) 下载mongodb数据，然后导入
+从 [这里](https://yyets.click/database) 下载mongodb数据，然后导入
 
 ```shell
 mongorestore --gzip --archive=yyets_mongo.gz --nsFrom "share.*" --nsTo "zimuzu.*"

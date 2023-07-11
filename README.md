@@ -5,7 +5,7 @@
 
 * 人人影视bot，[戳我使用](https://t.me/yyets_bot)
 
-* 人人影视分享站，[戳我使用](https://yyets.dmesg.app/)
+* 人人影视分享站，[戳我使用](https://yyets.click/)
 
 机器人和网站由我长期维护，如果遇到问题可以提issue。
 
@@ -95,7 +95,7 @@ yyets_offline - 人人影视离线数据
 
 ## 在线 原生应用程序
 
-使用tauri封装的网页。内容等同于 `https://yyets.dmesg.app`，只不过是原生的App。使用方法如下
+使用tauri封装的网页。内容等同于 `https://yyets.click`，只不过是原生的App。使用方法如下
 
 1. 请到 [GitHub Release](https://github.com/tgbot-collection/YYeTsBot/releases) ，找最新的 `YYeTsBot App`
 2. windows下载msi，macos下载dmg或tar.gz，Linux下载AppImage或deb（Debian based）
@@ -116,9 +116,9 @@ yyets_offline - 人人影视离线数据
 ```
 >>> from yyets import YYeTs
 >>> yy=YYeTs("逃避")
-[2021-09-21 19:22:32 __init__.py:54 I] Fetching 逃避可耻却有用...https://yyets.dmesg.app/api/resource?id=34812
-[2021-09-21 19:22:33 __init__.py:54 I] Fetching 无法逃避...https://yyets.dmesg.app/api/resource?id=29540
-[2021-09-21 19:22:35 __init__.py:54 I] Fetching 逃避者...https://yyets.dmesg.app/api/resource?id=37089
+[2021-09-21 19:22:32 __init__.py:54 I] Fetching 逃避可耻却有用...https://yyets.click/api/resource?id=34812
+[2021-09-21 19:22:33 __init__.py:54 I] Fetching 无法逃避...https://yyets.click/api/resource?id=29540
+[2021-09-21 19:22:35 __init__.py:54 I] Fetching 逃避者...https://yyets.click/api/resource?id=37089
 
 >>> yy.result
 [<yyets.Resource object at 0x10cc7b130>, <yyets.Resource object at 0x10ca0e880>, <yyets.Resource object at 0x10cc7b040>]
