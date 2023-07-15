@@ -133,7 +133,7 @@ class Cloudflare(Redis):
             return cache
         else:
             data = self.session.get(self.endpoint).json()
-            result = data["result"]
+            result = data.get("result", [])
             cursor = data.get("result_info", {}).get("cursors", {}).get("after")
             while cursor:
                 logging.info("Fetching next page with cursor %s", cursor)
