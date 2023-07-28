@@ -43,7 +43,7 @@ async function handleEvent(event) {
         return new Response(value, {
             headers: {
                 "content-type": "application/json;charset=UTF-8",
-                "Access-Control-Allow-Origin": "https://yyets.dmesg.app"
+                "Access-Control-Allow-Origin": "https://yyets.click"
             },
         })
 

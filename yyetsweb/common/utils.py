@@ -98,7 +98,7 @@ def check_spam(ip, ua, author, content) -> int:
         return 0
     if token:
         with contextlib.suppress(Exception):
-            akismet = Akismet(token, blog="https://yyets.dmesg.app/")
+            akismet = Akismet(token, blog="https://yyets.click/")
 
             return akismet.check(
                 ip,

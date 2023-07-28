@@ -13,7 +13,7 @@ from setuptools import Command, setup
 
 # Package meta-data.
 NAME = "yyets"
-DESCRIPTION = "https://yyets.dmesg.app/ wrapper"
+DESCRIPTION = "https://yyets.click/ wrapper"
 URL = "https://github.com/tgbot-collection/YYeTsBot"
 EMAIL = "benny.think@gmail.com"
 AUTHOR = "BennyThink"

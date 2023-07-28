@@ -20,7 +20,7 @@ logger = logging.getLogger()
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-URL = "https://yyets.dmesg.app/api/top"
+URL = "https://yyets.click/api/top"
 # URL = "https://www.baidu.com/"
 req = requests.get(URL)
 

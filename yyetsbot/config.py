@@ -26,9 +26,9 @@ FIX_SEARCH = "http://www.zimuxia.cn/?s={kw}"
 ZHUIXINFAN_SEARCH = "http://www.fanxinzhui.com/list?k={}"
 ZHUIXINFAN_RESOURCE = "http://www.fanxinzhui.com{}"
 # yyets website
-DOMAIN = "https://yyets.dmesg.app/"
+DOMAIN = "https://yyets.click/"
 WORKERS = f"{DOMAIN}resource?id=" + "{}"
-# https://yyets.dmesg.app/discuss#6464d5b1b27861fa44647e7e
+# https://yyets.click/discuss#6464d5b1b27861fa44647e7e
 DISCUSS = f"{DOMAIN}discuss#" + "{}"
 # new zmz
 NEWZMZ_SEARCH = "https://newzmz.com/subres/index/getres.html?keyword={}"

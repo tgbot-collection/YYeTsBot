@@ -31,7 +31,7 @@ function import_db() {
   docker-compose up -d mongo
 
   echo "[4/5] 正在下载并导入数据库"
-  curl -o /tmp/yyets_mongo.gz https://yyets.dmesg.app/dump/yyets_mongo.gz
+  curl -o /tmp/yyets_mongo.gz https://yyets.click/dump/yyets_mongo.gz
   file /tmp/yyets_mongo.gz
   docker cp /tmp/yyets_mongo.gz yyets_mongo_1:/tmp
   # special for windows

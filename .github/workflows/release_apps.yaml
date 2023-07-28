@@ -49,7 +49,7 @@ jobs:
           GENERATE_SOURCEMAP: ${{ secrets.GENERATE_SOURCEMAP }}
         run: |
           bash scripts/pre_build.sh
-          echo "REACT_APP_TAURI=https://yyets.dmesg.app" >> YYeTsFE/.env
+          echo "REACT_APP_TAURI=https://yyets.click" >> YYeTsFE/.env
 
       - name: Install yarn
         run: |
