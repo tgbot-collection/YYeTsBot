@@ -13,11 +13,9 @@ import pathlib
 import threading
 from zoneinfo import ZoneInfo
 
-import sentry_sdk
 import tornado.autoreload
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from sentry_sdk.integrations.tornado import TornadoIntegration
 from tornado import httpserver, ioloop, options, web
 from tornado.log import enable_pretty_logging
 
@@ -66,7 +64,6 @@ from handlers.resources import (
 )
 from handlers.user import LikeHandler, UserAvatarHandler, UserEmailHandler, UserHandler
 
-sentry_sdk.init(dsn=os.getenv("DSN"), integrations=[TornadoIntegration()])
 enable_pretty_logging()
 setup_logger()
 
