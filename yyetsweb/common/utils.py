@@ -130,6 +130,8 @@ class Cloudflare(Redis):
         if cache:
             cache = json.loads(cache)
             logging.info("Cache found with %s IPs", len(cache))
+            if len(cache) > 10000:
+                return cache[:5000]
             return cache
         else:
             data = self.session.get(self.endpoint).json()
