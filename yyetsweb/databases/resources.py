@@ -115,7 +115,7 @@ class Resource(SearchEngine):
                         "resourceName": res["data"]["info"]["cnname"],
                         "origin": "comment",
                         "hasAvatar": c["hasAvatar"],
-                        "hash": c["hash"],
+                        "hash": c.get("hash"),
                     }
                 )
         # zimuzu -> comment -> extra

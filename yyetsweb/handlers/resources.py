@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
-import logging
 import os
+import platform
 from http import HTTPStatus
 from pathlib import Path
 
@@ -34,6 +34,8 @@ class ResourceHandler(BaseHandler):
         return data
 
     def make_some_fun(self):
+        if platform.uname().system == "Darwin":
+            return
         referer = self.request.headers.get("referer")
         ip = self.get_real_ip()
         if not referer and self.request.headers.get("origin") != "tauri://localhost":
