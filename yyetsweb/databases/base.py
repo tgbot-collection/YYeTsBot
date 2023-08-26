@@ -7,25 +7,16 @@ import time
 
 import fakeredis
 import meilisearch
-import pymongo
 import redis
+
+from databases import db
 
 faker_redis = fakeredis.FakeStrictRedis()
 
 
 class Mongo:
     def __init__(self):
-        self.client = pymongo.MongoClient(
-            host=os.getenv("MONGO", "localhost"),
-            connect=False,
-            connectTimeoutMS=5000,
-            serverSelectionTimeoutMS=5000,
-        )
-        self.db = self.client["zimuzu"]
-        super().__init__()
-
-    def __del__(self):
-        self.client.close()
+        self.db = db
 
     def is_admin(self, username: str) -> bool:
         data = self.db["users"].find_one({"username": username, "group": {"$in": ["admin"]}})
