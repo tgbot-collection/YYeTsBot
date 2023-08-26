@@ -240,12 +240,10 @@ class Top(Mongo):
         return all_data
 
 
-class ResourceLatest(Mongo):
-    @staticmethod
-    def get_latest_resource() -> dict:
-        redis = Redis().r
+class ResourceLatest(Mongo, Redis):
+    def get_latest_resource(self) -> dict:
         key = "latest-resource"
-        latest = redis.get(key)
+        latest = self.r.get(key)
         if latest:
             logging.info("Cache hit for latest resource")
             latest = json.loads(latest)
@@ -253,7 +251,7 @@ class ResourceLatest(Mongo):
         else:
             logging.warning("Cache miss for latest resource")
             latest = ResourceLatest().query_db()
-            redis.set(key, json.dumps(latest, ensure_ascii=False))
+            self.r.set(key, json.dumps(latest, ensure_ascii=False))
         return latest
 
     def query_db(self) -> dict:
@@ -286,10 +284,9 @@ class ResourceLatest(Mongo):
         return dict(data=ok)
 
     def refresh_latest_resource(self):
-        redis = Redis().r
         logging.info("Getting new resources...")
         latest = self.query_db()
-        redis.set("latest-resource", json.dumps(latest, ensure_ascii=False))
+        self.r.set("latest-resource", json.dumps(latest, ensure_ascii=False))
         logging.info("latest-resource data refreshed.")
 
 

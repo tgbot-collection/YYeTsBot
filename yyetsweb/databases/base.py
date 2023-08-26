@@ -5,18 +5,15 @@ import logging
 import os
 import time
 
-import fakeredis
 import meilisearch
-import redis
 
-from databases import db
-
-faker_redis = fakeredis.FakeStrictRedis()
+from databases import db, redis_client
 
 
 class Mongo:
     def __init__(self):
         self.db = db
+        super().__init__()
 
     def is_admin(self, username: str) -> bool:
         data = self.db["users"].find_one({"username": username, "group": {"$in": ["admin"]}})
@@ -34,16 +31,8 @@ class Mongo:
 
 class Redis:
     def __init__(self):
-        try:
-            self.r = redis.StrictRedis(host=os.getenv("REDIS", "localhost"), decode_responses=True)
-            self.r.ping()
-        except redis.exceptions.ConnectionError:
-            logging.warning("%s Using fakeredis now... %s", "#" * 10, "#" * 10)
-            self.r = faker_redis
+        self.r = redis_client
         super().__init__()
-
-    def __del__(self):
-        self.r.close()
 
     @classmethod
     def cache(cls, timeout: int):

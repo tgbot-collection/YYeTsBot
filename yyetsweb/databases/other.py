@@ -137,7 +137,7 @@ class SpamProcess(Mongo):
         logging.info("Telegram response: %s", resp)
 
 
-class Other(Mongo):
+class Other(Mongo, Redis):
     def reset_top(self):
         # before resetting, save top data to history
         json_data = requests.get("http://127.0.0.1:8888/api/top").json()
@@ -159,12 +159,10 @@ class Other(Mongo):
 
     def import_ban_user(self):
         usernames = self.db["users"].find({"status.disable": True}, projection={"username": True})
-        r = Redis().r
-        r.delete("user_blacklist")
+        self.r.delete("user_blacklist")
         logging.info("Importing ban users to redis...%s", usernames)
         for username in [u["username"] for u in usernames]:
-            r.hset("user_blacklist", username, 100)
-        r.close()
+            self.r.hset("user_blacklist", username, 100)
 
     def fill_user_hash(self):
         users = self.db["users"].find({"hash": {"$exists": False}}, projection={"username": True})

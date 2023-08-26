@@ -12,7 +12,7 @@ from pathlib import Path
 from tornado import gen, web
 from tornado.concurrent import run_on_executor
 
-from databases.base import Redis
+from databases.base import redis_client
 from handlers import cf
 
 index = pathlib.Path(__file__).parent.parent.joinpath("templates", "index.html").as_posix()
@@ -34,7 +34,7 @@ class BaseHandler(web.RequestHandler):
         module = importlib.import_module(f"databases.{self.filename}")
 
         self.instance = getattr(module, class_name, lambda: 1)()
-        self.r = Redis().r
+        self.r = redis_client
 
     def add_tauri(self):
         origin = self.request.headers.get("origin", "")

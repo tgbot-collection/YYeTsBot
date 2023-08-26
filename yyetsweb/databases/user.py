@@ -129,7 +129,6 @@ class User(Mongo, Redis):
         )
 
     def update_user_info(self, username: str, data: dict) -> dict:
-        redis = Redis().r
         valid_fields = ["email"]
         valid_data = {}
         for field in valid_fields:
@@ -147,7 +146,7 @@ class User(Mongo, Redis):
             # rate limit
             user_email = valid_data.get("email")
             timeout_key = f"timeout-{username}"
-            if redis.get(timeout_key):
+            if self.r.get(timeout_key):
                 return {
                     "status_code": HTTPStatus.TOO_MANY_REQUESTS,
                     "status": False,
@@ -162,9 +161,9 @@ class User(Mongo, Redis):
             context = {"username": username, "text": text}
             send_mail(user_email, subject, context)
             # 发送成功才设置缓存
-            redis.set(timeout_key, username, ex=1800)
-            redis.hset(user_email, mapping={"code": verify_code, "wrong": 0})
-            redis.expire(user_email, 24 * 3600)
+            self.r.set(timeout_key, username, ex=1800)
+            self.r.hset(user_email, mapping={"code": verify_code, "wrong": 0})
+            self.r.expire(user_email, 24 * 3600)
 
         self.db["users"].update_one({"username": username}, {"$set": valid_data})
         return {
@@ -199,11 +198,10 @@ class UserAvatar(User, Mongo):
             return {"image": None, "content_type": None}
 
 
-class UserEmail(Mongo):
+class UserEmail(Mongo, Redis):
     def verify_email(self, username, code):
-        r = Redis().r
         email = self.db["users"].find_one({"username": username})["email"]["address"]
-        verify_data = r.hgetall(email)
+        verify_data = self.r.hgetall(email)
         wrong_count = int(verify_data["wrong"])
         MAX = 10
         if wrong_count >= MAX:
@@ -219,8 +217,8 @@ class UserEmail(Mongo):
         correct_code = verify_data["code"]
 
         if correct_code == code:
-            r.expire(email, 0)
-            r.expire(f"timeout-{email}", 0)
+            self.r.expire(email, 0)
+            self.r.expire(f"timeout-{email}", 0)
             self.db["users"].update_one({"username": username}, {"$set": {"email.verified": True}})
             return {
                 "status": True,
@@ -228,7 +226,7 @@ class UserEmail(Mongo):
                 "message": "邮箱已经验证成功",
             }
         else:
-            r.hset(email, "wrong", wrong_count + 1)
+            self.r.hset(email, "wrong", wrong_count + 1)
             return {
                 "status": False,
                 "status_code": HTTPStatus.FORBIDDEN,
