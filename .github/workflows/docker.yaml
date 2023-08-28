@@ -5,7 +5,6 @@ on:
       - 'master'
     paths-ignore:
       - '**.md'
-      - '**.yml'
       - 'LICENSE'
 
 jobs:
