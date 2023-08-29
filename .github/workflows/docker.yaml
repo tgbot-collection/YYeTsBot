@@ -107,6 +107,10 @@ jobs:
         with:
           submodules: true
 
+      - name: Combine two images
+        run: |
+            curl ipv4.win
+            
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
