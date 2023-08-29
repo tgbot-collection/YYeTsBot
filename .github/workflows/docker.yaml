@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - 'master'
-      - 'wf'
     paths-ignore:
       - '**.md'
       - 'LICENSE'
