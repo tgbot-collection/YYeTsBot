@@ -63,6 +63,8 @@ jobs:
           # for CI purposes, we only need to save amd64 and then build multi-arch later
           platforms: linux/amd64
           load: true
+          provenance: false
+          sbom: false
           tags: |
             ${{ steps.dh_string.outputs.lowercase }}:ci
           build-args: |
@@ -84,6 +86,8 @@ jobs:
           context: .
           platforms: linux/amd64
           push: true
+          provenance: false
+          sbom: false
           tags: |
             ${{ steps.dh_string.outputs.lowercase }}:amd64
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -143,6 +147,8 @@ jobs:
           context: .
           platforms: linux/arm64
           push: true
+          provenance: false
+          sbom: false
           tags: |
             ${{ steps.dh_string.outputs.lowercase }}:arm64
           cache-from: type=local,src=/tmp/.buildx-cache
