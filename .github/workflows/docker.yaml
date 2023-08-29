@@ -179,9 +179,9 @@ jobs:
         run: |
           docker manifest create ${{ steps.dh_string.outputs.lowercase }} ${{ steps.dh_string.outputs.lowercase }}:amd64 ${{ steps.dh_string.outputs.lowercase }}:arm64
           docker manifest push ${{ steps.dh_string.outputs.lowercase }}
-
-      #          docker manifest create ghcr.io/${{ steps.ghcr_string.outputs.lowercase }} ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}:amd64 ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}:arm64
-      #          docker manifest push ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
+          
+          docker tag ${{ steps.dh_string.outputs.lowercase }} ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
+          docker push ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
 
       - name: Notification to Telegram
         env:
