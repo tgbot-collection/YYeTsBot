@@ -111,14 +111,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
@@ -154,12 +146,6 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-  
-
   combine:
     runs-on: ubuntu-latest
     needs: [ amd64, arm64 ]
@@ -191,11 +177,11 @@ jobs:
 
       - name: Combine two images
         run: |
-          docker manifest create ${{ steps.dh_string.outputs.lowercase }} ${{ steps.dh_string.outputs.lowercase }}:amd64 ${{ steps.dh_string.outputs.lowercase }}:arm64
-          docker manifest push ${{ steps.dh_string.outputs.lowercase }}
-          
-          docker manifest create ghcr.io/${{ steps.ghcr_string.outputs.lowercase }} ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}:amd64 ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}:arm64
-          docker manifest push ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
+          docker manifest create bennythink/yyetsbot ${{ steps.dh_string.outputs.lowercase }}:amd64 ${{ steps.dh_string.outputs.lowercase }}:arm64
+          docker manifest push bennythink/yyetsbot
+
+      #          docker manifest create ghcr.io/${{ steps.ghcr_string.outputs.lowercase }} ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}:amd64 ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}:arm64
+      #          docker manifest push ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
 
       - name: Notification to Telegram
         env:
