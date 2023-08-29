@@ -177,8 +177,8 @@ jobs:
 
       - name: Combine two images
         run: |
-          docker manifest create bennythink/yyetsbot ${{ steps.dh_string.outputs.lowercase }}:amd64 ${{ steps.dh_string.outputs.lowercase }}:arm64
-          docker manifest push bennythink/yyetsbot
+          docker manifest create ${{ steps.dh_string.outputs.lowercase }} ${{ steps.dh_string.outputs.lowercase }}:amd64 ${{ steps.dh_string.outputs.lowercase }}:arm64
+          docker manifest push ${{ steps.dh_string.outputs.lowercase }}
 
       #          docker manifest create ghcr.io/${{ steps.ghcr_string.outputs.lowercase }} ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}:amd64 ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}:arm64
       #          docker manifest push ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
