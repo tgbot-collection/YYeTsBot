@@ -8,16 +8,13 @@ on:
       - 'LICENSE'
 
 jobs:
-  docker:
+  amd64:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           submodules: true
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -97,11 +94,11 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
           push: true
           tags: |
-            ${{ steps.dh_string.outputs.lowercase }}
-            ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
+            ${{ steps.dh_string.outputs.lowercase }}:amd64
+            ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}:amd64
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
@@ -109,6 +106,104 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+
+
+  arm64:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run hooks
+        env:
+          REACT_APP_SENTRY_DSN: ${{ secrets.REACT_APP_SENTRY_DSN }}
+          REACT_APP_DOMAIN: ${{ secrets.REACT_APP_DOMAIN }}
+          REACT_APP_GA: ${{ secrets.REACT_APP_GA }}
+          GENERATE_SOURCEMAP: ${{ secrets.GENERATE_SOURCEMAP }}
+          REACT_APP_ADSENSE: ${{ secrets.REACT_APP_ADSENSE }}
+          REACT_APP_CRISP: ${{ secrets.REACT_APP_CRISP }}
+        run: bash scripts/pre_build.sh
+
+      - name: Lower case for Docker Hub
+        id: dh_string
+        uses: ASzc/change-string-case-action@v5
+        with:
+          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
+
+      - name: Lower case for ghcr
+        id: ghcr_string
+        uses: ASzc/change-string-case-action@v5
+        with:
+          string: ${{ github.event.repository.full_name }}
+
+      - name: Build and push docker images
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ steps.dh_string.outputs.lowercase }}:arm64
+            ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}:arm64
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+  
+
+  combine:
+    runs-on: ubuntu-latest
+    needs: [ amd64, arm64 ]
+    steps:
+      - name: Lower case for Docker Hub
+        id: dh_string
+        uses: ASzc/change-string-case-action@v5
+        with:
+          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
+
+      - name: Lower case for ghcr
+        id: ghcr_string
+        uses: ASzc/change-string-case-action@v5
+        with:
+          string: ${{ github.event.repository.full_name }}
+
+      - name: Combine two images
+        run: |
+          docker manifest create ghcr.io/${{ steps.ghcr_string.outputs.lowercase }} ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}:amd64 ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}:arm64
+          docker manifest push ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
+
+          docker manifest create ${{ steps.dh_string.outputs.lowercase }} ${{ steps.dh_string.outputs.lowercase }}:amd64 ${{ steps.dh_string.outputs.lowercase }}:arm64
+          docker manifest push ${{ steps.dh_string.outputs.lowercase }}
 
       - name: Notification to Telegram
         env:
