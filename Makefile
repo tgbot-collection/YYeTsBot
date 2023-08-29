@@ -86,7 +86,7 @@ release:
 
 
 ci-test:
-	docker run --rm bennythink/yyetsbot /bin/sh -c "cd /YYeTsBot/yyetsweb/tests;python -m unittest discover -p '*_test.py'"
+	docker run --rm bennythink/yyetsbot:ci /bin/sh -c "cd /YYeTsBot/yyetsweb/tests;python -m unittest discover -p '*_test.py'"
 
 test:
 	cd $(WEB)/tests;python -m unittest discover -p '*_test.py'
