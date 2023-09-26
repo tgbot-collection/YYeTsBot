@@ -19,5 +19,5 @@ openpyxl==3.1.2
 zhconv==1.4.3
 jinja2==3.1.2
 coloredlogs==15.0.1
-meilisearch==0.28.2
+meilisearch==0.28.3
 pillow==9.5.0
