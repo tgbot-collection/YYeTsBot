@@ -8,13 +8,16 @@ on:
       - 'LICENSE'
 
 jobs:
-  amd64:
+  docker:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           submodules: true
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -33,134 +36,22 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Run hooks
-        env:
-          REACT_APP_SENTRY_DSN: ${{ secrets.REACT_APP_SENTRY_DSN }}
-          REACT_APP_DOMAIN: ${{ secrets.REACT_APP_DOMAIN }}
-          REACT_APP_GA: ${{ secrets.REACT_APP_GA }}
-          GENERATE_SOURCEMAP: ${{ secrets.GENERATE_SOURCEMAP }}
-          REACT_APP_ADSENSE: ${{ secrets.REACT_APP_ADSENSE }}
-          REACT_APP_CRISP: ${{ secrets.REACT_APP_CRISP }}
-        run: bash scripts/pre_build.sh
-
-      - name: Lower case for Docker Hub
-        id: dh_string
-        uses: ASzc/change-string-case-action@v5
-        with:
-          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
-
-      - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.8.0
-        with:
-          mongodb-version: "6.0"
-
-      - name: Build CI docker images
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          # due to the limitation of docker, we can only save one platform at a time.
-          # for CI purposes, we only need to save amd64 and then build multi-arch later
-          platforms: linux/amd64
-          load: true
-          provenance: false
-          sbom: false
-          tags: |
-            ${{ steps.dh_string.outputs.lowercase }}:ci
-          build-args: |
-            env=dev
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-
-      - name: Restore database and run tests
-        run: |
-          sudo apt update && sudo apt install -y wget
-          wget -q https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.6.1.deb
-          sudo dpkg -i mongodb-database-tools-ubuntu2204-x86_64-100.6.1.deb
-          mongorestore --gzip --archive=assets/ci.gz
-          make ci-test
-
-      - name: Build and push docker images
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: linux/amd64
-          push: true
-          provenance: false
-          sbom: false
-          tags: |
-            ${{ steps.dh_string.outputs.lowercase }}:amd64
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-
-
-  arm64:
-    runs-on: self-hosted
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Run hooks
-        env:
-          REACT_APP_SENTRY_DSN: ${{ secrets.REACT_APP_SENTRY_DSN }}
-          REACT_APP_DOMAIN: ${{ secrets.REACT_APP_DOMAIN }}
-          REACT_APP_GA: ${{ secrets.REACT_APP_GA }}
-          GENERATE_SOURCEMAP: ${{ secrets.GENERATE_SOURCEMAP }}
-          REACT_APP_ADSENSE: ${{ secrets.REACT_APP_ADSENSE }}
-          REACT_APP_CRISP: ${{ secrets.REACT_APP_CRISP }}
-        run: bash scripts/pre_build.sh
-
-      - name: Lower case for Docker Hub
-        id: dh_string
-        uses: ASzc/change-string-case-action@v5
-        with:
-          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
-
-      - name: Build and push docker images
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: linux/arm64
-          push: true
-          provenance: false
-          sbom: false
-          tags: |
-            ${{ steps.dh_string.outputs.lowercase }}:arm64
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-
-  combine:
-    runs-on: ubuntu-latest
-    needs: [ amd64, arm64 ]
-    steps:
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run hooks
+        env:
+          REACT_APP_SENTRY_DSN: ${{ secrets.REACT_APP_SENTRY_DSN }}
+          REACT_APP_DOMAIN: ${{ secrets.REACT_APP_DOMAIN }}
+          REACT_APP_GA: ${{ secrets.REACT_APP_GA }}
+          GENERATE_SOURCEMAP: ${{ secrets.GENERATE_SOURCEMAP }}
+          REACT_APP_ADSENSE: ${{ secrets.REACT_APP_ADSENSE }}
+          REACT_APP_CRISP: ${{ secrets.REACT_APP_CRISP }}
+        run: bash scripts/pre_build.sh
 
       - name: Lower case for Docker Hub
         id: dh_string
@@ -174,14 +65,22 @@ jobs:
         with:
           string: ${{ github.event.repository.full_name }}
 
-      - name: Combine two images
+      - name: Build and push docker images
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: linux/amd64, linux/arm64
+          push: true
+          tags: |
+            ${{ steps.dh_string.outputs.lowercase }}
+            ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      - name: Move cache
         run: |
-          docker manifest create ${{ steps.dh_string.outputs.lowercase }} ${{ steps.dh_string.outputs.lowercase }}:amd64 ${{ steps.dh_string.outputs.lowercase }}:arm64
-          docker manifest push ${{ steps.dh_string.outputs.lowercase }}
-          
-          docker pull ${{ steps.dh_string.outputs.lowercase }}
-          docker tag ${{ steps.dh_string.outputs.lowercase }} ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
-          docker push ghcr.io/${{ steps.ghcr_string.outputs.lowercase }}
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Notification to Telegram
         env:
