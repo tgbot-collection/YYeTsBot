@@ -72,7 +72,7 @@ def send_mail(to: str, subject: str, context: dict):
     password = os.getenv("email_password")
     host = os.getenv("email_host", "localhost")
     port = os.getenv("email_port", "1025")  # mailhog
-    from_addr = os.getenv("from_addr", "yyets@dmesg.app")
+    from_addr = os.getenv("from_addr", "hello@yyets.click")
 
     msg = MIMEText(generate_body(context), "html", "utf-8")
     msg["From"] = _format_addr("YYeTs <%s>" % from_addr)
