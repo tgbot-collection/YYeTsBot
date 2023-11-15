@@ -8,7 +8,7 @@ pymongo==4.5.0
 tornado==6.3.3
 captcha==0.5.0
 passlib==1.7.4
-fakeredis==2.19.0
+fakeredis==2.20.0
 filetype==1.2.0
 requests[socks]
 tqdm==4.66.1
@@ -19,5 +19,5 @@ openpyxl==3.1.2
 zhconv==1.4.3
 jinja2==3.1.2
 coloredlogs==15.0.1
-meilisearch==0.28.3
-pillow==10.0.1
+meilisearch==0.28.4
+pillow==10.1.0
