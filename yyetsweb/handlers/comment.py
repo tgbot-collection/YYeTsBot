@@ -25,6 +25,7 @@ class CommentHandler(BaseHandler):
         inner_size = int(self.get_argument("inner_size", "3"))
         inner_page = int(self.get_argument("inner_page", "1"))
         comment_id = self.get_argument("comment_id", None)
+        sort = self.get_argument("sort", "newest")
 
         if not resource_id:
             self.set_status(HTTPStatus.BAD_REQUEST)
@@ -33,6 +34,7 @@ class CommentHandler(BaseHandler):
             resource_id,
             page,
             size,
+            sort=sort,
             inner_size=inner_size,
             inner_page=inner_page,
             comment_id=comment_id,

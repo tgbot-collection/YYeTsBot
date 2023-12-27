@@ -84,6 +84,11 @@ class Comment(Mongo):
         self.inner_page = kwargs.get("inner_page", 1)
         self.inner_size = kwargs.get("inner_size", 5)
         comment_id = kwargs.get("comment_id")
+        sort = kwargs.get("sort")
+        if sort == "newest":
+            sort = pymongo.DESCENDING
+        else:
+            sort = pymongo.ASCENDING
 
         condition = {
             "resource_id": resource_id,
@@ -109,7 +114,7 @@ class Comment(Mongo):
             .sort("_id", pymongo.DESCENDING)
             .limit(size)
             .skip((page - 1) * size)
-        )
+        ).sort("_id", sort)
         data = list(data)
         self.find_children(data)
         self.convert_objectid(data)
