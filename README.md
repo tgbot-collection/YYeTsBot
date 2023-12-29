@@ -3,12 +3,6 @@
 [![build docker image](https://github.com/tgbot-collection/YYeTsBot/actions/workflows/docker.yaml/badge.svg)](https://github.com/tgbot-collection/YYeTsBot/actions/workflows/docker.yaml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/bennythink/yyetsbot)](https://hub.docker.com/r/bennythink/yyetsbot)
 
-* 人人影视bot，[戳我使用](https://t.me/yyets_bot)
-
-* 人人影视分享站，[戳我使用](https://yyets.click/)
-
-机器人和网站由我长期维护，如果遇到问题可以提issue。
-
 ![](assets/index.png)
 
 👉 前端[在这里](https://github.com/tgbot-collection/YYeTsFE) 👈
@@ -17,11 +11,8 @@
 
 直接发送想要看的剧集名称就可以了，可选分享网页或者链接（ed2k和磁力链接）。
 
-支持字幕侠、人人影视离线资源
 
 搜索资源时，会按照我预定的优先级（人人影视离线、字幕侠）进行搜索，当然也可以使用命令强制某个字幕组，如 `/yyets_offline 逃避可耻`
-
-**由于译名的不同，建议输入部分译名，然后从列表中进行选择。比如说想看权力的游戏第四季，那么直接搜索"权力的游戏"就可以了。**
 
 ## 命令
 
@@ -95,7 +86,7 @@ yyets_offline - 人人影视离线数据
 
 ## 在线 原生应用程序
 
-使用tauri封装的网页。内容等同于 `https://yyets.click`，只不过是原生的App。使用方法如下
+使用tauri封装的网页。使用方法如下
 
 1. 请到 [GitHub Release](https://github.com/tgbot-collection/YYeTsBot/releases) ，找最新的 `YYeTsBot App`
 2. windows下载msi，macos下载dmg或tar.gz，Linux下载AppImage或deb（Debian based）
@@ -153,16 +144,16 @@ yyets_offline - 人人影视离线数据
 * 宣传，使用，提交问题报告
 * 收藏[我的博客](https://dmesg.app/)
 * [Telegram Channel](https://t.me/mikuri520)
-* 捐助我，[给我买杯咖啡？](https://www.buymeacoffee.com/bennythink)
-* 捐助我，[爱发电？](https://afdian.net/@BennyThink)
-* 捐助我，[GitHub Sponsor](https://github.com/sponsors/BennyThink)
-* 捐助我，[Stripe](https://buy.stripe.com/dR67vU4p13Ox73a6oq)
+
+## 捐助
+
+* [给我买杯咖啡？](https://www.buymeacoffee.com/bennythink)
+* [爱发电？](https://afdian.net/@BennyThink)
+* [GitHub Sponsor](https://github.com/sponsors/BennyThink)
+* [Stripe](https://buy.stripe.com/dR67vU4p13Ox73a6oq)
 
  <img src="./assets/CNY.png" width = 30%  alt="stripe"  />
 
-# 感谢
-
-感谢所有[支持本项目](SPONSOR.md)的人！
 
 # License
 

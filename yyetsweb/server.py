@@ -192,7 +192,7 @@ if __name__ == "__main__":
      ▌   ▌  ▛▀   ▌  ▝▀▖
      ▘   ▘  ▝▀▘  ▘  ▀▀ 
                         
-     Lazarus came back from the dead. By @Bennythink
+     Lazarus came back from the dead. By @BennyThink
                 """
     print(banner)
     RunServer.run_server(port=p, host=h)

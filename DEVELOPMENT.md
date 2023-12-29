@@ -157,7 +157,7 @@ python /path/to/YYeTsBot/yyetsbot/bot.py
 
 如果无法访问Telegram，可以使用如下网址下载数据
 
-* [网站实时数据，MongoDB](https://yyets.click/data/yyets_mongo.gz)
+* [MongoDB](https://yyets.click/data/yyets_mongo.gz)
 * [MySQL](https://yyets.click/data/yyets_mysql.zip)
 * [SQLite](https://yyets.click/data/yyets_sqlite.zip)
 
