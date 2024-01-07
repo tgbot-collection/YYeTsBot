@@ -5,14 +5,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	_ "github.com/glebarez/go-sqlite"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	_ "github.com/glebarez/go-sqlite"
+	log "github.com/sirupsen/logrus"
 )
 
 const dbFile = "yyets_sqlite.db"
@@ -216,7 +217,7 @@ func downloadDB() {
 	}
 
 	log.Infoln("Downloading database file...")
-	var downloadUrl = "https://yyets.click/dump/yyets_sqlite.zip"
+	var downloadUrl = "https://pub-74e4c4d2953c4e9e9f32204e472bafed.r2.dev/yyets_sqlite.zip"
 	resp, _ := http.Get(downloadUrl)
 	file, _ := os.Create("yyets_sqlite.zip")
 	_, _ = io.Copy(file, resp.Body)
