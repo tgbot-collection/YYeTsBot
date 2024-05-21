@@ -13,7 +13,7 @@ filetype==1.2.0
 requests[socks]
 tqdm==4.66.1
 retry==0.9.2
-pymysql==1.1.0
+pymysql==1.1.1
 git+https://github.com/tgbot-collection/python-akismet
 openpyxl==3.1.2
 zhconv==1.4.3
