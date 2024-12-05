@@ -1,7 +1,0 @@
-version: '3.1'
-# link this file as docker-compose.override.yml  if you want to use replica set
-
-
-services:
-  mongo:
-    command: --quiet --replSet rs0

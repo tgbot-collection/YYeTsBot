@@ -157,7 +157,10 @@ class User(Mongo, Redis):
             valid_data["email"] = {"verified": False, "address": user_email}
             # send email confirm
             subject = "[人人影视下载分享站] 请验证你的邮箱"
-            text = f"请输入如下验证码完成你的邮箱认证。验证码有效期为24小时。<br>" f"如果您未有此请求，请忽略此邮件。<br><br>验证码： {verify_code}"
+            text = (
+                f"请输入如下验证码完成你的邮箱认证。验证码有效期为24小时。<br>"
+                f"如果您未有此请求，请忽略此邮件。<br><br>验证码： {verify_code}"
+            )
             context = {"username": username, "text": text}
             send_mail(user_email, subject, context)
             # 发送成功才设置缓存

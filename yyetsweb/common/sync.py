@@ -65,9 +65,7 @@ class BaseSync:
 class Zhuixinfan(BaseSync):
     def run(self):
         zhuixinfan = "http://www.fanxinzhui.com/rr/{}"
-        start = (self.sync.find_one({"name": "zhuixinfan"}) or {}).get(
-            "resource_id", os.getenv("ZHUIXINFAN_START", 20)
-        )
+        start = (self.sync.find_one({"name": "zhuixinfan"}) or {}).get("resource_id", os.getenv("ZHUIXINFAN_START", 20))
         end = os.getenv("ZHUIXINFAN_END", 2500)
         for i in range(start, end):
             url = zhuixinfan.format(i)
@@ -123,13 +121,9 @@ class Zhuixinfan(BaseSync):
             for item in links:
                 content = item["href"]
                 if "ed2k" in content:
-                    resource["files"].append(
-                        {"way": "1", "way_cn": "电驴", "address": content, "passwd": ""}
-                    )
+                    resource["files"].append({"way": "1", "way_cn": "电驴", "address": content, "passwd": ""})
                 elif "magnet" in content:
-                    resource["files"].append(
-                        {"way": "2", "way_cn": "磁力", "address": content, "passwd": ""}
-                    )
+                    resource["files"].append({"way": "2", "way_cn": "磁力", "address": content, "passwd": ""})
                 elif "pan.baidu" in content:
                     baidu_password = res.span.a.nextSibling.nextSibling.text
                     resource["files"].append(
@@ -141,9 +135,7 @@ class Zhuixinfan(BaseSync):
                         }
                     )
                 elif "weiyun" in content:
-                    resource["files"].append(
-                        {"way": "14", "way_cn": "微云", "address": content, "passwd": ""}
-                    )
+                    resource["files"].append({"way": "14", "way_cn": "微云", "address": content, "passwd": ""})
                 else:
                     logging.debug("Unknown link: %s", content)
 
@@ -167,9 +159,7 @@ class Zhuixinfan(BaseSync):
             )
         else:
             last_id = 90000
-            last = self.yyets.find_one(
-                {"data.info.id": {"$gte": last_id}}, sort=[("data.info.id", -1)]
-            )
+            last = self.yyets.find_one({"data.info.id": {"$gte": last_id}}, sort=[("data.info.id", -1)])
             if last:
                 last_id = last["data"]["info"]["id"] + 1
             logging.info("Inserting data.info.id: %s", last_id)
@@ -213,19 +203,13 @@ class YYSub(BaseSync):
                 structure["data"]["info"]["enname"] = data["enname"]
                 structure["data"]["info"]["aliasname"] = data["aliasname"]
                 structure["data"]["info"]["channel"] = data["channel"]
-                structure["data"]["info"]["channel_cn"] = (
-                    data["channel_cn"] or channel_cn
-                )
+                structure["data"]["info"]["channel_cn"] = data["channel_cn"] or channel_cn
                 structure["data"]["info"]["area"] = data["area"]
                 structure["data"]["list"] = []
-                structure["data"]["info"][
-                    "source"
-                ] = f"https://www.yysub.net/resource/{i}"
+                structure["data"]["info"]["source"] = f"https://www.yysub.net/resource/{i}"
                 self.insert_data(structure.copy())
 
-        self.sync.update_one(
-            {"name": "yysub"}, {"$set": {"resource_id": end}}, upsert=True
-        )
+        self.sync.update_one({"name": "yysub"}, {"$set": {"resource_id": end}}, upsert=True)
         logging.info("YYsub Finished")
 
     def insert_data(self, data):

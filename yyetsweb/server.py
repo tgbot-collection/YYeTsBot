@@ -60,6 +60,7 @@ from handlers.resources import (
     NameHandler,
     ResourceHandler,
     ResourceLatestHandler,
+    SubtitleDownloadHandler,
     TopHandler,
 )
 from handlers.user import LikeHandler, UserAvatarHandler, UserEmailHandler, UserHandler
@@ -76,6 +77,7 @@ class RunServer:
     handlers = [
         (r"/", IndexHandler),
         (r"/api/resource", ResourceHandler),
+        (r"/api/download", SubtitleDownloadHandler),
         (r"/api/resource/latest", ResourceLatestHandler),
         (r"/api/top", TopHandler),
         (r"/api/like", LikeHandler),

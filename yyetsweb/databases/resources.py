@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 # coding: utf-8
-import contextlib
 import json
 import logging
 import os
 import random
 
 import pymongo
-import requests
 import zhconv
 from tqdm import tqdm
 
@@ -43,101 +41,112 @@ class Resource(SearchEngine):
         return data
 
     def search_resource(self, keyword: str, search_type: "str") -> dict:
+        # search_type: default,subtitle,douban,comment
+        # TODO
         if os.getenv("MEILISEARCH"):
             return self.meili_search(keyword, search_type)
         else:
-            return self.mongodb_search(keyword)
+            return self.mongodb_search(keyword, search_type)
 
     def meili_search(self, keyword: "str", search_type: "str") -> dict:
-        returned = {"data": [], "comment": [], "extra": []}
+        resource_data, subtitle_data, comment_data = [], [], []
+
+        if search_type == "resource":
+            resource_data = self.search_yyets(keyword)
+
+        if search_type == "comment":
+            comment_data = hide_phone(self.search_comment(keyword))
+
+        if search_type == "subtitle":
+            subtitle_data = self.search_subtitle(keyword)
+
         if search_type == "default":
-            yyets = self.search_yyets(keyword)
-            comment = hide_phone(self.search_comment(keyword))
-            returned["data"] = yyets
-            returned["comment"] = comment
-            return returned
-        elif search_type == "douban":
-            douban = self.search_douban(keyword)
-            returned["data"] = douban
-            return returned
-        elif search_type == "fansub":
-            # TODO disable fansub for now
-            # fansub = self.search_extra(keyword)
-            # returned["extra"] = fansub
-            return returned
-        else:
-            return returned
+            resource_data = self.search_yyets(keyword)
+            subtitle_data = self.search_yyets(keyword)
+            comment_data = hide_phone(self.search_comment(keyword))
+        return {
+            "resource": resource_data,
+            "subtitle": subtitle_data,
+            "comment": comment_data,
+        }
 
-    def mongodb_search(self, keyword: str) -> dict:
-        # convert any text to zh-hans - only for traditional search with MongoDB
+    def mongodb_search(self, keyword: str, search_type: str) -> dict:
+        # search_type: default,resource,subtitle,comment default is everything
         keyword = zhconv.convert(keyword, "zh-hans")
+        resource_data, subtitle_data, comment_data = [], [], []
 
-        zimuzu_data = []
-        returned = {"data": [], "extra": [], "comment": []}
+        def search_resource():
+            data = self.db["yyets"].find(
+                {
+                    "$or": [
+                        {"data.info.cnname": {"$regex": f".*{keyword}.*", "$options": "i"}},
+                        {"data.info.enname": {"$regex": f".*{keyword}.*", "$options": "i"}},
+                        {
+                            "data.info.aliasname": {
+                                "$regex": f".*{keyword}.*",
+                                "$options": "i",
+                            }
+                        },
+                    ]
+                },
+                {"_id": False, "data.info": True},
+            )
 
-        projection = {"_id": False, "data.info": True}
+            for item in data:
+                item["data"]["info"]["origin"] = "yyets"
+                resource_data.append(item["data"]["info"])
 
-        resource_data = self.db["yyets"].find(
-            {
-                "$or": [
-                    {"data.info.cnname": {"$regex": f".*{keyword}.*", "$options": "i"}},
-                    {"data.info.enname": {"$regex": f".*{keyword}.*", "$options": "i"}},
-                    {
-                        "data.info.aliasname": {
-                            "$regex": f".*{keyword}.*",
-                            "$options": "i",
+        def search_subtitle():
+            subdata = self.db["subtitle"].find(
+                {
+                    "$or": [
+                        {"cnname": {"$regex": f".*{keyword}.*", "$options": "i"}},
+                        {"enname": {"$regex": f".*{keyword}.*", "$options": "i"}},
+                    ]
+                },
+                {"_id": False},
+            )
+            subtitle_data.extend(list(subdata))
+
+        def search_comment():
+            comments = CommentSearch().get_comment(1, 2**10, keyword)
+            hide_phone(comments.get("data", []))
+            for c in comments.get("data", []):
+                comment_rid = c["resource_id"]
+                res = self.db["yyets"].find_one({"data.info.id": comment_rid}, projection={"data.info": True})
+                if res:
+                    comment_data.append(
+                        {
+                            "username": c["username"],
+                            "date": c["date"],
+                            "comment": c["content"],
+                            "commentID": c["id"],
+                            "resourceID": comment_rid,
+                            "resourceName": res["data"]["info"]["cnname"],
+                            "origin": "comment",
+                            "hasAvatar": c["hasAvatar"],
+                            "hash": c.get("hash"),
                         }
-                    },
-                ]
-            },
-            projection,
-        )
+                    )
 
-        for item in resource_data:
-            item["data"]["info"]["origin"] = "yyets"
-            zimuzu_data.append(item["data"]["info"])
+        if search_type == "resource":
+            search_resource()
 
-        # get comment
-        c_search = []
-        comments = CommentSearch().get_comment(1, 2**10, keyword)
-        hide_phone(comments.get("data", []))
-        for c in comments.get("data", []):
-            comment_rid = c["resource_id"]
-            res = self.db["yyets"].find_one({"data.info.id": comment_rid}, projection={"data.info": True})
-            if res:
-                c_search.append(
-                    {
-                        "username": c["username"],
-                        "date": c["date"],
-                        "comment": c["content"],
-                        "commentID": c["id"],
-                        "resourceID": comment_rid,
-                        "resourceName": res["data"]["info"]["cnname"],
-                        "origin": "comment",
-                        "hasAvatar": c["hasAvatar"],
-                        "hash": c.get("hash"),
-                    }
-                )
-        # zimuzu -> comment -> extra
-        if zimuzu_data:
-            returned["data"] = zimuzu_data
-        elif not c_search:
-            # only returned when no data found
-            returned["extra"] = self.search_extra(keyword)
-        # comment data will always be returned
-        returned["comment"] = c_search
-        return returned
+        if search_type == "comment":
+            search_comment()
 
-    def search_extra(self, keyword: "str") -> list:
-        order = os.getenv("ORDER", "YYeTsOffline,ZimuxiaOnline,NewzmzOnline,ZhuixinfanOnline").split(",")
-        order.pop(0)
-        extra = []
-        with contextlib.suppress(requests.exceptions.RequestException):
-            for name in order:
-                extra = self.fansub_search(name, keyword)
-                if extra:
-                    break
-        return extra
+        if search_type == "subtitle":
+            search_subtitle()
+        if search_type == "default":
+            search_resource()
+            search_comment()
+            search_subtitle()
+
+        return {
+            "resource": resource_data,
+            "subtitle": subtitle_data,
+            "comment": comment_data,
+        }
 
     def patch_resource(self, new_data: dict):
         rid = new_data["resource_id"]

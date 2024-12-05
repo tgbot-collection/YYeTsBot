@@ -1,17 +1,35 @@
 #!/usr/bin/env python3
 # coding: utf-8
 import os
-import platform
 from http import HTTPStatus
 from pathlib import Path
 
 from tornado import gen
 from tornado.concurrent import run_on_executor
 
-from handlers import cf
 from handlers.base import BaseHandler
 
 filename = Path(__file__).name.split(".")[0]
+
+
+class SubtitleDownloadHandler(BaseHandler):
+    @run_on_executor()
+    def find_and_download(self):
+        file = self.json.get("file")
+        self.set_header("x-filename", Path(file).name)
+        p = Path(__file__).parent.parent.joinpath("subtitle_data", file)
+        self.set_header("Content-Type", "application/bin")
+        try:
+            data = p.read_bytes()
+            return data
+        except FileNotFoundError:
+            self.set_status(HTTPStatus.NOT_FOUND)
+            return b""
+
+    @gen.coroutine
+    def post(self):
+        resp = yield self.find_and_download()
+        self.write(resp)
 
 
 class ResourceHandler(BaseHandler):
@@ -22,9 +40,6 @@ class ResourceHandler(BaseHandler):
         query = self.get_query_argument("id", None)
         resource_id = int(query) if query.isdigit() else 0
         username = self.get_current_user()
-        if str(resource_id) in os.getenv("HIDDEN_RESOURCE", "").split(","):
-            self.set_status(HTTPStatus.NOT_FOUND)
-            return {"status": 0, "info": "资源已隐藏"}
         data = self.instance.get_resource_data(resource_id, username)
         if not data:
             self.ban()
@@ -33,24 +48,8 @@ class ResourceHandler(BaseHandler):
 
         return data
 
-    def make_some_fun(self):
-        if platform.uname().system == "Darwin":
-            return
-        referer = self.request.headers.get("referer")
-        ip = self.get_real_ip()
-        if not referer and self.request.headers.get("origin") != "tauri://localhost":
-            cf.ban_new_ip(ip)
-            if os.getenv("GIFT"):
-                self.set_header("Content-Type", "text/html")
-                self.set_header("Content-Encoding", "gzip")
-                with open("templates/gift.gz", "rb") as f:
-                    return f.read()
-
     @run_on_executor()
     def search_resource(self):
-        if gift := self.make_some_fun():
-            return gift
-
         kw = self.get_query_argument("keyword").lower()
         search_type = self.get_query_argument("type", "default")
         self.set_header("search-engine", "Meilisearch" if os.getenv("MEILISEARCH") else "MongoDB")

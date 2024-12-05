@@ -25,6 +25,8 @@ services:
       - MEILI_HTTP_PAYLOAD_SIZE_LIMIT=1073741824 #1GiB
     volumes:
       - meilisearch_data:/meili_data
+    ports:
+      - "127.0.0.1:7700:7700"
 
   mysql:
     image: ubuntu/mysql:8.0-22.04_beta
@@ -35,27 +37,11 @@ services:
       driver: none
     command: "--skip-log-bin --default-authentication-plugin=mysql_native_password"
 
-  socat:
-    image: bennythink/socat
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    entrypoint: [ "socat", "tcp-listen:2375,fork,reuseaddr","unix-connect:/var/run/docker.sock" ]
-    logging:
-      driver: none
-
-  mailhog:
-    image: cd2team/mailhog
-    restart: unless-stopped
-    logging:
-      driver: none
-
   bot:
     image: bennythink/yyetsbot
     depends_on:
       - redis
       - mongo
-      - socat
     restart: always
     env_file:
       - env/yyets.env
@@ -70,6 +56,8 @@ services:
       - redis
       - mysql
     working_dir: /YYeTsBot/yyetsweb/
+    volumes:
+      - ./subtitle_data:/YYeTsBot/yyetsweb/subtitle_data
     command: [ "python3","server.py","-h=0.0.0.0" ]
     ports:
       - "127.0.0.1:8888:8888"
