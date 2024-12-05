@@ -8,3 +8,4 @@ assets/*
 conf/*
 tests/*
 yyetsweb/yyets.sqlite
+yyetsweb/subtitle_data
