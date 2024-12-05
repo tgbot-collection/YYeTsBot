@@ -62,7 +62,7 @@ class Resource(SearchEngine):
 
         if search_type == "default":
             resource_data = self.search_yyets(keyword)
-            subtitle_data = self.search_yyets(keyword)
+            subtitle_data = self.search_subtitle(keyword)
             comment_data = hide_phone(self.search_comment(keyword))
         return {
             "resource": resource_data,
