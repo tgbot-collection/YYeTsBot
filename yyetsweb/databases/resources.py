@@ -47,7 +47,6 @@ class Resource(SearchEngine):
 
     def search_resource(self, keyword: str, search_type: "str") -> dict:
         # search_type: default,subtitle,douban,comment
-        # TODO
         if os.getenv("MEILISEARCH"):
             return self.meili_search(keyword, search_type)
         else:
@@ -63,7 +62,18 @@ class Resource(SearchEngine):
             comment_data = hide_phone(self.search_comment(keyword))
 
         if search_type == "subtitle":
-            subtitle_data = self.search_subtitle(keyword)
+            # TODO: just get data from mongodb for now.
+            subtitle_data = list(
+                self.db["subtitle"].find(
+                    {
+                        "$or": [
+                            {"cnname": {"$regex": f".*{keyword}.*", "$options": "i"}},
+                            {"enname": {"$regex": f".*{keyword}.*", "$options": "i"}},
+                        ]
+                    },
+                    {"_id": False},
+                )
+            )
 
         if search_type == "default":
             resource_data = self.search_yyets(keyword)
