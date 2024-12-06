@@ -13,14 +13,18 @@ filename = Path(__file__).name.split(".")[0]
 
 
 class SubtitleDownloadHandler(BaseHandler):
+    filename = filename
+
     @run_on_executor()
     def find_and_download(self):
         file = self.json.get("file")
+        _id = self.json.get("id")
         self.set_header("x-filename", Path(file).name)
         p = Path(__file__).parent.parent.joinpath("subtitle_data", file)
         self.set_header("Content-Type", "application/bin")
         try:
             data = p.read_bytes()
+            self.instance.add_download(_id)
             return data
         except FileNotFoundError:
             self.set_status(HTTPStatus.NOT_FOUND)

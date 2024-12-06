@@ -16,9 +16,12 @@ class GrafanaQuery(Mongo):
 
 
 class Metrics(Mongo):
-    def set_metrics(self, metrics_type: str):
+    def set_metrics(self, metrics_type: str, data: str):
         today = time.strftime("%Y-%m-%d", time.localtime())
-        self.db["metrics"].update_one({"date": today}, {"$inc": {metrics_type: 1}}, upsert=True)
+        if metrics_type == "viewSubtitle":
+            self.db["subtitle"].find_one_and_update({"id": data}, {"$inc": {"views": 1}})
+        else:
+            self.db["metrics"].update_one({"date": today}, {"$inc": {metrics_type: 1}}, upsert=True)
 
     def get_metrics(self, from_date: str, to_date: str) -> dict:
         start_int = [int(i) for i in from_date.split("-")]

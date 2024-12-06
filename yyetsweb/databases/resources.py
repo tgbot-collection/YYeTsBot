@@ -14,6 +14,11 @@ from databases.base import Mongo, Redis, SearchEngine
 from databases.comment import CommentSearch
 
 
+class SubtitleDownload(Mongo):
+    def add_download(self, _id):
+        self.db["subtitle"].find_one_and_update({"id": _id}, {"$inc": {"downloads": 1}})
+
+
 class Resource(SearchEngine):
     def fansub_search(self, class_name: str, kw: str):
         class_ = globals().get(class_name)
@@ -79,8 +84,18 @@ class Resource(SearchEngine):
             data = self.db["yyets"].find(
                 {
                     "$or": [
-                        {"data.info.cnname": {"$regex": f".*{keyword}.*", "$options": "i"}},
-                        {"data.info.enname": {"$regex": f".*{keyword}.*", "$options": "i"}},
+                        {
+                            "data.info.cnname": {
+                                "$regex": f".*{keyword}.*",
+                                "$options": "i",
+                            }
+                        },
+                        {
+                            "data.info.enname": {
+                                "$regex": f".*{keyword}.*",
+                                "$options": "i",
+                            }
+                        },
                         {
                             "data.info.aliasname": {
                                 "$regex": f".*{keyword}.*",
