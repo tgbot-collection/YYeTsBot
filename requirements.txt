@@ -1,6 +1,6 @@
 requests==2.32.3
 pytelegrambotapi==4.26.0
-beautifulsoup4==4.13.3
+beautifulsoup4==4.13.4
 tgbot-ping==1.0.7
 redis==5.2.1
 apscheduler==3.11.0
