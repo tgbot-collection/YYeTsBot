@@ -1,8 +1,8 @@
 requests==2.32.3
 pytelegrambotapi==4.27.0
-beautifulsoup4==4.13.3
+beautifulsoup4==4.13.4
 tgbot-ping==1.0.7
-redis==5.2.1
+redis==6.1.0
 apscheduler==3.11.0
 pymongo==4.12.1
 tornado==6.4.2
