@@ -1,10 +1,10 @@
 requests==2.32.5
 pytelegrambotapi==4.29.1
-beautifulsoup4==4.14.0
+beautifulsoup4==4.14.2
 tgbot-ping==1.0.7
 redis==6.4.0
 apscheduler==3.11.0
-pymongo==4.15.1
+pymongo==4.15.2
 tornado==6.5.2
 captcha==0.7.1
 passlib==1.7.4
