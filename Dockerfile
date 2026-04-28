@@ -13,7 +13,7 @@ RUN apk update && apk add --no-cache libressl jpeg-dev openjpeg-dev libimagequan
 
 FROM alpine AS nodebuilder
 RUN apk add curl jq
-RUN wget $(curl -s https://api.github.com/repos/tgbot-collection/YYeTsFE/releases/tags/ads-2025-03-27 | jq -r '.assets[] | select(.name == "build.zip") | .browser_download_url')
+RUN wget $(curl -s https://api.github.com/repos/tgbot-collection/YYeTsFE/releases/tags/ads-2026-04-28 | jq -r '.assets[] | select(.name == "build.zip") | .browser_download_url')
 RUN unzip build.zip && rm build.zip
 
 FROM runner
