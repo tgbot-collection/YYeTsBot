@@ -164,16 +164,13 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler(timezone=timez)
     scheduler.add_job(Other().reset_top, trigger=CronTrigger.from_crontab("0 0 1 * *"))
     scheduler.add_job(sync_douban, trigger=CronTrigger.from_crontab("1 1 1 * *"))
-    scheduler.add_job(entry_dump, trigger=CronTrigger.from_crontab("2 2 1 * *"))
+    # scheduler.add_job(entry_dump, trigger=CronTrigger.from_crontab("2 2 1 * *"))
     scheduler.add_job(Other().import_ban_user, "interval", seconds=300)
     scheduler.add_job(Other().fill_user_hash, "interval", seconds=60)
     scheduler.add_job(Cloudflare().clear_fw, trigger=CronTrigger.from_crontab("0 0 */3 * *"))
     scheduler.add_job(YYSub().run, trigger=CronTrigger.from_crontab("0 1 * * *"))
-
     scheduler.start()
-    logging.info("Dumping database and ingesting data for Meilisearh...")
-    if not os.getenv("PYTHON_DEV"):
-        threading.Thread(target=entry_dump).start()
+    logging.info("ingesting data for Meilisearh...")
     # meilisearch tasks
     if os.getenv("MEILISEARCH"):
         logging.info("%s Searching with Meilisearch. %s", "#" * 10, "#" * 10)
