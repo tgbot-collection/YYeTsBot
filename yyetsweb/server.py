@@ -22,6 +22,7 @@ from tornado.log import enable_pretty_logging
 from common.dump_db import entry_dump
 from common.sync import YYSub, sync_douban
 from common.utils import Cloudflare, setup_logger
+from common.comments_check import comment_check
 from databases.base import SearchEngine
 from databases.other import Other
 from handlers.base import IndexHandler, NotFoundHandler
@@ -110,8 +111,7 @@ class RunServer:
         (r"/auth/microsoft", MSOAuth2LoginHandler),
         (r"/auth/facebook", FacebookAuth2LoginHandler),
         (
-            r"/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|"
-            r".*\.svg|.*\.json|.*\.txt)",
+            r"/(.*\.html|.*\.js|.*\.css|.*\.png|.*\.jpg|.*\.ico|.*\.gif|.*\.woff2|.*\.gz|.*\.zip|" r".*\.svg|.*\.json|.*\.txt)",
             web.StaticFileHandler,
             {"path": static_path},
         ),
@@ -169,6 +169,7 @@ if __name__ == "__main__":
     scheduler.add_job(Other().fill_user_hash, "interval", seconds=60)
     scheduler.add_job(Cloudflare().clear_fw, trigger=CronTrigger.from_crontab("0 0 */3 * *"))
     scheduler.add_job(YYSub().run, trigger=CronTrigger.from_crontab("0 1 * * *"))
+    scheduler.add_job(comment_check, trigger=CronTrigger.from_crontab("0 1 * * *"))
     scheduler.start()
     logging.info("ingesting data for Meilisearh...")
     # meilisearch tasks
