@@ -30,6 +30,7 @@ class OAuthRegister(Mongo):
                     "source": source,
                     "uid": uid,
                     "hash": sha256(username.encode("u8")).hexdigest(),
+                    "email": {"verified": True, "address": username},
                 }
             )
             return {

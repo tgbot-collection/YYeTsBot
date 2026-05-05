@@ -25,9 +25,6 @@ class Mongo:
         if r:
             return r["status"]["reason"]
 
-    def is_old_user(self, username: str) -> bool:
-        return bool(self.db["users"].find_one({"username": username, "oldUser": True}))
-
 
 class Redis:
     def __init__(self):
