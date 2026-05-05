@@ -84,6 +84,15 @@ class CommentHandler(BaseHandler):
             self.set_status(HTTPStatus.UNAUTHORIZED)
             return {"count": 0, "message": "You're unauthorized to delete comment."}
 
+    @run_on_executor()
+    def invalid_comment(self):
+        payload = self.json
+        comment_id = payload["id"]
+        real_ip = self.get_real_ip()
+        username = self.get_current_user()
+        browser = self.request.headers["user-agent"]
+        return self.instance.report_invalid_comment(username, comment_id, real_ip, browser)
+
     @gen.coroutine
     def get(self):
         resp = yield self.get_comment()
@@ -99,6 +108,11 @@ class CommentHandler(BaseHandler):
     @web.authenticated
     def delete(self):
         resp = yield self.delete_comment()
+        self.write(resp)
+
+    @gen.coroutine
+    def patch(self):
+        resp = yield self.invalid_comment()
         self.write(resp)
 
 

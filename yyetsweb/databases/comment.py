@@ -73,9 +73,7 @@ class Comment(Mongo):
         for comment in data:
             cid = comment.get("id") or comment.get("_id")
             cid = str(cid)
-            reactions = (
-                self.db["reactions"].find_one({"comment_id": cid}, projection={"_id": False, "comment_id": False}) or {}
-            )
+            reactions = self.db["reactions"].find_one({"comment_id": cid}, projection={"_id": False, "comment_id": False}) or {}
             for verb, users in reactions.items():
                 if users:
                     comment.setdefault("reactions", []).append({"verb": verb, "users": users})
@@ -109,11 +107,7 @@ class Comment(Mongo):
 
         count = self.db["comment"].count_documents(condition)
         data = (
-            self.db["comment"]
-            .find(condition, self.projection)
-            .sort("_id", pymongo.DESCENDING)
-            .limit(size)
-            .skip((page - 1) * size)
+            self.db["comment"].find(condition, self.projection).sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
         ).sort("_id", sort)
         data = list(data)
         self.find_children(data)
@@ -277,6 +271,41 @@ class Comment(Mongo):
 
         return returned
 
+    def report_invalid_comment(self, username, comment_id, real_ip, browser):
+        col = self.db["comment"]
+        # 先查一下，看看这个 IP 有没有报过
+        doc = col.find_one({"_id": ObjectId(comment_id)}, {"report": 1, "invalid": 1})
+        if not doc:
+            return {"success": False, "msg": "comment not found"}
+
+        reports = doc.get("report", [])
+
+        # 👉 防刷：同一个 IP 只能报一次
+        for r in reports:
+            if r.get("ip") == real_ip:
+                return {"success": False, "msg": "already reported"}
+
+        new_report = {
+            "username": username,
+            "ip": real_ip,
+            "browser": browser,
+            "date": ts_date(),
+        }
+
+        # push report
+        col.update_one({"_id": ObjectId(comment_id)}, {"$push": {"report": new_report}})
+
+        # 👉 再查一遍数量（或者你也可以用 $size 但简单点就好）
+        updated = col.find_one({"_id": ObjectId(comment_id)}, {"report": 1, "invalid": 1})
+        report_count = len(updated.get("report", []))
+
+        # 👉 阈值：>=5 标记为 invalid
+        threshold = 5
+        if report_count >= threshold and not updated.get("invalid", False):
+            col.update_one({"_id": ObjectId(comment_id)}, {"$set": {"invalid": True}})
+
+        return {"success": True, "report_count": report_count, "invalid": report_count >= threshold}
+
 
 class CommentReaction(Mongo):
     def react_comment(self, username, data):
@@ -317,13 +346,7 @@ class CommentChild(Comment, Mongo):
         }
 
         count = self.db["comment"].count_documents(condition)
-        data = (
-            self.db["comment"]
-            .find(condition, self.projection)
-            .sort("_id", pymongo.DESCENDING)
-            .limit(size)
-            .skip((page - 1) * size)
-        )
+        data = self.db["comment"].find(condition, self.projection).sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
         data = list(data)
         self.convert_objectid(data)
         self.get_user_group(data)
@@ -344,13 +367,7 @@ class CommentNewest(Comment, Mongo):
     def get_comment(self, page: int, size: int, keyword="") -> dict:
         # ID，时间，用户名，用户组，资源名，资源id
         count = self.db["comment"].count_documents(self.condition)
-        data = (
-            self.db["comment"]
-            .find(self.condition, self.projection)
-            .sort("_id", pymongo.DESCENDING)
-            .limit(size)
-            .skip((page - 1) * size)
-        )
+        data = self.db["comment"].find(self.condition, self.projection).sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
         data = list(data)
         self.convert_objectid(data)
         self.get_user_group(data)
@@ -373,11 +390,7 @@ class CommentSearch(CommentNewest):
         self.projection.pop("children")
         self.condition.update(content={"$regex": f".*{keyword}.*", "$options": "i"})
         data = list(
-            self.db["comment"]
-            .find(self.condition, self.projection)
-            .sort("_id", pymongo.DESCENDING)
-            .limit(size)
-            .skip((page - 1) * size)
+            self.db["comment"].find(self.condition, self.projection).sort("_id", pymongo.DESCENDING).limit(size).skip((page - 1) * size)
         )
         self.convert_objectid(data)
         self.get_user_group(data)
@@ -393,9 +406,7 @@ class CommentSearch(CommentNewest):
     def fill_children(self, data):
         for item in data:
             child_id: "list" = item.get("children", [])
-            children = list(
-                self.db["comment"].find({"_id": {"$in": child_id}}, self.projection).sort("_id", pymongo.DESCENDING)
-            )
+            children = list(self.db["comment"].find({"_id": {"$in": child_id}}, self.projection).sort("_id", pymongo.DESCENDING))
             self.convert_objectid(children)
             self.get_user_group(children)
             self.extra_info(children)
@@ -437,9 +448,7 @@ class Notification(Mongo):
 
     def get_content(self, id_list):
         comments = (
-            self.db["comment"]
-            .find({"_id": {"$in": id_list}}, projection={"ip": False, "parent_id": False})
-            .sort("_id", pymongo.DESCENDING)
+            self.db["comment"].find({"_id": {"$in": id_list}}, projection={"ip": False, "parent_id": False}).sort("_id", pymongo.DESCENDING)
         )
         comments = list(comments)
         for comment in comments:
