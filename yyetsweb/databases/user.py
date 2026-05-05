@@ -8,6 +8,7 @@ from http import HTTPStatus
 
 import filetype
 import pymongo
+import redis
 import requests
 from passlib.handlers.pbkdf2 import pbkdf2_sha256
 
@@ -20,11 +21,7 @@ class Like(Mongo):
 
     def get_user_like(self, username: str) -> list:
         like_list = self.db["users"].find_one({"username": username}).get("like", [])
-        data = (
-            self.db["yyets"]
-            .find({"data.info.id": {"$in": like_list}}, self.projection)
-            .sort("data.info.views", pymongo.DESCENDING)
-        )
+        data = self.db["yyets"].find({"data.info.id": {"$in": like_list}}, self.projection).sort("data.info.views", pymongo.DESCENDING)
         return list(data)
 
     def add_remove_fav(self, resource_id: int, username: str) -> dict:

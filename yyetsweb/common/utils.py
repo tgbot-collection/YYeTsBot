@@ -79,11 +79,15 @@ def send_mail(to: str, subject: str, context: dict):
     msg["To"] = _format_addr(to)
     msg["Subject"] = Header(subject, "utf-8").encode()
 
-    logging.info("logging to mail server...")
-    if port == "1025":
-        server = smtplib.SMTP(host, int(port))
-    else:
+    if port == "465":
         server = smtplib.SMTP_SSL(host, int(port))
+    elif port == "587":
+        server = smtplib.SMTP(host, int(port))
+        server.ehlo()
+        server.starttls()
+        server.ehlo()
+    else:
+        server = smtplib.SMTP(host, int(port))
     server.login(user, password)
     logging.info("sending email to %s", to)
     server.sendmail(from_addr, [to], msg.as_string())
@@ -118,9 +122,7 @@ class Cloudflare(Redis):
     def __init__(self):
         self.account_id = "e8d3ba82fe9e9a41cceb0047c2a2ab4f"
         self.item_id = "3740654e0b104053b3e5d0a71fe87b33"
-        self.endpoint = "https://api.cloudflare.com/client/v4/accounts/{}/rules/lists/{}/items".format(
-            self.account_id, self.item_id
-        )
+        self.endpoint = "https://api.cloudflare.com/client/v4/accounts/{}/rules/lists/{}/items".format(self.account_id, self.item_id)
         self.session = requests.Session()
         self.session.headers.update({"Authorization": "Bearer %s" % os.getenv("CF_TOKEN")})
         super().__init__()
