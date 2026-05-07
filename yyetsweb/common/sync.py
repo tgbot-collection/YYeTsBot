@@ -12,6 +12,7 @@ import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
+from common.utils import ts_date
 from databases.base import Mongo
 from databases.douban import Douban
 
@@ -53,7 +54,7 @@ class BaseSync:
         self.session = requests.Session()
         self.session.headers.update(
             {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36"
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
             }
         )
 
@@ -218,17 +219,25 @@ class YYSub(BaseSync):
 
 
 def sync_douban():
+    MAX_FAILS = 3
     douban = Douban()
-    session = requests.Session()
-    ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4280.88 Safari/537.36"
-    session.headers.update({"User-Agent": ua})
 
+    failed_ids = douban.db["douban_failed"].distinct("resourceId", {"fail_count": {"$gte": MAX_FAILS}})
     yyets_data = douban.db["yyets"].aggregate(
         [
+            {
+                "$match": {
+                    "data.info.id": {
+                        "$ne": 233,
+                        "$nin": failed_ids,
+                    }
+                }
+            },
             {"$group": {"_id": None, "ids": {"$push": "$data.info.id"}}},
             {"$project": {"_id": 0, "ids": 1}},
         ]
     )
+
     douban_data = douban.db["douban"].aggregate(
         [
             {"$group": {"_id": None, "ids": {"$push": "$resourceId"}}},
@@ -239,19 +248,28 @@ def sync_douban():
     id1 = next(yyets_data)["ids"]
     id2 = next(douban_data)["ids"]
     rids = list(set(id1).difference(id2))
-    rids.remove(233)
     logging.info("resource id complete %d", len(rids))
+    # rids = [33439, 26421]
     for rid in tqdm(rids):
-        with contextlib.suppress(Exception):
+        try:
             d = douban.find_douban(rid)
             logging.info("Processed %s, length %d", rid, len(d))
+            # 成功后清掉失败记录，防止以前失败过后来成功了
+            douban.db["douban_failed"].delete_one({"resourceId": rid})
+
+        except Exception:
+            logging.exception("Failed to process %s", rid)
+            douban.db["douban_failed"].update_one(
+                {"resourceId": rid},
+                {
+                    "$inc": {"fail_count": 1},
+                    "$set": {"last_failed_at": ts_date()},
+                },
+                upsert=True,
+            )
 
     logging.info("ALL FINISH!")
 
 
 if __name__ == "__main__":
-    a = Zhuixinfan()
-    # a.build_data(open("1.html").read(), "https://www.zhuixinfan.com/resource/1.html")
-    a.run()
-    # b = YYSub()
-    # b.run()
+    sync_douban()
