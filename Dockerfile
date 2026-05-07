@@ -24,6 +24,7 @@ COPY --from=pybuilder /root/.local /usr/local
 COPY --from=pybuilder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=pybuilder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=nodebuilder /build /YYeTsBot/yyetsweb/templates/
+RUN playwright install --with-deps chromium
 
 ENV TZ=Asia/Shanghai
 WORKDIR /YYeTsBot/yyetsbot

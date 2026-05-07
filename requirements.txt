@@ -1,11 +1,11 @@
-requests==2.32.5
+requests==2.33.1
 pytelegrambotapi==4.29.1
 beautifulsoup4==4.14.0
 tgbot-ping==1.0.7
 redis==6.4.0
 apscheduler==3.11.0
 pymongo==4.15.1
-tornado==6.5.2
+tornado==6.5.5
 captcha==0.7.1
 passlib==1.7.4
 fakeredis==2.31.3
@@ -22,3 +22,4 @@ coloredlogs==15.0.1
 meilisearch==0.33.0
 pillow==11.3.0
 pytz==2025.2
+playwright==1.59.0
