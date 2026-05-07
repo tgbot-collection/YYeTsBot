@@ -132,7 +132,7 @@ class Comment(Mongo):
         user_data = self.db["users"].find_one({"username": username})
         # old user is allowed to comment without verification
         # admin can comment
-        if "admin" in user_data.get("group") or user_data.get("email", {}).get("verified") is True:
+        if "admin" in user_data.get("group", []) or user_data.get("email", {}).get("verified") is True:
             logging.info("%s is allowed to leave comment", username)
         else:
             return {
