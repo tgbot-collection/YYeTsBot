@@ -13,9 +13,19 @@ from retry import retry
 from databases import DOUBAN_DETAIL, DOUBAN_SEARCH
 from databases.base import Mongo
 from databases.other import Captcha
+from playwright.sync_api import sync_playwright
 
 
 class Douban(Mongo):
+    def __init__(self):
+
+        super().__init__()
+
+        s = requests.Session()
+        ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+        s.headers.update({"User-Agent": ua})
+        self.session = s
+
     def get_douban_data(self, rid: int) -> dict:
         with contextlib.suppress(Exception):
             return self.find_douban(rid)
@@ -25,11 +35,8 @@ class Douban(Mongo):
         db_data = self.get_douban_data(rid)
         return db_data["posterData"]
 
-    @retry(IndexError, tries=3, delay=5)
+    @retry(IndexError, tries=2, delay=5)
     def find_douban(self, resource_id: int):
-        session = requests.Session()
-        ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
-        session.headers.update({"User-Agent": ua})
 
         douban_col = self.db["douban"]
         yyets_col = self.db["yyets"]
@@ -49,23 +56,41 @@ class Douban(Mongo):
             return {}
         cname = names["data"]["info"]["cnname"]
         logging.info("cnname for douban is %s", cname)
-
-        search_html = session.get(DOUBAN_SEARCH.format(cname)).text
+        search_html = self.session.get(DOUBAN_SEARCH.format(cname)).text
         logging.info("Analysis search html...length %s", len(search_html))
         soup = BeautifulSoup(search_html, "html.parser")
         douban_item = soup.find_all("div", class_="content")
 
         fwd_link = unquote(douban_item[0].a["href"])
         douban_id = re.findall(r"https://movie\.douban\.com/subject/(\d*)/.*", fwd_link)[0]
-        final_data = self.get_craw_data(cname, douban_id, resource_id, search_html, session)
+        final_data = self.get_craw_data(cname, douban_id, resource_id, search_html)
         douban_col.insert_one(final_data.copy())
         final_data.pop("raw")
         return final_data
 
     @staticmethod
-    def get_craw_data(cname, douban_id, resource_id, search_html, session):
+    def get_html_playright(url):
+
+        with sync_playwright() as p:
+            browser = p.chromium.launch(
+                headless=True,
+                args=[
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                ],
+            )
+
+            page = browser.new_page()
+            page.goto(url, wait_until="networkidle", timeout=60_000)
+            page.wait_for_timeout(10_000)
+            html = page.content()
+            browser.close()
+            return html
+
+    def get_craw_data(self, cname, douban_id, resource_id, search_html):
         detail_link = DOUBAN_DETAIL.format(douban_id)
-        detail_html = session.get(detail_link).text
+        # TODO 豆瓣增加了安全检查，可能得用selenium了
+        detail_html = self.get_html_playright(detail_link)
         logging.info("Analysis detail html...%s", detail_link)
         soup = BeautifulSoup(detail_html, "html.parser")
 
@@ -94,6 +119,10 @@ class Douban(Mongo):
         with contextlib.suppress(IndexError):
             intro = re.sub(r"\s", "", soup.find_all("span", property="v:summary")[0].text)
 
+        with contextlib.suppress(Exception):
+            self.session.headers.update({"Referer": detail_link})
+            poster = self.session.get(poster_image_link).content
+
         final_data = {
             "name": cname,
             "raw": {
@@ -105,7 +134,7 @@ class Douban(Mongo):
             "doubanId": int(douban_id),
             "doubanLink": detail_link,
             "posterLink": poster_image_link,
-            "posterData": session.get(poster_image_link).content,
+            "posterData": poster,
             "resourceId": resource_id,
             "rating": rating,
             "actors": actors,

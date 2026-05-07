@@ -27,7 +27,7 @@ douban_id = args.douban_id
 
 douban = Douban()
 session = requests.Session()
-ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
 session.headers.update({"User-Agent": ua})
 
 yyets_data = douban.db["yyets"].find_one({"data.info.id": resource_id})
