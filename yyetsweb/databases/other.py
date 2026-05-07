@@ -84,9 +84,7 @@ class Category(Mongo):
         f = []
         for item in data:
             if douban:
-                douban_data = self.db["douban"].find_one(
-                    {"resourceId": item["data"]["info"]["id"]}, projection=projection
-                )
+                douban_data = self.db["douban"].find_one({"resourceId": item["data"]["info"]["id"]}, projection=projection)
                 if douban_data:
                     douban_data["posterData"] = base64.b64encode(douban_data["posterData"]).decode("u8")
                     item["data"]["info"]["douban"] = douban_data
@@ -141,14 +139,15 @@ class Other(Mongo, Redis):
     def reset_top(self):
         # before resetting, save top data to history
         json_data = requests.get("http://127.0.0.1:8888/api/top").json()
-        last_month = time.strftime("%Y-%m", time.localtime(time.time() - 3600 * 24))
-        json_data["date"] = last_month
+        period = time.strftime("%Y-%m-%d", time.localtime(time.time() - 3600 * 24))
+        json_data["date"] = period
+        json_data["period"] = "weekly"
         json_data["type"] = "top"
         self.db["history"].insert_one(json_data)
         # save all the views data to history
         projection = {"_id": False, "data.info.views": True, "data.info.id": True}
         data = self.db["yyets"].find({}, projection).sort("data.info.views", pymongo.DESCENDING)
-        result = {"date": last_month, "type": "detail"}
+        result = {"date": period, "type": "detail"}
         for datum in data:
             rid = str(datum["data"]["info"]["id"])
             views = datum["data"]["info"]["views"]

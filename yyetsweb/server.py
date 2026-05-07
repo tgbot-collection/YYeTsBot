@@ -162,7 +162,7 @@ class RunServer:
 if __name__ == "__main__":
     timez = ZoneInfo("Asia/Shanghai")
     scheduler = BackgroundScheduler(timezone=timez)
-    scheduler.add_job(Other().reset_top, trigger=CronTrigger.from_crontab("0 0 1 * *"))
+    scheduler.add_job(Other().reset_top, trigger=CronTrigger.from_crontab("0 0 * * 1"))
     scheduler.add_job(sync_douban, trigger=CronTrigger.from_crontab("1 1 1 * *"))
     # scheduler.add_job(entry_dump, trigger=CronTrigger.from_crontab("2 2 1 * *"))
     scheduler.add_job(Other().import_ban_user, "interval", seconds=300)
