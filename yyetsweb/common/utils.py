@@ -127,7 +127,7 @@ class Cloudflare(Redis):
         self.session.headers.update({"Authorization": "Bearer %s" % os.getenv("CF_TOKEN")})
         super().__init__()
 
-    def get_old_ips(self) -> dict:
+    def get_old_ips(self) -> list:
         cache = self.r.get(self.key)
         if cache:
             cache = json.loads(cache)
@@ -137,7 +137,7 @@ class Cloudflare(Redis):
             return cache
         else:
             data = self.session.get(self.endpoint).json()
-            result = data.get("result", [])
+            result = data.get("result") or []
             cursor = data.get("result_info", {}).get("cursors", {}).get("after")
             while cursor:
                 logging.info("Fetching next page with cursor %s", cursor)
@@ -148,6 +148,8 @@ class Cloudflare(Redis):
             return result
 
     def ban_new_ip(self, ip):
+        # disable it
+        return
         if ":" in ip:
             ip = ip.rsplit(":", 4)[0] + "::/64"
         old_ips = [d["ip"] for d in self.get_old_ips()]
