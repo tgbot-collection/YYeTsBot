@@ -14,6 +14,7 @@ import sys
 import requests
 
 lib_path = pathlib.Path(__file__).parent.parent.resolve().as_posix()
+print(lib_path)
 sys.path.append(lib_path)
 
 from databases.douban import Douban
@@ -34,7 +35,7 @@ yyets_data = douban.db["yyets"].find_one({"data.info.id": resource_id})
 search_html = ""
 cname = yyets_data["data"]["info"]["cnname"]
 
-final_data = douban.get_craw_data(cname, douban_id, resource_id, search_html, session)
+final_data = douban.get_craw_data(cname, douban_id, resource_id, search_html)
 douban.db["douban"].find_one_and_replace({"resourceId": resource_id}, final_data)
 print("fix complete")
 sys.exit(0)

@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3
 # coding: utf-8
 
-# YYeTsBot - common.py
+# YYeTsBot - db.py
 # 3/26/22 10:40
 #
 

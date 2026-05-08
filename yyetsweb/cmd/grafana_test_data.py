@@ -10,7 +10,7 @@ __author__ = "Benny <benny.think@gmail.com>"
 import random
 from datetime import date, timedelta
 
-from common import Mongo
+from db import Mongo
 
 col = Mongo().client["zimuzu"]["metrics"]
 
