@@ -10,7 +10,7 @@ RUN apt update && apt install -y --no-install-recommends tzdata ca-certificates
 
 FROM debian:bookworm-slim AS nodebuilder
 RUN apt update && apt install -y --no-install-recommends curl ca-certificates unzip
-RUN curl -fL https://github.com/tgbot-collection/YYeTsFE/releases/download/ads-2026-05-07/build.zip -o build.zip
+RUN curl -fL https://github.com/tgbot-collection/YYeTsFE/releases/download/ads-2026-05-12/build.zip -o build.zip
 RUN unzip build.zip && rm build.zip
 
 
