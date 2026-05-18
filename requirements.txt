@@ -22,4 +22,4 @@ coloredlogs==15.0.1
 meilisearch==0.33.0
 pillow==12.2.0
 pytz==2026.2
-playwright==1.59.0
+playwright==1.60.0
