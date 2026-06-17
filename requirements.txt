@@ -5,7 +5,7 @@ tgbot-ping==1.0.7
 redis==7.4.0
 apscheduler==3.11.2
 pymongo==4.17.0
-tornado==6.5.5
+tornado==6.5.7
 captcha==0.7.1
 passlib==1.7.4
 fakeredis==2.35.1
