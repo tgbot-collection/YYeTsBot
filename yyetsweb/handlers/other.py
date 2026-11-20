@@ -162,6 +162,9 @@ class BlacklistHandler(BaseHandler):
 
     @run_on_executor()
     def get_black_list(self):
+        if not self.instance.is_admin(self.get_current_user()):
+            self.set_status(HTTPStatus.FORBIDDEN)
+            return {"message": "只有管理员可以查看黑名单"}
         return self.instance.get_black_list()
 
     @gen.coroutine

@@ -8,6 +8,7 @@ import random
 import re
 import string
 import time
+from ipaddress import ip_address
 from hashlib import sha256
 
 import pymongo
@@ -55,12 +56,19 @@ class Announcement(Mongo):
         self.db["announcement"].insert_one(construct)
 
 
-class Blacklist(Redis):
+class Blacklist(Mongo, Redis):
     def get_black_list(self):
-        keys = self.r.keys("*")
         result = {}
 
-        for key in keys:
+        for key in self.r.scan_iter():
+            if isinstance(key, bytes):
+                key = key.decode("utf-8")
+            try:
+                ip_address(key)
+            except ValueError:
+                continue
+            if self.r.type(key) not in ("string", b"string"):
+                continue
             count = self.r.get(key)
             ttl = self.r.ttl(key)
             if ttl != -1:
@@ -174,19 +182,24 @@ class Other(Mongo, Redis):
 
 
 class Captcha(Redis):
+    @staticmethod
+    def cache_key(captcha_id):
+        return f"captcha:{captcha_id}"
+
     def get_captcha(self, captcha_id):
         chars = "".join([random.choice(predefined_str) for _ in range(4)])
         image = ImageCaptcha()
         data = image.generate(chars)
-        self.r.set(captcha_id, chars, ex=captcha_ex)
+        self.r.set(self.cache_key(captcha_id), chars, ex=captcha_ex)
         return f"data:image/png;base64,{base64.b64encode(data.getvalue()).decode('ascii')}"
 
     def verify_code(self, user_input, captcha_id) -> dict:
-        correct_code = self.r.get(captcha_id)
+        key = self.cache_key(captcha_id)
+        correct_code = self.r.get(key)
         if not correct_code:
             return {"status": False, "message": "验证码已过期"}
         if user_input.lower() == correct_code.lower():
-            self.r.delete(correct_code)
+            self.r.delete(key)
             return {"status": True, "message": "验证通过"}
         else:
             return {"status": False, "message": "验证码错误"}

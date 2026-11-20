@@ -19,14 +19,21 @@ class SubtitleDownloadHandler(BaseHandler):
     def find_and_download(self):
         file = self.json.get("file")
         _id = self.json.get("id")
+        if not isinstance(file, str) or not file or "\x00" in file:
+            self.set_status(HTTPStatus.BAD_REQUEST)
+            return b""
+        root = Path(__file__).parent.parent.joinpath("subtitle_data").resolve()
+        p = (root / file).resolve()
+        if not p.is_relative_to(root):
+            self.set_status(HTTPStatus.FORBIDDEN)
+            return b""
         self.set_header("x-filename", Path(file).name)
-        p = Path(__file__).parent.parent.joinpath("subtitle_data", file)
         self.set_header("Content-Type", "application/bin")
         try:
             data = p.read_bytes()
             self.instance.add_download(_id)
             return data
-        except FileNotFoundError:
+        except (FileNotFoundError, IsADirectoryError):
             self.set_status(HTTPStatus.NOT_FOUND)
             return b""
 

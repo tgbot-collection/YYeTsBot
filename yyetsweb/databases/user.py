@@ -14,6 +14,7 @@ from passlib.handlers.pbkdf2 import pbkdf2_sha256
 
 from common.utils import send_mail, ts_date
 from databases.base import Mongo, Redis
+from databases.other import Captcha
 
 
 class Like(Mongo):
@@ -52,7 +53,8 @@ class User(Mongo, Redis):
         browser: str,
     ) -> dict:
         # verify captcha in the first place.
-        correct_captcha = self.r.get(captcha_id)
+        captcha_key = Captcha.cache_key(captcha_id)
+        correct_captcha = self.r.get(captcha_key)
         if correct_captcha is None:
             return {
                 "status_code": HTTPStatus.BAD_REQUEST,
@@ -60,7 +62,7 @@ class User(Mongo, Redis):
                 "status": False,
             }
         elif correct_captcha.lower() == captcha.lower():
-            self.r.expire(captcha_id, 0)
+            self.r.delete(captcha_key)
         else:
             return {
                 "status_code": HTTPStatus.FORBIDDEN,
