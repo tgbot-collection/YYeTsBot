@@ -4,10 +4,10 @@ beautifulsoup4==4.15.0
 tgbot-ping==1.0.7
 redis==8.1.0
 apscheduler==3.11.3
-pymongo==4.20.0
+pymongo==4.20.1
 tornado==6.6.1
 captcha==0.7.1
-passlib==1.7.4
+passlib==1.9.5
 fakeredis==2.40.0
 filetype==1.2.0
 requests[socks]
